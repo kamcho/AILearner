@@ -1,0 +1,140 @@
+{% extends 'Users/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<div class="main-body">
+
+<br>
+        <div class="profile" id="accordionExample">
+              <p>{{ user }}</p>
+
+              <img class="profile-pic" src="{{ user.profile.pic.url }}" >
+          </div>
+
+
+        <div class="friend-view">
+            <br>
+
+            <div class="col-md-3">
+              <div class="form-group">
+
+                <input class="form-control"  name="song2" placeholder="Search"  required><button class="btn btn-info">Search</button>
+              </div>
+        </div>
+
+          {% for friend in friends %}
+              {% for friend in friend.friends.all %}
+                  <div>
+                    <img class="friend-pic" src="{{ friend.profile.pic.url }}" >
+
+                      {{ friend }}
+                  </div>
+            <hr>
+              {% endfor %}
+
+          {% endfor %}
+
+        </div>
+
+
+
+
+        <div class="container">
+            <br>
+            <p style="font-family:'Brush Script MT', cursive;">Refer a friend to increase your chances to get a fully paid trip to one of our charity events.</p>
+            <br>
+            <div class="mb-3">
+                  <label for="exampleFormControlInput1" class="form-label">Referal Code</label>
+                  <input type="email" class="form-control" id="exampleFormControlInput1" value={{ user.profile.referal }} readonly>
+            </div>
+
+
+
+             <h5 style="font-family:simplifica;">Edit Profile</h5>
+  <div class="accordion" id="changePhoneNumberAccordion">
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="changePhoneNumberHeader">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#changePhoneNumberCollapse" aria-expanded="true" aria-controls="changePhoneNumberCollapse">
+          <small>Edit Profile</small>
+        </button>
+      </h2>
+      <div id="changePhoneNumberCollapse" class="accordion-collapse collapse show" aria-labelledby="changePhoneNumberHeader" data-bs-parent="#changePhoneNumberAccordion">
+        <div class="accordion-body">
+          <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+              <label for="">First Name</label>
+              <input  name="first-name" class="form-control" value="{{ user.profile.first_name }}">
+            </div>
+            <div class="form-group">
+              <label for="last-name">Last Name</label>
+              <input  name="last-name" class="form-control" value="{{ user.profile.last_name }}" >
+            </div>
+            <div class="form-group">
+              <label for="phone_number">Phone Number</label>
+              <input type="tel" name="phone_number" class="form-control" value="{{ user.profile.phone }}" required>
+            </div>
+            <div class="form-group">
+              <label for="country">Country</label>
+              <input  name="country" class="form-control" value="{{ user.profile.country }}">
+            </div>
+              <div class="form-group">
+              <label for="city">City</label>
+              <input  name="city" class="form-control" value="{{ user.profile.city }}" >
+            </div>
+              <div class="form-group">
+              <label for="area">Area</label>
+              <input  name="area" class="form-control" value={{ user.profile.area }}>
+            </div>
+              <br>
+            <button type="submit" class="btn btn-primary">Update Profile Info</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+
+
+
+
+
+
+
+            <br>
+            <br>
+            <h5 style="font-family:simplifica;">Personal Projects</h5>
+<div class="accordion" id="transactionsAccordion2" data-display-toggle="False" data-bs-parent="#transactionsAccordion2">
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingTwo">
+      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
+        Transactions
+      </button>
+    </h2>
+    <div id="collapseTwo" class="accordion-collapse collapse show" aria-labelledby="headingTwo" data-bs-parent="#transactionsAccordion2">
+      <div class="accordion-body">
+        {% for transaction in projects %}
+          <div class="row" style="padding-top:5px;">
+            <div class="col-sm-2" style="font-size:14px;">{{ transaction.date|date:"y-m-d"}} </div>
+            <div class="col-sm-3" style="font-size:14px;">{{ transaction.first_name }} {{ transaction.last_name }}</div>
+            <div class="col-sm-2" style="font-size:13px;"> {{ transaction.target_area }}</div>
+            <div class="col-sm-1" style="font-size:13px;"> {{ transaction.target_amount }}</div>
+
+            <div class="col-sm-1"  style="color:green;font-family:verdana;"><i class="bi bi-plus"></i>{{ transaction.achieved_amount }}</div>
+
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+        </div>
+
+
+</div>
+
+{% endblock %}
