@@ -4,12 +4,17 @@
 {% block content %}
 
 <div class="container">
-  <h3>PLEASE ENTER YOUR CREDENTIALS CORRECTLY</h3>
-  <div class="form-group">
+<br><br>
+    <div class="form-group">
     <form method="POST">
         {% csrf_token %}
 
-        {{ form|crispy }}<br>
+        <div class="mb-3 row">
+            <div class="col-sm-10">
+                {{ form|crispy }}
+            </div>
+      </div>
+
 
     <button class="btn btn-primary">sign in</button>
     </form>
