@@ -12,10 +12,10 @@ from Users.models import MyUser
 
 class Course(models.Model):
     name = models.CharField(max_length=100)
-    grade= models.CharField(max_length=2,default="1")
+    discipline = models.CharField(max_length=20,default="science")
 
     def __str__(self):
-        return self.name + ' ' + self.grade
+        return self.name
 
 class Subject(models.Model):
     name = models.CharField(max_length=100)
@@ -27,7 +27,7 @@ class MySubjects(models.Model):
     name = models.ManyToManyField(Course,blank=True,related_name='my_subjects')
     user = models.OneToOneField(MyUser,on_delete=models.CASCADE)
     def __str__(self):
-        return self.name
+        return str(self.user)
 #
 class Topic(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
