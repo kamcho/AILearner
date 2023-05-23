@@ -5,6 +5,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.generic import CreateView, DetailView, TemplateView
 
+from SubjectList.models import MySubjects
 from Users.forms import UserRegisterForm
 from Users.models import PersonalProfile
 
@@ -21,6 +22,12 @@ class RegisterView(CreateView):
 class MyProfile(DetailView):
     model = PersonalProfile
     template_name = "Users/profile.html"
+
+    def get_context_data(self, **kwargs):
+        context=super(MyProfile, self).get_context_data(**kwargs)
+        context['subjects'] = MySubjects.objects.filter(user=self.request.user)
+
+        return context
 
 class Home(TemplateView):
     template_name = 'Users/home.html'

@@ -127,6 +127,10 @@ class PersonalProfile(models.Model):
     pic = models.ImageField(upload_to='profile_pics/', default='E:\\IPweb\\media\\profile_pics\\TT.png')
     phone1=models.CharField(max_length=15)
     phone2=models.CharField(max_length=15)
+    country = models.CharField(max_length=10,default="Kenya",blank=True)
+    city = models.CharField(max_length=10,default="Nairobi",blank=True)
+    area = models.CharField(max_length=10,default="Karen",blank=True)
+
 
 
     def __str__(self):

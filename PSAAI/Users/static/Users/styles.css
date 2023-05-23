@@ -1,0 +1,43 @@
+.card{
+
+    background-color:rgba(0,0,.1,.9);
+}
+
+
+.image {
+    width:100px;
+    height:100px;
+    margin-left:10px;
+    margin-top:10px;
+    border-radius:50%;
+    float:left;
+    display: inline-block;
+    border: 3px solid aqua;
+}
+
+.names {
+
+    margin-top:30px;
+    color:aqua;
+    padding-left:30px;
+
+
+}
+.subjects h6{
+    padding:15px;
+    padding-left:65px;
+    color:white
+}
+.subject-list{
+padding-left:15px;
+
+
+    display:grid;
+    grid-template-columns:auto auto auto auto;
+}
+.subject-list p{
+    color:white !important;
+}
+.subject-list i{
+    color:aqua !important;
+}
