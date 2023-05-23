@@ -108,6 +108,7 @@
 
         {% for subject in subjects %}
           {% for entry in subject.name.all %}
+
           <p ><i class="bi bi-prescription2"> </i>{{ entry }}</p>
           {% endfor %}
         {% endfor %}
@@ -117,10 +118,12 @@
 
       </div>
 
+      <button style="width:100px;margin:10px;" class="btn btn-warning">Edit</button>
+
 
 
     </div>
-    
+
     
     
     
