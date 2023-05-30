@@ -1,3 +1,23 @@
+.vertical-bar{
+  position: absolute;
+  width: 15%;
+  color:white !important;
+  padding-top:3%;
+  padding-left:30px;
+  min-width:20%;
+  color:black;
+
+  height:100%;
+
+
+}
+.vertical-bar a{
+    color:black;
+}
+.main-body{
+ padding-left:18%;
+    padding-top:3%;
+}
 .card{
 
     background-color:rgba(0,0,.1,.9);
@@ -13,13 +33,15 @@
     float:left;
     display: inline-block;
     border: 3px solid aqua;
+    margin-right:30px;
 }
 
 .names {
 
     margin-top:30px;
     color:aqua;
-    padding-left:30px;
+    left:30px;
+    text-align:center;
 
 
 }
