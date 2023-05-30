@@ -1,0 +1,12 @@
+{% extends 'Users/base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block content %}
+
+    {% for exam in exams %}
+
+      <p>{{ exam }}</p>
+    {% endfor %}
+
+{% endblock %}
