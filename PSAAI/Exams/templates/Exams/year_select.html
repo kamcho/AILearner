@@ -6,7 +6,8 @@
 
     {% for exam in exams %}
 
-      <p>{{ exam }}</p>
+      <a href="{% url 'test' exam.id %}">{{ exam }}</a>
+
     {% endfor %}
 
 {% endblock %}

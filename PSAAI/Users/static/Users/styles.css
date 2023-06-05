@@ -1,23 +1,85 @@
+
+*{
+    /* background-color:black; */
+    
+}
 .vertical-bar{
   position: absolute;
   width: 15%;
+  
+  margin:10px 5px 10px 10px;
+  
   color:white !important;
   padding-top:3%;
-  padding-left:30px;
+  background-color: black;
   min-width:20%;
   color:black;
-
-  height:100%;
+  border:1px solid white;
+  text-align: center;
+  height: 100%;
+  border-radius: 20px;
 
 
 }
 .vertical-bar a{
-    color:black;
+    color:white;
+    padding-top: 25px;
+    padding-left:5px;
+    
+}
+.vertical-bar a:hover{
+
+    color:rgb(209, 133, 9);
+
 }
 .main-body{
- padding-left:18%;
+    padding-left:22%;
     padding-top:3%;
 }
+
+
+
+
+
+
+/* FOR HOME PAGE */
+
+.event-view{
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+
+}
+.event-view .event-card{
+    background: linear-gradient(135deg, rgba(255, 215, 0, 1), rgba(255, 105, 180, 1)); /* Replace RGBA values with your desired gradient colors */
+    border-radius: 10px;
+    width: 200px;
+    height: 200px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Optional: Add a subtle shadow effect */
+  }
+
+.event-card .card-body{
+    color: white;
+    padding: 0%;
+}
+.table{
+    padding:30px;
+    margin-top: 40px;
+}
+
+table th{
+    font-weight: lighter;
+    padding-left: 20px;
+}
+
+
+
+
+
+
+
+
+
 .card{
 
     background-color:rgba(0,0,.1,.9);

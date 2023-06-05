@@ -22,3 +22,10 @@ class ExamCourseList(TemplateView):
         context['exams'] = KCSEExam.objects.filter(subject = self.kwargs['name'])
 
         return context
+
+class Tests(TemplateView):
+    template_name = 'Exams/tests.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(Tests, self).get_context_data(**kwargs)
+        context['quiz'] = KCSEQuiz.objects.filter()
