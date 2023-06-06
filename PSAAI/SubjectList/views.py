@@ -58,6 +58,7 @@ class Read(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(Read, self).get_context_data(**kwargs)
-        context['subject'] = Course.objects.all()
+        topic = Topic.objects.get(name='Introduction')
+        context['subject'] = Subtopic.objects.filter(topic=topic)
 
         return context

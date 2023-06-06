@@ -6,6 +6,6 @@ urlpatterns = [
 
     path('subject-selection/',Academia.as_view(),name='academia'),
     path('learn/',Learning.as_view(), name='learn'),
-    path('learning<str:pk>/', Read.as_view(), name='read'),
+    path('learning/<str:pk>/', Read.as_view(), name='read'),
 
     ]
