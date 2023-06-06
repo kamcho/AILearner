@@ -52,3 +52,12 @@ class Learning(TemplateView):
         context['subjects'] = MySubjects.objects.get(user=self.request.user)
 
         return context
+
+class Read(TemplateView):
+    template_name = 'SubjectList/read.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(Read, self).get_context_data(**kwargs)
+        context['subject'] = Course.objects.all()
+
+        return context
