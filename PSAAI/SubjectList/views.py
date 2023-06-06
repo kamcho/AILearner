@@ -43,4 +43,12 @@ class Academia(TemplateView):
             return HttpResponse(subjects)
 
 
+class Learning(TemplateView):
 
+    template_name = 'SubjecTlist\select_subject.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(Learning, self).get_context_data(**kwargs)
+        context['subjects'] = MySubjects.objects.get(user=self.request.user)
+
+        return context

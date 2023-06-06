@@ -5,6 +5,6 @@ from .views import *
 urlpatterns = [
 
     path('subject-selection/',Academia.as_view(),name='academia'),
-
+    path('learn/',Learning.as_view(), name='learn'),
 
     ]

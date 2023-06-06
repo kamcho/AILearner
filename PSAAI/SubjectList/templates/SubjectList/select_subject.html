@@ -1,0 +1,45 @@
+{% extends 'Users/base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block content %}
+
+    <div class="container">
+        <div class="subject-view">
+
+            {% for subject in user.mysubjects.name.all %}
+            <div>
+                {{subject}}
+            </div>
+          {% endfor %}
+
+
+
+
+
+
+
+
+        </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </div>
+
+
+
+
+
+
+
+{% endblock %}

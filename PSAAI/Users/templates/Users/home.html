@@ -10,6 +10,7 @@
 
       <div class="event-view">
 
+      <a href="{% url 'learn' %}" style="text-decoration:none;">
         <div class="event-card">
           <h6 style="color:white;">E-Learning</h6>
           <div class="card-body">
@@ -19,6 +20,7 @@
 
           </div>
         </div>
+      </a>
         <div class="event-card" style="background-color: black !important;">
           <p>Progress</p>
           <div class="card-body">
@@ -54,54 +56,128 @@
     </home>
 
 
-    <TABLE>
+    <div class='table-container'>
 
-
+      <div class="input-group mb-3">
+        
+        <input type="text" class="form-control" aria-label="Text input with dropdown button">
+        <button class="btn btn-secondary">Filter By</button>
+        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Grade</button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item" href="#">Action</a></li>
+          <li><a class="dropdown-item" href="#">Another action</a></li>
+          <li><a class="dropdown-item" href="#">Something else here</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" href="#">Separated link</a></li>
+        </ul>
+        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Subject</button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item" href="#">Action</a></li>
+          <li><a class="dropdown-item" href="#">Another action</a></li>
+          <li><a class="dropdown-item" href="#">Something else here</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" href="#">Separated link</a></li>
+        </ul>
+      </div>
       <table class="table">
         <thead>
           <tr>
             <th>Subject</th>
             <th>Progress</th>
             <th>Expiry</th>
-            <th>Pass</th>
+            <th>Accuracy</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td>Mathematics</td>
-            <td>80%</td>
+            <td>
+              <div class="progress">
+                <div class="progress-bar"  role="progressbar" style="width: 25%;background-color: orange;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
+              </div>
+          </td>
             <td>2023-05-15</td>
-            <td>Good progress</td>
+            <td>
+              <div class="progress">
+                <div class="progress-bar"  role="progressbar" style="width: 63%;background-color: orange;" aria-valuenow="63" aria-valuemin="0" aria-valuemax="100">63%</div>
+              </div>
+            </td>
           </tr>
           <tr>
-            <td>Science</td>
-            <td>70%</td>
-            <td>2023-06-30</td>
-            <td>Needs improvement</td>
+            <td>History</td>
+            <td>
+              <div class="progress">
+                <div class="progress-bar"  role="progressbar" style="width: 85%;background-color: orange;" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100">85%</div>
+              </div>
+          </td>
+            <td>2023-05-15</td>
+            <td>
+              <div class="progress">
+                <div class="progress-bar"  role="progressbar" style="width: 65%;background-color: orange;" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100">65%</div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>Chemistry</td>
+            <td>
+              <div class="progress">
+                <div class="progress-bar"  role="progressbar" style="width: 57%;background-color: orange;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">57%</div>
+              </div>
+          </td>
+            <td>2023-05-15</td>
+            <td>
+              <div class="progress">
+                <div class="progress-bar"  role="progressbar" style="width: 68%;background-color: orange;" aria-valuenow="68" aria-valuemin="0" aria-valuemax="100">68%</div>
+              </div>
+            </td>
           </tr>
           <tr>
             <td>Biology</td>
-            <td>70%</td>
-            <td>2023-06-30</td>
-            <td>Needs improvement</td>
+            <td>
+              <div class="progress">
+                <div class="progress-bar"  role="progressbar" style="width: 45%;background-color: orange;" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100">45%</div>
+              </div>
+          </td>
+            <td>2023-05-15</td>
+            <td>
+              <div class="progress">
+                <div class="progress-bar"  role="progressbar" style="width: 55%;background-color: orange;" aria-valuenow="55" aria-valuemin="0" aria-valuemax="100">55%</div>
+              </div>
+            </td>
           </tr>
           <tr>
             <td>Physics</td>
-            <td>70%</td>
-            <td>2023-06-30</td>
-            <td>Needs improvement</td>
+            <td>
+              <div class="progress">
+                <div class="progress-bar"  role="progressbar" style="width: 75%;background-color: orange;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">75%</div>
+              </div>
+          </td>
+            <td>2023-05-15</td>
+            <td>
+              <div class="progress">
+                <div class="progress-bar"  role="progressbar" style="width: 65%;background-color: orange;" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100">65%</div>
+              </div>
+            </td>
           </tr>
           <tr>
             <td>Geography</td>
-            <td>70%</td>
-            <td>2023-06-30</td>
-            <td>Needs improvement</td>
+            <td>
+              <div class="progress">
+                <div class="progress-bar"  role="progressbar" style="width: 65%;background-color: orange;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">65%</div>
+              </div>
+          </td>
+            <td>2023-05-15</td>
+            <td>
+              <div class="progress">
+                <div class="progress-bar"  role="progressbar" style="width: 85%;background-color: orange;" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100">85%</div>
+              </div>
+            </td>
           </tr>
           <!-- Add more rows as needed -->
         </tbody>
       </table>
       
-    </TABLE>
+    </div>
 
 
 

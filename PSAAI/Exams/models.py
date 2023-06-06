@@ -20,7 +20,7 @@ class KCSEQuiz(models.Model):
     topic = models.CharField(max_length=100)
     section = models.CharField(max_length=10)
     quiz = models.TextField(max_length=500)
-    number = models.CharField(max_length=10)
+    number = models.IntegerField()
 
     def __str__(self):
         return str(self.unit) + ' ' + str(self.number)

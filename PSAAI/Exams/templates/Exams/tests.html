@@ -1,0 +1,20 @@
+{% extends 'Users/base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block content %}
+
+    {% for quiz in quizes %}
+    <div class="quiz">
+      <p><small>{{ quiz.number }}.</small>)  {{ quiz.quiz }}</p>
+
+        <div class="answer" style="width:80%;">
+
+            <textarea  class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp"></textarea>
+       </div>
+
+    </div>
+
+    {% endfor %}
+
+{% endblock %}

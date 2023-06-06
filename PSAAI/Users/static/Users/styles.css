@@ -3,28 +3,49 @@
     /* background-color:black; */
     
 }
+html, body {
+    height: 100%;
+    margin: 0;
+    position: relative;
+
+    padding: 0;
+  }
+
 .vertical-bar{
-  position: absolute;
-  width: 15%;
-  
-  margin:10px 5px 10px 10px;
-  
-  color:white !important;
-  padding-top:3%;
-  background-color: black;
-  min-width:20%;
-  color:black;
-  border:1px solid white;
-  text-align: center;
-  height: 100%;
-  border-radius: 20px;
+    position: fixed;
+    width: 15%;
+    margin: 1px ;
+    color: white !important;
+    padding-top: 1%;
+    background-color: black;
+    color: black;
+    border: 1px solid white;
+    height: 100%;
+    border-radius: 1px;
 
 
 }
+.vertical-bar .user-img{
+    width: 100px;
+    height:100px;
+    border-radius: 10px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.user-img img{
+width:100px;
+height: 100px;
+border-radius:10px ;
+
+}
+.vertical-bar li{
+    
+    padding-left: 20px;
+}
 .vertical-bar a{
     color:white;
-    padding-top: 25px;
-    padding-left:5px;
+    padding-top: 35px;
+    padding-left:25px;
     
 }
 .vertical-bar a:hover{
@@ -62,22 +83,55 @@
     color: white;
     padding: 0%;
 }
+.table-container{
+    
+    width: 90%;
+    margin-top: 40px;
+}
 .table{
     padding:30px;
-    margin-top: 40px;
+    
+   
 }
 
 table th{
     font-weight: lighter;
     padding-left: 20px;
 }
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+.event-card a{
+    text-decoration: none;
+    color: #ffffff;
+}
 
 
 
+/* FOR EXAMS */
 
 
-
-
+.exam-view{
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+}
+.exam-view .exam-card{
+    background-color: black;
+    width: 200px;
+    height: 180px;
+    color: white;
+    border-radius: 10px;
+    margin-top: 20px;
+}
+.exam-card div{
+    padding: 15px;
+}
+.exam-card small{
+    color: rgb(206, 200, 200);
+}
+.exam-card p,h6{
+    padding-top: 5px;
+}
 
 
 .card{
@@ -107,20 +161,14 @@ table th{
 
 
 }
-.subjects h6{
-    padding:17px;
-    color:white
-}
-.subject-list{
-padding-left:15px;
 
 
-    display:grid;
-    grid-template-columns:auto auto auto auto;
+
+
+/* FOR QUIZ EXAMS */
+.quiz{
+    padding: 10px;
 }
-.subject-list p{
-    color:white !important;
-}
-.subject-list i{
-    color:aqua !important;
+.quiz .answer{
+    margin-left:10px;
 }
