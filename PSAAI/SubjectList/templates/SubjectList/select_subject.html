@@ -8,16 +8,23 @@
         <div class="subject-view">
 
             {% for subject in user.mysubjects.name.all %}
-                <a href="{% url 'read' subject.pk %}">
-                    <div class="learn-card">
-                        <h6>{{subject}}</h6>
-                        <div class="learn-body">
-                            <small class="text-muted">Chapter 2: Gases</small>
-                            <br><small class="text-muted">Last View : 4 days ago</small>
 
-                        </div>
+
+
+
+                    <div class="learn-card">
+                        <a href="{% url 'read' subject.pk %}"><h6>{{subject}}</h6></a>
+                        <div class="learn-body">
+                            <small class="text-muted">Chapter 1: introduction to {{ subject }}</small>
+                            <br><small class="text-muted">Last View : Never</small>
+                            <div style="margin-top:60%;">
+                                <a href="{% url 'syllabus' subject %}"><button class="btn btn-info">Syllabus</button></a>
+                                </div>
+                            </div>
                     </div>
-                </a>
+
+
+
           {% endfor %}
 
 

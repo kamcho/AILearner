@@ -4,9 +4,7 @@
 
 {% block content %}
 
-<div>
-    <div style="display:flex;position:fixed;">
-        <div class="dropdown">
+  <div class="dropdown">
       <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
         Grade
       </button>
@@ -17,29 +15,22 @@
         <li><a class="dropdown-item" href="#">4</a></li>
       </ul>
     </div>
+<br>
+  <div>
 
-    <div style="margin-left:100px;">
-        <a href="{% url 'finish' subject.0.name %}"><button class="btn btn-info">Finish</button></a>
-    </div>
-    </div>
+    {% for coverage in syllabus %}
 
-<br><br><br>
+      <p>[+ {{ coverage.order }} +]~{{ coverage }}</p>
+        <small style="padding-left:30px;">{{ coverage.subtopic }}</small>
 
-    <div><h6 style="text-decoration:underline;">{{ topic.subject }} : {{ topic }}</h6></div>
-    <br><small>{{ subject.0.name }}</small>
-
-    <div>
-        <object data="https://media.geeksforgeeks.org/wp-content/cdn-uploads/20210101201653/PDF.pdf"
-                width="800"
-                height="800">
-        </object>
-    </div>
-
-    <br><br>
+    {% endfor %}
 
 
 
-</div>
+  </div>
+
+
+
 
 
 {% endblock %}

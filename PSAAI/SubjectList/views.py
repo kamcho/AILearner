@@ -10,15 +10,15 @@ from django.views.generic import TemplateView
 class Academia(TemplateView):
     template_name = 'SubjectList/academia.html'
 
-    def get_context_data(self,*args,**kwargs):
-        context=super(Academia, self).get_context_data(**kwargs)
+    def get_context_data(self, *args, **kwargs):
+        context = super(Academia, self).get_context_data(**kwargs)
         context['sciences'] = Course.objects.filter(discipline='science')
         context['literature'] = Course.objects.filter(discipline='literature')
         context['social'] = Course.objects.filter(discipline='social')
 
         return context
 
-    def post(self,request):
+    def post(self, request):
         if request.method == "POST":
             user = MyUser.objects.get(email=request.user)
             print(user)
@@ -39,26 +39,84 @@ class Academia(TemplateView):
             #
             # my_list.friends.add(friend)
 
-
             return HttpResponse(subjects)
 
 
 class Learning(TemplateView):
-
     template_name = 'SubjecTlist\select_subject.html'
 
     def get_context_data(self, **kwargs):
         context = super(Learning, self).get_context_data(**kwargs)
-        context['subjects'] = MySubjects.objects.get(user=self.request.user)
+        my_subjects = MySubjects.objects.get(user=self.request.user)
+        print(my_subjects.name)
+        course_names = [course.pk for course in my_subjects.name.all()]
+
+        # print(course_names)  # Print the names of the related courses
+
+        # Retrieve the related Progress objects for a specific subject within MySubjects
+        subject_name = "Subject Name"  # Replace with the actual subject name you want to query
+        progresses = Progress.objects.filter(subject__in=course_names, user=my_subjects.user)
+
+        # You can iterate over the progresses to access each individual progress object
+
+        # Do something with the progress object
+        # ...
+
+        # Alternatively, you can assign the progresses to the 'progresses' context variable
+        context['subjects'] = my_subjects
+        context['progresses'] = progresses
+        print(progresses)
 
         return context
+
 
 class Read(TemplateView):
     template_name = 'SubjectList/read.html'
 
     def get_context_data(self, **kwargs):
         context = super(Read, self).get_context_data(**kwargs)
-        topic = Topic.objects.get(name='Introduction')
+        topic = Topic.objects.get(name='Introduction To Physics.')
+        context['topic'] = topic
         context['subject'] = Subtopic.objects.filter(topic=topic)
+
+        return context
+
+
+class Finish(TemplateView):
+    template_name = 'SubjectList/finish.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(Finish, self).get_context_data(**kwargs)
+        subtopic = Subtopic.objects.get(name=self.kwargs['name'])
+
+        # Access the related Topic object and its name
+        topic = subtopic.topic.name
+
+        context['topic'] = topic
+        context['subtopic'] = subtopic
+
+        return context
+
+    def post(self, request, **kwargs):
+        if request.method == 'POST':
+            subtopic = Subtopic.objects.get(name=self.kwargs['name'])
+
+            # Access the related Topic object and its name
+            topic = subtopic.topic.name
+            topic = Topic.objects.get(name=topic)
+            subject = subtopic.topic.subject
+
+            progress = Progress.objects.create(user=request.user, topic=topic, subtopic=subtopic, subject=subject)
+
+        return redirect('home')
+
+
+class Syllabus(TemplateView):
+    template_name = 'SubjectList/syllabus.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(Syllabus, self).get_context_data(**kwargs)
+        print(self.kwargs['name'])
+        context['syllabus'] = Topic.objects.filter(subject__name=self.kwargs['name'],subject__grade=1)
 
         return context

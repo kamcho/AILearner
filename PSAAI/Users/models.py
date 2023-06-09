@@ -140,6 +140,7 @@ class AcademicProfile(models.Model):
     user = models.OneToOneField(MyUser, on_delete=models.CASCADE)
     school = models.CharField(max_length=100)
     county = models.CharField(max_length=20)
+    grade = models.IntegerField(default=1)
 
     def __str__(self):
         return self.user.email
