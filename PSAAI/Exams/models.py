@@ -1,5 +1,5 @@
 from django.db import models
-
+from SubjectList.models import Topic
 # Create your models here.
 from SubjectList.models import Course
 import datetime
@@ -32,3 +32,17 @@ class KCSEAnswers(models.Model):
     def __str__(self):
 
         return str(self.quiz)
+
+class TopicalQuiz(models.Model):
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+    quiz = models.TextField(max_length=500)
+
+    def __str__(self):
+        return str(self.id)
+
+class TopicalQuizAnswer(models.Model):
+    quiz = models.ForeignKey(TopicalQuiz, on_delete=models.CASCADE)
+    answer = models.TextField(max_length=500)
+
+    def __str__(self):
+        return str(self.id)

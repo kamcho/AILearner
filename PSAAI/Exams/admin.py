@@ -5,3 +5,5 @@ from .models import *
 admin.site.register(KCSEExam)
 admin.site.register(KCSEQuiz)
 admin.site.register(KCSEAnswers)
+admin.site.register(TopicalQuiz)
+admin.site.register(TopicalQuizAnswer)

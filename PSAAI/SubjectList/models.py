@@ -18,7 +18,7 @@ class Subject(models.Model):
     grade = models.CharField(max_length=2, default="1")
 
     def __str__(self):
-        return str(self.id)
+        return str(self.name)
 
 
 class MySubjects(models.Model):
@@ -58,6 +58,15 @@ class Progress(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     subtopic = models.ForeignKey(Subtopic, on_delete=models.CASCADE)
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.user)
+
+class Notifications(models.Model):
+    user = models.ForeignKey(MyUser, on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now=True)
+    message = models.TextField(max_length=500)
+    about = models.CharField(max_length=100)
 
     def __str__(self):
         return str(self.user)
