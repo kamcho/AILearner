@@ -75,9 +75,11 @@ class Read(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(Read, self).get_context_data(**kwargs)
-        topic = Topic.objects.get(name='Introduction To Physics.')
+        grade = self.request.user.academicprofile.grade
+        topic = Topic.objects.get(subject__name=self.kwargs['pk'], subject__grade=grade, order=1)
         context['topic'] = topic
         context['subject'] = Subtopic.objects.filter(topic=topic)
+        print(topic,'\n\n\n\n')
 
         return context
 
