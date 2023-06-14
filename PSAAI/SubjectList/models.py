@@ -67,6 +67,8 @@ class Notifications(models.Model):
     date = models.DateTimeField(auto_now=True)
     message = models.TextField(max_length=500)
     about = models.CharField(max_length=100)
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+    read = models.BooleanField(default=False)
 
     def __str__(self):
         return str(self.user)

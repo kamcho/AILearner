@@ -79,7 +79,7 @@ class Read(TemplateView):
         topic = Topic.objects.get(subject__name=self.kwargs['pk'], subject__grade=4, order=1)
         context['topic'] = topic
         context['subject'] = Subtopic.objects.filter(topic=topic)
-        print(topic,'\n\n\n\n')
+        print(topic, '\n\n\n\n')
 
         return context
 
@@ -101,14 +101,19 @@ class Finish(TemplateView):
 
     def post(self, request, **kwargs):
         if request.method == 'POST':
+            user = request.user
+
             subtopic = Subtopic.objects.get(name=self.kwargs['name'])
 
             # Access the related Topic object and its name
             topic = subtopic.topic.name
             topic = Topic.objects.get(name=topic)
             subject = subtopic.topic.subject
+            about = f'{subject}: {topic} quiz is ready.'
+            message = 'The quiz for this topic is now ready. Once started the quiz will finish in 15 minutes. Good luck.'
+            progress = Progress.objects.create(user=user, topic=topic, subtopic=subtopic, subject=subject)
 
-            progress = Progress.objects.create(user=request.user, topic=topic, subtopic=subtopic, subject=subject)
+            notification = Notifications.objects.create(user=user, about=about, message=message, topic=topic)
 
         return redirect('home')
 
@@ -119,6 +124,17 @@ class Syllabus(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(Syllabus, self).get_context_data(**kwargs)
         print(self.kwargs['name'])
-        context['syllabus'] = Topic.objects.filter(subject__name=self.kwargs['name'],subject__grade=1)
+        context['syllabus'] = Topic.objects.filter(subject__name=self.kwargs['name'], subject__grade=1)
+
+        return context
+
+
+class Messages(TemplateView):
+    template_name = 'SubjectList/messages.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(Messages, self).get_context_data(**kwargs)
+        user = self.request.user
+        context['messages'] = Notifications.objects.filter(user=user)
 
         return context

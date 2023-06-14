@@ -1,0 +1,51 @@
+{% extends 'Users/base.html' %}
+
+{% block content %}
+  <div>
+    {% for message in messages %}
+        <div class="accordion" id="accordionExample">
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingOne">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                {{ message.about }} <small style="position:absolute;right:45px;"> {{ message.date|timesince }} ago.</small>
+              </button>
+            </h2>
+            <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+              <div class="accordion-body">
+                {{ message.message }}
+                <br>
+                <a href="{% url 'tests' message.topic %}"><button class="btn btn-warning">Take Quiz</button></a>
+              </div>
+            </div>
+          </div>
+        </div>
+    {% endfor %}
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% endblock %}
