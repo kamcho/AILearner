@@ -42,7 +42,10 @@ class TopicalQuiz(models.Model):
 
 class TopicalQuizAnswer(models.Model):
     quiz = models.ForeignKey(TopicalQuiz, on_delete=models.CASCADE)
-    answer = models.TextField(max_length=500)
+    a = models.CharField(max_length=500, default='nul')
+    b = models.CharField(max_length=500, default='nul')
+    c = models.CharField(max_length=500, default='nul')
+    correct = models.CharField(max_length=500, default='nul')
 
     def __str__(self):
         return str(self.id)
