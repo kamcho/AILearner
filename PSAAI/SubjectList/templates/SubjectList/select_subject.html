@@ -9,10 +9,10 @@
 
             {% for subject in user.mysubjects.name.all %}
 
-
-
-
                     <div class="learn-card">
+                        <i class="bi bi-gear"> Grade 4</i>
+
+                        <hr class="centered-hr">
                         <a href="{% url 'read' subject.name %}"><h6>{{subject}}</h6></a>
                         <div class="learn-body">
                             <small class="text-muted">Chapter 1: introduction to {{ subject }}</small>

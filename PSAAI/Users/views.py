@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views.generic import CreateView, DetailView, TemplateView
 
-from SubjectList.models import MySubjects
+from SubjectList.models import MySubjects, Progress
 from Users.forms import UserRegisterForm
 from Users.models import PersonalProfile
 
@@ -51,3 +51,10 @@ class MyProfile(DetailView):
 
 class Home(TemplateView):
     template_name = 'Users/home.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(Home, self).get_context_data(**kwargs)
+        last_subject = Progress.objects.filter(user=self.request.user).last()
+        context['last_subject'] = last_subject
+
+        return context
