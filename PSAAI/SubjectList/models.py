@@ -55,15 +55,16 @@ class Subtopic(models.Model):
 class Progress(models.Model):
 
     user = models.ForeignKey(MyUser, on_delete=models.CASCADE)
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    subject = models.OneToOneField(Subject, on_delete=models.CASCADE)
     subtopic = models.ForeignKey(Subtopic, on_delete=models.CASCADE)
-    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+    topic = models.ManyToManyField(Topic, related_name='progress')
 
     def __str__(self):
         return str(self.user)
 
 class Notifications(models.Model):
     user = models.ForeignKey(MyUser, on_delete=models.CASCADE)
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True)
     date = models.DateTimeField(auto_now=True)
     message = models.TextField(max_length=500)
     about = models.CharField(max_length=100)

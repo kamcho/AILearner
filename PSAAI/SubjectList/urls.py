@@ -10,5 +10,6 @@ urlpatterns = [
     path('save/<str:name>/progress', Finish.as_view(), name='finish'),
     path('<str:name>/syllabus-coverage/', Syllabus.as_view(), name='syllabus'),
     path('Notifications/', Messages.as_view(), name='notifications'),
+    path('Progress/', MyProgress.as_view(), name='progress')
 
 ]

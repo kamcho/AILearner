@@ -14,11 +14,16 @@
               <div class="accordion-body">
                 {{ message.message }}
                 <br>
-                <a href="{% url 'tests' message.topic %}"><button class="btn btn-warning">Take Quiz</button></a>
+                {% if test %}
+                <a><button class="btn btn-info">View Results</button></a>
+                {% else %}
+                <a href="{% url 'start' message.topic message.uuid %}"><button class="btn btn-warning">Take Quiz</button></a>
+                {% endif %}
               </div>
             </div>
           </div>
         </div>
+    <br><br>
     {% endfor %}
   </div>
 

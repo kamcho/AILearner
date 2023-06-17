@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from SubjectList.models import Course, MySubjects
 from .models import *
@@ -14,17 +15,33 @@ class Exams(TemplateView):
 
         return context
 
-# class ExamList(TemplateView):
-#     template_name = 'Exams/year_select.html'
-#
-#     def get_context_data(self, **kwargs):
-#         context = super(ExamList, self).get_context_data(**kwargs)
-#         context['exams'] = KCSEExam.objects.filter(subject = self.kwargs['name'])
-#
-#         return context
+class Start(TemplateView):
+    template_name = 'Exams/start.html'
+    # context_object_name = 'subject'
+
+    def get_context_data(self, **kwargs):
+        context = super(Start, self).get_context_data(**kwargs)
+        context['topic'] = Topic.objects.get(name = self.kwargs['pk'])
+
+
+
+        return context
+    def post(self, *args, **kwargs):
+        if self.request.method == 'POST':
+            user = self.request.user
+            topic = Topic.objects.get(name = self.kwargs['pk'])
+            test = StudentTest.objects.create(user=user,uuid=self.kwargs['uuid'], topic=topic)
+            self.request.session['testId'] = str(test.uuid)
+
+            return redirect('tests', topic.name)
+
+        return HttpResponse('success')
+
 
 class Tests(TemplateView):
     template_name = 'Exams/tests.html'
+
+
 
 
     def get_context_data(self, **kwargs):
@@ -33,7 +50,7 @@ class Tests(TemplateView):
         context = super(Tests, self).get_context_data(**kwargs)
 
         question_index = self.request.session.get('index', 0)
-        questions = TopicalQuizes.objects.filter(topic__name=kwargs['pk'])
+        questions = TopicalQuizes.objects.filter(topic__name=kwargs['pk']).order_by('?')[:10]
         print(questions,question_index)
 
         if question_index >= len(questions):
@@ -42,30 +59,43 @@ class Tests(TemplateView):
             return {}
         else:
             current_question = questions[question_index]
+            self.request.session['quiz'] = str(current_question)
             choices = TopicalQuizAnswers.objects.filter(quiz=current_question)
-            print(questions,'quizzing')
             context['choices'] = choices
             context['quiz'] =  current_question
+            self.quiz = context['quiz']
             context['index'] = question_index + 1
-            numbers =number_list = [i + 1 for i in range(len(questions))]
-            print(current_question,choices)
+            numbers = [i + 1 for i in range(len(questions))]
             context['list'] = numbers
 
             return context
 
     def post(self, request, *args, **kwargs):
-        question_index = request.session.get('index', 0)
-        questions = TopicalQuizes.objects.filter(topic__name=kwargs['pk'])
-        print(question_index,len(questions))
-        if question_index >= len(questions)-1:
-            # The exam is completed, redirect to a summary page
-            if 'index' in request.session:
-                del request.session['index']
-            return redirect('home')
-        else:
-            current_question = questions[question_index]
-            # answer_text = request.POST.get('answer')
-            # answer = Answer(question=current_question, student=request.user, answer_text=answer_text)
-            # answer.save()
-            request.session['index'] = question_index + 1
-            return redirect(request.path)
+        if request.method == 'POST':
+            user = request.user
+
+            selection = request.POST.get('choice')  # Get the selected choice ID from the POST data
+
+            question_index = request.session.get('index', 0)
+            questions = TopicalQuizes.objects.filter(topic__name=kwargs['pk'])
+            print(question_index,len(questions))
+            quiz = TopicalQuizes.objects.get(id=request.session['quiz'])
+            test = StudentTest.objects.get(uuid = request.session['testId'])
+            selection = TopicalQuizAnswers.objects.get(uuid=selection)
+
+
+
+            answer = StudentsAnswers.objects.create(user=user, quiz=quiz, selection=selection, test=test)
+            if question_index >= len(questions)-1:
+                # The exam is completed, redirect to a summary page
+                if 'index' in request.session:
+                    del request.session['index']
+                return redirect('finish')
+            else:
+                current_question = questions[question_index]
+
+                request.session['index'] = question_index + 1
+                return redirect(request.path)
+
+class Finish(TemplateView):
+    template_name = 'Exams/finish.html'

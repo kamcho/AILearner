@@ -1,7 +1,9 @@
+from django.db.models import Count
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from itsdangerous import json
 
+from Exams.models import StudentTest
 from .models import *
 # Create your views here.
 from django.views.generic import TemplateView
@@ -47,25 +49,6 @@ class Learning(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(Learning, self).get_context_data(**kwargs)
-        my_subjects = MySubjects.objects.get(user=self.request.user)
-        print(my_subjects.name)
-        course_names = [course.pk for course in my_subjects.name.all()]
-
-        # print(course_names)  # Print the names of the related courses
-
-        # Retrieve the related Progress objects for a specific subject within MySubjects
-        subject_name = "Subject Name"  # Replace with the actual subject name you want to query
-        progresses = Progress.objects.filter(subject__in=course_names, user=my_subjects.user)
-
-        # You can iterate over the progresses to access each individual progress object
-
-        # Do something with the progress object
-        # ...
-
-        # Alternatively, you can assign the progresses to the 'progresses' context variable
-        context['subjects'] = my_subjects
-        context['progresses'] = progresses
-        print(progresses)
 
         return context
 
@@ -102,18 +85,20 @@ class Finish(TemplateView):
     def post(self, request, **kwargs):
         if request.method == 'POST':
             user = request.user
-
             subtopic = Subtopic.objects.get(name=self.kwargs['name'])
-
-            # Access the related Topic object and its name
             topic = subtopic.topic.name
             topic = Topic.objects.get(name=topic)
             subject = subtopic.topic.subject
             about = f'{subject}: {topic} quiz is ready.'
+            print('\n\n\n\n',subject,'\n\n\n\n')
             message = 'The quiz for this topic is now ready. Once started the quiz will finish in 15 minutes. Good luck.'
-            progress = Progress.objects.create(user=user, topic=topic, subtopic=subtopic, subject=subject)
-
-            notification = Notifications.objects.create(user=user, about=about, message=message, topic=topic)
+            is_progress = Progress.objects.filter(user=self.request.user, topic=topic)
+            if  not is_progress:
+                progress = Progress.objects.create(user=user, subtopic=subtopic, subject=subject)
+                progress.topic.set([topic])
+                notification = Notifications.objects.create(user=user, about=about, message=message, topic=topic)
+            else:
+                pass
 
         return redirect('home')
 
@@ -135,6 +120,20 @@ class Messages(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(Messages, self).get_context_data(**kwargs)
         user = self.request.user
-        context['messages'] = Notifications.objects.filter(user=user)
+        messages = Notifications.objects.filter(user=user)
+        context['messages'] = messages
+        context['test'] = StudentTest.objects.filter(uuid__in=messages.values('uuid')).first()
 
+        return context
+
+
+class MyProgress(TemplateView):
+    template_name = 'SubjectList/progress.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(MyProgress, self).get_context_data(**kwargs)
+        subject = Progress.objects.filter(user=self.request.user, subject__isnull=False).values('subject__name').annotate(topic_count=Count('topic', distinct=True))
+        count = Progress.objects.filter()
+
+        context['subject'] = subject
         return context

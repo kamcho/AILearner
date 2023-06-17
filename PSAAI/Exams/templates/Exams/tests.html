@@ -1,47 +1,68 @@
 {% extends 'Users/base.html' %}
-{% load crispy_forms_tags %}
-{% load static %}
 
 {% block content %}
-<br><br>
+    <br><br>
     <div style="display:flex">
-
         {% for li in list %}
-    {% with index as current_index %}
-        {% if li == current_index %}
-            <p style="color:aqua;padding-left:5px;text-decoration:underline;font-size:20px;">{{ li }}</p>
-        {% else %}
-            <p style="padding-left:5px;">{{ li }}</p>
-        {% endif %}
-    {% endwith %}
-{% endfor %}
-</div>
-
-<div class="quiz">
-    <p><small>{{ index }}.</small>) {{ quiz.quiz }}</p>
-</div>
-
-
-    <div class="container">
-        {% for choice in choices %}
-  <div class="radio-check">
-    <input type="radio" id="{{ choice.id }}" name="choice" value="{{ choice.id }}">
-    <label for="{{ choice.id }}">{{ choice.choice }}</label>
-  </div>
-{% endfor %}
-
+            {% with index as current_index %}
+                {% if li == current_index %}
+                    <p style="color:aqua;padding-left:5px;text-decoration:underline;font-size:20px;">{{ li }}</p>
+                {% else %}
+                    <p style="padding-left:5px;">{{ li }}</p>
+                {% endif %}
+            {% endwith %}
+        {% endfor %}
     </div>
 
-
+    <div class="quiz">
+        <p><small>{{ index }}.</small>) {{ quiz.quiz }}</p>
+    </div>
 
     <div class="container">
         <form method="post">
             {% csrf_token %}
-
+            {% for choice in choices %}
+                <div class="radio-check">
+                    <input type="radio" id="{{ choice.uuid }}" name="choice" value="{{ choice.uuid }}">
+                    <label for="{{ choice.uuid }}">{{ choice.choice }}</label>
+                </div>
+            {% endfor %}
             <br>
-            <button class="btn btn-info">NEXT</button>
+            <button id="nextButton" class="btn btn-info" disabled>NEXT</button>
         </form>
     </div>
+
+
+
+
+
+
+
+
+
+
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('input[type="radio"]').change(function() {
+            var selected = false;
+            $('input[type="radio"]').each(function() {
+                if ($(this).is(':checked')) {
+                    selected = true;
+                    return false;  // Exit the loop if a radio button is selected
+                }
+            });
+
+            if (selected) {
+                $('#nextButton').prop('disabled', false);
+            } else {
+                $('#nextButton').prop('disabled', true);
+            }
+        });
+    });
+</script>
 
 
 {% endblock %}
