@@ -1,7 +1,7 @@
 import uuid
 
 from django.db import models
-from SubjectList.models import Topic
+from SubjectList.models import Topic, Subject
 # Create your models here.
 from SubjectList.models import Course
 import datetime
@@ -32,6 +32,7 @@ class StudentTest(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, unique=True)
     date = models.DateTimeField(auto_now=True)
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+    subject = models.ForeignKey(Subject,default='10', on_delete=models.CASCADE)
     # quiz = models.ForeignKey(TopicalQuizes, on_delete=models.CASCADE)
 
     def __str__(self):

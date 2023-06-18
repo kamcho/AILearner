@@ -1,18 +1,30 @@
+from django.db.models import Count
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from SubjectList.models import Course, MySubjects
 from .models import *
 # Create your views here
 from django.views.generic import TemplateView, DetailView
-
+from itertools import groupby
 
 class Exams(TemplateView):
     template_name = 'Exams/exams.html'
 
     def get_context_data(self, **kwargs):
         context = super(Exams, self).get_context_data(**kwargs)
-        context['subjects'] = MySubjects.objects.filter(user=self.request.user)
+        subject_tests = StudentTest.objects.filter(user=self.request.user).values('topic__subject__name',
+                                                                             'topic__subject__grade',
+                                                                             'topic__name').distinct()
 
+        grouped_subjects = []
+        for subject, tests in groupby(subject_tests,
+                                      key=lambda x: (x['topic__subject__name'], x['topic__subject__grade'])):
+            grade = subject[1]
+            topics = [test['topic__name'] for test in tests]
+            grouped_subjects.append({'subject': subject[0], 'grade': grade, 'topics': topics})
+
+        context['subjects'] = grouped_subjects
+        print(grouped_subjects)
         return context
 
 
@@ -105,7 +117,7 @@ class Finish(TemplateView):
         if test:
             answers = StudentsAnswers.objects.filter(user=user, test=test).values('selection__uuid')
             quiz_id = [item['selection__uuid'] for item in answers]
-            correct_answers = TopicalQuizAnswers.objects.filter(uuid__in=answers, is_correct='False'
+            correct_answers = TopicalQuizAnswers.objects.filter(uuid__in=answers, is_correct='True'
                                                                 )
             print(correct_answers)
 
@@ -114,3 +126,5 @@ class Finish(TemplateView):
             pass
 
         return context
+
+

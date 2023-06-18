@@ -18,7 +18,7 @@ class Subject(models.Model):
     grade = models.CharField(max_length=2, default="1")
 
     def __str__(self):
-        return str(self.name + ' ' + self.grade)
+        return str( self.name )
 
 
 class MySubjects(models.Model):
@@ -34,7 +34,7 @@ class Topic(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     order = models.IntegerField(default=1)
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    subject = models.ForeignKey(Subject,related_name='subject_id', on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
 
     def __str__(self):
