@@ -248,3 +248,22 @@ tr:nth-child(even) {
     border-top: 1px solid black;
     margin-top:10%;
   }
+
+
+  /* FOR PROGRESS */
+
+.progress-card{
+    width: 320px;
+    height: 220px;
+    background-color: white;
+
+    margin-top: 30px;
+    margin-left:30px;
+    box-shadow: 2px 4px 20px 5px rgba(0, 0, 0, 0.09);
+
+}
+.progress-card .p-txt{
+    padding-top:20px;
+    padding-left:30px;
+    width: 80%;
+}

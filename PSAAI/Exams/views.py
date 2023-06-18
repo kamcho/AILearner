@@ -15,22 +15,23 @@ class Exams(TemplateView):
 
         return context
 
+
 class Start(TemplateView):
     template_name = 'Exams/start.html'
+
     # context_object_name = 'subject'
 
     def get_context_data(self, **kwargs):
         context = super(Start, self).get_context_data(**kwargs)
-        context['topic'] = Topic.objects.get(name = self.kwargs['pk'])
-
-
+        context['topic'] = Topic.objects.get(name=self.kwargs['pk'])
 
         return context
+
     def post(self, *args, **kwargs):
         if self.request.method == 'POST':
             user = self.request.user
-            topic = Topic.objects.get(name = self.kwargs['pk'])
-            test = StudentTest.objects.create(user=user,uuid=self.kwargs['uuid'], topic=topic)
+            topic = Topic.objects.get(name=self.kwargs['pk'])
+            test = StudentTest.objects.create(user=user, uuid=self.kwargs['uuid'], topic=topic)
             self.request.session['testId'] = str(test.uuid)
 
             return redirect('tests', topic.name)
@@ -41,9 +42,6 @@ class Start(TemplateView):
 class Tests(TemplateView):
     template_name = 'Exams/tests.html'
 
-
-
-
     def get_context_data(self, **kwargs):
         # del self.request.session['index']
 
@@ -51,7 +49,7 @@ class Tests(TemplateView):
 
         question_index = self.request.session.get('index', 0)
         questions = TopicalQuizes.objects.filter(topic__name=kwargs['pk']).order_by('?')[:10]
-        print(questions,question_index)
+        print(questions, question_index)
 
         if question_index >= len(questions):
             # The exam is completed, redirect to a summary page
@@ -62,7 +60,7 @@ class Tests(TemplateView):
             self.request.session['quiz'] = str(current_question)
             choices = TopicalQuizAnswers.objects.filter(quiz=current_question)
             context['choices'] = choices
-            context['quiz'] =  current_question
+            context['quiz'] = current_question
             self.quiz = context['quiz']
             context['index'] = question_index + 1
             numbers = [i + 1 for i in range(len(questions))]
@@ -78,15 +76,13 @@ class Tests(TemplateView):
 
             question_index = request.session.get('index', 0)
             questions = TopicalQuizes.objects.filter(topic__name=kwargs['pk'])
-            print(question_index,len(questions))
+            print(question_index, len(questions))
             quiz = TopicalQuizes.objects.get(id=request.session['quiz'])
-            test = StudentTest.objects.get(uuid = request.session['testId'])
+            test = StudentTest.objects.get(uuid=request.session['testId'])
             selection = TopicalQuizAnswers.objects.get(uuid=selection)
 
-
-
             answer = StudentsAnswers.objects.create(user=user, quiz=quiz, selection=selection, test=test)
-            if question_index >= len(questions)-1:
+            if question_index >= len(questions) - 1:
                 # The exam is completed, redirect to a summary page
                 if 'index' in request.session:
                     del request.session['index']
@@ -97,5 +93,24 @@ class Tests(TemplateView):
                 request.session['index'] = question_index + 1
                 return redirect(request.path)
 
+
 class Finish(TemplateView):
     template_name = 'Exams/finish.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(Finish, self).get_context_data(**kwargs)
+        user = self.request.user
+        test = StudentTest.objects.filter(user=user, topic__name='Living Things').order_by('date').last()
+
+        if test:
+            answers = StudentsAnswers.objects.filter(user=user, test=test).values('selection__uuid')
+            quiz_id = [item['selection__uuid'] for item in answers]
+            correct_answers = TopicalQuizAnswers.objects.filter(uuid__in=answers, is_correct='False'
+                                                                )
+            print(correct_answers)
+
+            context['score'] =correct_answers.count()
+        else:
+            pass
+
+        return context

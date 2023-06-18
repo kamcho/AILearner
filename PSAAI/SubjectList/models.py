@@ -18,7 +18,7 @@ class Subject(models.Model):
     grade = models.CharField(max_length=2, default="1")
 
     def __str__(self):
-        return str(self.name)
+        return str(self.name + ' ' + self.grade)
 
 
 class MySubjects(models.Model):

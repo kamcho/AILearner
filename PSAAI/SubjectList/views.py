@@ -109,7 +109,14 @@ class Syllabus(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(Syllabus, self).get_context_data(**kwargs)
         print(self.kwargs['name'])
-        context['syllabus'] = Topic.objects.filter(subject__name=self.kwargs['name'], subject__grade=1)
+        subject = self.kwargs['name']
+        context['syllabus'] = Topic.objects.filter(subject__name=subject)
+        progress = Progress.objects.filter(subject__name=subject).values('topic')
+
+        print(progress)
+        progress = [item['topic'] for item in progress]
+        print(progress)
+        context['done'] = progress
 
         return context
 

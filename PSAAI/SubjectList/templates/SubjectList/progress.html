@@ -7,11 +7,26 @@
 
 <div class="container">
 
+<div class="event-view">
 
         {% for prog in subject %}
-                {{ prog }}
-                <br>
+        <div class="progress-card">
+
+            <h6 class="p-txt">{{ prog.subject__name }}</h6>
+            <hr class="centered-hr">
+            <br>
+            <small class="p-txt">Topics covered: {{ prog.topic_count }}</small>
+            <br>
+            <small class="p-txt">Overall covered: 15</small>
+            <br><br>
+            <div class="progress" style="width:80%;margin-left:30px;">
+              <div class="progress-bar" role="progressbar" style="width: 50%;background-color:purple;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+        </div>
+
         {% endfor %}
+    </div>
+
 </div>
 
 

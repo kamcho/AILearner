@@ -17,13 +17,42 @@
     </div>
 <br>
   <div>
+{% for coverage in syllabus %}
 
-    {% for coverage in syllabus %}
 
-      <p>[+ {{ coverage.order }} +]~{{ coverage }}</p>
-        <small style="padding-left:30px;">{{ coverage.subtopic }}</small>
+    {% if coverage.id in done %}
+      <div style="display:flex;width:60%;">
+          <p style="color:purple;flex: 1;">{{ coverage.order }}.) {{ coverage }}</p>
+          <input type="checkbox" style="margin-left: 0 auto;" checked>
+      </div>
+        <div>
+           {% for subtopic in coverage.topic.all %}
+                <small class="text-muted" style="padding-left:30px">{{ subtopic }}</small>
+                <br>
+            {% endfor %}
+        </div>
 
-    {% endfor %}
+    {% else %}
+      <div style="display:flex;width:60%;">
+          <p style="flex: 1;">{{ coverage.order }}.) {{ coverage }}</p>
+          <input type="checkbox" style="margin-left: 0 auto;" disabled >
+      </div>
+        <div>
+           {% for subtopic in coverage.topic.all %}
+                <small class="text-muted" style="padding-left:30px">{{ subtopic }}</small>
+                <br>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+{% endfor %}
+
+
+
+
+
+
+
 
 
 
