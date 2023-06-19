@@ -43,8 +43,13 @@ class TestDetail(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(TestDetail, self).get_context_data(**kwargs)
         user = self.request.user
-        test = StudentsAnswers.objects.filter(user=user, test=str(self.kwargs['uuid']))
-        context['quizzes'] = test
+        test = str(self.kwargs['uuid'])
+        answers = StudentsAnswers.objects.filter(user=user, test=test)
+        test = StudentTest.objects.get(user=user, uuid=test)
+        print(test)
+
+        context['quizzes'] = answers
+        context['marks'] = test
         return context
 
 class Start(TemplateView):
@@ -79,7 +84,7 @@ class Tests(TemplateView):
         context = super(Tests, self).get_context_data(**kwargs)
 
         question_index = self.request.session.get('index', 0)
-        questions = TopicalQuizes.objects.filter(topic__name=kwargs['pk']).order_by('?')[:10]
+        questions = TopicalQuizes.objects.filter(topic__name=kwargs['pk'])
         print(questions, question_index)
 
         if question_index >= len(questions):
@@ -117,6 +122,7 @@ class Tests(TemplateView):
                 # The exam is completed, redirect to a summary page
                 if 'index' in request.session:
                     del request.session['index']
+
                 return redirect('finish')
             else:
                 current_question = questions[question_index]
@@ -131,14 +137,21 @@ class Finish(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(Finish, self).get_context_data(**kwargs)
         user = self.request.user
+
         test = StudentTest.objects.filter(user=user, topic__name='Living Things').order_by('date').last()
 
         if test:
             answers = StudentsAnswers.objects.filter(user=user, test=test).values('selection__uuid')
             quiz_id = [item['selection__uuid'] for item in answers]
-            correct_answers = TopicalQuizAnswers.objects.filter(uuid__in=answers, is_correct='True'
-                                                                )
-            print(correct_answers)
+            correct_answers = TopicalQuizAnswers.objects.filter(uuid__in=answers, is_correct='True')
+            test.marks = correct_answers.count()
+            test.save()
+            mark = StudentsAnswers.objects.filter(selection__in=correct_answers)
+            for item in mark:
+                item.is_correct = True
+                item.save()
+            print(mark)
+            # print(correct_answers)
 
             context['score'] =correct_answers.count()
         else:

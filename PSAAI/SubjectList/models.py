@@ -64,7 +64,7 @@ class Progress(models.Model):
 
 class Notifications(models.Model):
     user = models.ForeignKey(MyUser, on_delete=models.CASCADE)
-    uuid = models.UUIDField(default=uuid.uuid4, unique=True)
+    uuid = models.CharField(max_length=100,default=str(uuid.uuid4), unique=True)
     date = models.DateTimeField(auto_now=True)
     message = models.TextField(max_length=500)
     about = models.CharField(max_length=100)
