@@ -29,10 +29,11 @@ class TopicalQuizAnswers(models.Model):
 
 class StudentTest(models.Model):
     user = models.ForeignKey(MyUser, on_delete=models.CASCADE)
-    uuid = models.UUIDField(default=uuid.uuid4, unique=True)
+    uuid = models.CharField(max_length=100, default=uuid.uuid4, unique=True)
     date = models.DateTimeField(auto_now=True)
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
-    subject = models.ForeignKey(Subject,default='10', on_delete=models.CASCADE)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    marks = models.CharField(max_length=100,default='0')
     # quiz = models.ForeignKey(TopicalQuizes, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -44,8 +45,8 @@ class StudentsAnswers(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, primary_key=True)
     quiz = models.ForeignKey(TopicalQuizes, on_delete=models.CASCADE)
     selection = models.ForeignKey(TopicalQuizAnswers, on_delete=models.CASCADE)
-    test = models.ForeignKey(StudentTest, on_delete=models.CASCADE)
-
+    test = models.ForeignKey(StudentTest,to_field='uuid', on_delete=models.CASCADE)
+    is_correct = models.BooleanField(default=False)
     def __str__(self):
         return str(self.user)
 

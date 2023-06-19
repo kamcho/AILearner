@@ -13,8 +13,8 @@ class Exams(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(Exams, self).get_context_data(**kwargs)
         subject_tests = StudentTest.objects.filter(user=self.request.user).values('topic__subject__name',
-                                                                             'topic__subject__grade',
-                                                                             'topic__name').distinct()
+                                                                                  'topic__subject__grade',
+                                                                                  'topic__name').distinct()
 
         grouped_subjects = []
         for subject, tests in groupby(subject_tests,
@@ -27,6 +27,25 @@ class Exams(TemplateView):
         print(grouped_subjects)
         return context
 
+class ExamSubjectDetail(TemplateView):
+    template_name = 'Exams/subject_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(ExamSubjectDetail, self).get_context_data(**kwargs)
+        subject = StudentTest.objects.filter(user=self.request.user, subject__name=self.kwargs['name'])
+        context['subject'] = subject
+
+        return context
+
+class TestDetail(TemplateView):
+    template_name = 'Exams/test_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(TestDetail, self).get_context_data(**kwargs)
+        user = self.request.user
+        test = StudentsAnswers.objects.filter(user=user, test=str(self.kwargs['uuid']))
+        context['quizzes'] = test
+        return context
 
 class Start(TemplateView):
     template_name = 'Exams/start.html'
@@ -43,7 +62,7 @@ class Start(TemplateView):
         if self.request.method == 'POST':
             user = self.request.user
             topic = Topic.objects.get(name=self.kwargs['pk'])
-            test = StudentTest.objects.create(user=user, uuid=self.kwargs['uuid'], topic=topic)
+            test = StudentTest.objects.create(user=user,subject=topic.subject, uuid=str(self.kwargs['uuid']), topic=topic)
             self.request.session['testId'] = str(test.uuid)
 
             return redirect('tests', topic.name)

@@ -7,9 +7,10 @@
     <div>
         <div class="event-view">
       {% for subject in subjects %}
+            <a style="text-decoration:none;color:black;" href="{% url 'exam-subject-id' subject.subject %}">
         <div class="progress-card">
             <div class="p-txt">
-                <h6>{{ subject.subject }}</h6>
+                <h6>{{ subject.subject }}.</h6>
             {% for topic in subject.topics %}
                 <small>{{ topic }}</small><br>
             {% endfor %}
@@ -19,14 +20,14 @@
             <div class="p-txt">
 
                 <small>Grade {{ subject.grade }}</small>
-            <p>Score 12 / 15</p>
+            <p>{{ subject.topics|length }} / 15</p>
             </div>
 
 
 
         </div>
 
-
+</a>
 
 
       {% endfor %}

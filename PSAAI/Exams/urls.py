@@ -7,7 +7,9 @@ urlpatterns = [
     path('Exams/',Exams.as_view(),name='exams'),
     path('Exam-at/<str:pk>/<uuid:uuid>/Instructions', Start.as_view(), name='start'),
     path('Exam/<str:pk>/quizes/', Tests.as_view(), name='tests'),
-    path('Exam/Finish', Finish.as_view(), name='finish')
+    path('Exam/Finish', Finish.as_view(), name='finish'),
+    path('Exam/<str:name>/Info', ExamSubjectDetail.as_view(), name='exam-subject-id'),
+    path('Test/<uuid:uuid>/Revision/', TestDetail.as_view(), name='test-detail'),
 
 
     ]

@@ -23,7 +23,7 @@
 
 <nav class="vertical-bar">
     <div class="text-center">
-          <a class="nav-link" href="{% url 'home' %}"><small>{{ user }}</small></a>
+          <a class="nav-link" href="{% url 'home' %}"><small>{{ user.personalprofile.f_name }}</small></a>
       </div>
     <hr class="hr">
    <ul class="navbar-nav">
