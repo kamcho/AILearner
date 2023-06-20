@@ -1,11 +1,10 @@
-from django.db.models import Count
+
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
-from SubjectList.models import Course, MySubjects
 from .models import *
-# Create your views here
 from django.views.generic import TemplateView, DetailView
 from itertools import groupby
+
 
 class Exams(TemplateView):
     template_name = 'Exams/exams.html'
@@ -24,8 +23,9 @@ class Exams(TemplateView):
             grouped_subjects.append({'subject': subject[0], 'grade': grade, 'topics': topics})
 
         context['subjects'] = grouped_subjects
-        print(grouped_subjects)
+
         return context
+
 
 class ExamSubjectDetail(TemplateView):
     template_name = 'Exams/subject_detail.html'
@@ -37,6 +37,7 @@ class ExamSubjectDetail(TemplateView):
 
         return context
 
+
 class TestDetail(TemplateView):
     template_name = 'Exams/test_detail.html'
 
@@ -46,16 +47,15 @@ class TestDetail(TemplateView):
         test = str(self.kwargs['uuid'])
         answers = StudentsAnswers.objects.filter(user=user, test=test)
         test = StudentTest.objects.get(user=user, uuid=test)
-        print(test)
 
         context['quizzes'] = answers
         context['marks'] = test
+
         return context
+
 
 class Start(TemplateView):
     template_name = 'Exams/start.html'
-
-    # context_object_name = 'subject'
 
     def get_context_data(self, **kwargs):
         context = super(Start, self).get_context_data(**kwargs)
@@ -79,25 +79,20 @@ class Tests(TemplateView):
     template_name = 'Exams/tests.html'
 
     def get_context_data(self, **kwargs):
-        # del self.request.session['index']
-
         context = super(Tests, self).get_context_data(**kwargs)
-
         question_index = self.request.session.get('index', 0)
         questions = TopicalQuizes.objects.filter(topic__name=kwargs['pk'])
         print(questions, question_index)
 
         if question_index >= len(questions):
-            # The exam is completed, redirect to a summary page
-
             return {}
+
         else:
             current_question = questions[question_index]
             self.request.session['quiz'] = str(current_question)
             choices = TopicalQuizAnswers.objects.filter(quiz=current_question)
             context['choices'] = choices
             context['quiz'] = current_question
-            self.quiz = context['quiz']
             context['index'] = question_index + 1
             numbers = [i + 1 for i in range(len(questions))]
             context['list'] = numbers
@@ -137,12 +132,10 @@ class Finish(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(Finish, self).get_context_data(**kwargs)
         user = self.request.user
-
         test = StudentTest.objects.filter(user=user, topic__name='Living Things').order_by('date').last()
 
         if test:
             answers = StudentsAnswers.objects.filter(user=user, test=test).values('selection__uuid')
-            quiz_id = [item['selection__uuid'] for item in answers]
             correct_answers = TopicalQuizAnswers.objects.filter(uuid__in=answers, is_correct='True')
             test.marks = correct_answers.count()
             test.save()
@@ -150,10 +143,8 @@ class Finish(TemplateView):
             for item in mark:
                 item.is_correct = True
                 item.save()
-            print(mark)
-            # print(correct_answers)
 
-            context['score'] =correct_answers.count()
+            context['score'] = correct_answers.count()
         else:
             pass
 

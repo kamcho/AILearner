@@ -7,12 +7,12 @@
     <h6>Scores {{ marks.marks }} / 15</h6>
 
     {% for quiz in quizzes %}
+<br>
 
     <div>
         {% if quiz.is_correct == False %}
             <div style="color:crimson;">
                 <h6>{{ quiz.quiz.quiz }}</h6>
-
 
                  <small>{{ quiz.selection.choice }}</small><i style="font-size:30px;color:crimson;" class="bi bi-x"></i>
                 <small>{{ quiz.is_correct }}</small>

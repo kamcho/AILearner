@@ -1,7 +1,7 @@
 {% extends 'Users/base.html' %}
 {% load crispy_forms_tags %}
 {% load static %}
-
+{% load custom_filters %}
 {% block content %}
 
 
@@ -15,7 +15,7 @@
           <tr>
             <th>Topic</th>
             <th>Score</th>
-            <th>Overall</th>
+            <th>Percentage</th>
           </tr>
         </thead>
         <tbody>
@@ -23,7 +23,7 @@
           <tr>
               <td><a href="{% url 'test-detail' topic.uuid %}">{{ topic.topic }}</a></td>
             <td>{{ topic.marks }} / 15</td>
-            <td>top 30 %</td>
+            <td>{{ topic.marks|divide:15 }}%</td>
           </tr>
         {% endfor %}
         </tbody>

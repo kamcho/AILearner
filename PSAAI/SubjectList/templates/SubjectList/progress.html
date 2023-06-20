@@ -1,6 +1,7 @@
 {% extends 'Users/base.html' %}
 {% load crispy_forms_tags %}
 {% load static %}
+{% load custom_filters %}
 
 {% block content %}
 
@@ -12,16 +13,17 @@
         {% for prog in subject %}
         <div class="progress-card">
 
-            <h6 class="p-txt">{{ prog.subject__name }}</h6>
+            <a href="{% url 'syllabus' prog.subject__name %}"><h6 class="p-txt">{{ prog.subject__name }}</h6></a>
             <hr class="centered-hr">
             <br>
-            <small class="p-txt">Topics covered: {{ prog.topic_count }}</small>
+            <small class="p-txt">Topics covered : {{ prog.topic_count }}</small>
             <br>
-            <small class="p-txt">Overall covered: 15</small>
+            <small class="p-txt">Total topics : {{ prog.subject__topics  }}</small>
             <br><br>
-            <div class="progress" style="width:80%;margin-left:30px;">
-              <div class="progress-bar" role="progressbar" style="width: 50%;background-color:purple;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+            <div class="progress" style="width: 80%; margin-left: 30px;">
+                <div class="progress-bar" role="progressbar" style="width: {{ prog.topic_count|divide:prog.subject__topics }}%; background-color: purple;" aria-valuenow="{{ prog.topic_count }}" aria-valuemin="0" aria-valuemax="{{ prog.subject__topics }}">{{ prog.topic_count|divide:prog.subject__topics }}%</div>
             </div>
+
         </div>
 
         {% endfor %}

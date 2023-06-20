@@ -139,7 +139,7 @@ class MyProgress(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(MyProgress, self).get_context_data(**kwargs)
-        subject = Progress.objects.filter(user=self.request.user, subject__isnull=False).values('subject__name').annotate(topic_count=Count('topic', distinct=True))
+        subject = Progress.objects.filter(user=self.request.user, subject__isnull=False).values('subject__name','subject__topics').annotate(topic_count=Count('topic', distinct=True))
         count = Progress.objects.filter()
 
         context['subject'] = subject

@@ -15,7 +15,7 @@
                 {{ message.message }}
                 <br>
                 {% if test %}
-                <a><button class="btn btn-info">View Results</button></a>
+                <a href="{% url 'test-detail' message.uuid %}"><button class="btn btn-info">View Results</button></a>
                 {% else %}
                 <a href="{% url 'start' message.topic message.uuid %}"><button class="btn btn-warning">Take Quiz</button></a>
                 {% endif %}
