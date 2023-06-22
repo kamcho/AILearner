@@ -4,7 +4,7 @@
 {% block content %}
 
 <div class="container">
-          <img class="image" src="{{ user.personalprofile.pic.url }}">
+<!--          <img class="image" src="{{ user.personalprofile.pic.url }}">-->
   <br>
 
 
@@ -89,19 +89,17 @@
   
   
 
-    <div class="card">
+    <div class="car">
       <div class="">
-        <img class="image" src="{{ user.personalprofile.pic.url }}">
-              <h6 class="names">{{ user.personalprofile.surname }}  {{ user.personalprofile.l_name.0 }}.  {{ user.personalprofile.f_name }}</h6>
-        <h6 style="color:white;font-size:13px;">Laikipia University</h6>
-        <h6 style="color:white;font-size:13px;">Grade 4</h6>
+        <h6 style="font-size:15px;">Laikipia University</h6>
+        <h6 style="font-size:13px;">Grade 4</h6>
 
 
       </div>
 
 
-      <div class="subjects">
-        <h6>Subjects</h6>
+      <div >
+        <h6 style="font-size:13px;">Subjects</h6>
       </div>
 
       <div class="subject-list">
@@ -118,7 +116,7 @@
 
       </div>
 
-      <a href="{% url 'academia' %}"><button style="width:100px;margin:10px;" class="btn btn-warning">Edit</button></a>
+      <a href="{% url 'academia' %}"><button style="width:100px;" class="btn btn-warning">Edit</button></a>
 
 
     </div>

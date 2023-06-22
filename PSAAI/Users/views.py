@@ -1,11 +1,12 @@
 from django.contrib.messages.views import SuccessMessageMixin
+from django.db.models import Count
 from django.shortcuts import render, redirect
 
 # Create your views here.
 from django.urls import reverse
 from django.views.generic import CreateView, DetailView, TemplateView
 
-from SubjectList.models import MySubjects, Progress
+from SubjectList.models import MySubjects, Progress, Notifications
 from Users.forms import UserRegisterForm
 from Users.models import PersonalProfile
 
@@ -55,6 +56,14 @@ class Home(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(Home, self).get_context_data(**kwargs)
         last_subject = Progress.objects.filter(user=self.request.user).last()
+        subject = Progress.objects.filter(user=self.request.user, subject__isnull=False).values('subject__name','subject__topics',
+                                                                                                'subject__topics').annotate(
+            topic_count=Count('topic', distinct=True))
+        count = Progress.objects.filter()
+
+        context['subjects'] = subject
         context['last_subject'] = last_subject
+        unread = Notifications.objects.filter(user=self.request.user, read='False')
+        context['messages'] = unread
 
         return context

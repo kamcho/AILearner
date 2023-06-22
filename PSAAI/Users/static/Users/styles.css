@@ -321,3 +321,11 @@ tr:nth-child(even) {
 .payment-option button{
     width:100%
 }
+
+
+/* FOR PROFILE */
+
+.subject-list{
+    display:grid;
+    grid-template-columns:auto auto auto;
+}

@@ -1,4 +1,7 @@
+import stripe
+from django.http import HttpResponse
 from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 
 from Users.models import MyUser
@@ -22,6 +25,13 @@ class Subscribe(TemplateView):
 
 class StripeCard(TemplateView):
     template_name = 'Subscription/card.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(StripeCard, self).get_context_data(**kwargs)
+        subs = Subscriptions.objects.all()
+        context['types'] = subs
+
+        return context
 
     def post(self, request, *args, **kwargs):
         # Get the user's card information from the form

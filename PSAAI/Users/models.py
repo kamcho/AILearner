@@ -14,7 +14,7 @@ from django.contrib.auth.models import (
 
 
 class MyUserManager(BaseUserManager):
-    def create_user(self,email,role, password=None):
+    def create_user(self,email,role,uuid=uuid ,password=None):
         """
         Creates and saves a User with the given email, date of
         birth and password.
@@ -25,6 +25,7 @@ class MyUserManager(BaseUserManager):
 
             email=email,
             role=role,
+            uuid=uuid
 
 
 
@@ -34,7 +35,7 @@ class MyUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, role, email, password=None):
+    def create_superuser(self, role, uuid, email, password=None):
         """
         Creates and saves a superuser with the given email, date of
         birth and password.
@@ -43,7 +44,7 @@ class MyUserManager(BaseUserManager):
 
             email=email,
             role=role,
-
+            uuid=uuid,
             password=password,
 
         )
@@ -54,21 +55,20 @@ class MyUserManager(BaseUserManager):
 
 class MyUser(AbstractBaseUser):
     class Role(models.TextChoices):
-        Student="Student"
-        Teacher="Teacher"
-        ADMIN="ADMINISTRATOR"
-    base_role=Role.ADMIN
+        Student = "Student"
+        Teacher = "Teacher"
+        ADMIN = "ADMINISTRATOR"
+        Guardian = 'Guardian'
+        Supervisor = "Supervisor"
 
+    base_role = Role.Student
     email = models.EmailField(unique=True)
-    role=models.CharField(max_length=15,choices=Role.choices,default=Role.ADMIN)
+    uuid = models.CharField(max_length=100, default=str(uuid.uuid4))
+    role = models.CharField(max_length=15, choices=Role.choices, default=base_role)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=True)
-
-
     objects = MyUserManager()
-
     USERNAME_FIELD = 'email'
-    # required_field_name=['role']
 
 
     def __str__(self):
@@ -91,36 +91,66 @@ class MyUser(AbstractBaseUser):
         return self.is_admin
 
 
-# EMPLOYER MANAGER
 class TeacherManager(BaseUserManager):
     def get_queryset(self,*args,**kwargs):
-        result=super().get_queryset(*args,**kwargs)
+        result = super().get_queryset(*args,**kwargs)
         return result.filter(role=MyUser.Role.Teacher)
+
+
 class Teacher(MyUser):
     base_role = MyUser.Role.Teacher
-    teacher=TeacherManager()
-    class Meta:
-        proxy=True
+    teacher = TeacherManager()
 
-# EXPERT MANAGER
+    class Meta:
+        proxy = True
+
+
 class StudentManager(BaseUserManager):
     def get_queryset(self, *args, **kwargs):
         result = super().get_queryset(*args, **kwargs)
         return result.filter(role=MyUser.Role.Student)
 
+
 class Student(MyUser):
     base_role = MyUser.Role.Student
-    #
     student = StudentManager()
 
     class Meta:
         proxy = True
 
 
+class GuardianManager(BaseUserManager):
+    def get_queryset(self, *args, **kwargs):
+        result = super().get_queryset(*args, **kwargs)
+        return result.filter(role=MyUser.Role.Guardian)
+
+
+class Guardian(MyUser):
+    base_role = MyUser.Role.Guardian
+    guardian = GuardianManager()
+
+    class Meta:
+        proxy = True
+
+
+class SupervisorManager(BaseUserManager):
+    def get_queryset(self, *args, **kwargs):
+        result = super().get_queryset(*args, **kwargs)
+        return result.filter(role=MyUser.Role.Supervisor)
+
+
+class Supervisor(MyUser):
+    base_role = MyUser.Role.Supervisor
+    student = SupervisorManager()
+
+    class Meta:
+        proxy = True
+
 
 class PersonalProfile(models.Model):
     user = models.OneToOneField(MyUser, on_delete=models.CASCADE)
     f_name = models.CharField(max_length=30, default='F_NAME')
+    ref_id = models.CharField(max_length=100, blank=True)
     l_name = models.CharField(max_length=30, default='M_NAME')
     surname = models.CharField(max_length=30, default='SURNAME',blank=True)
     gender = models.CharField(max_length=10,default="FEMALE",blank=True)

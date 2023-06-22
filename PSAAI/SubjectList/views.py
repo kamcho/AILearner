@@ -20,28 +20,7 @@ class Academia(TemplateView):
 
         return context
 
-    def post(self, request):
-        if request.method == "POST":
-            user = MyUser.objects.get(email=request.user)
-            print(user)
-            subjects = request.POST.getlist('subjects')
 
-            # Perform operations with the selected subjects
-            for subject in subjects:
-                # Do something with each selected subject ID
-                print(subject)
-            entry = MySubjects.objects.get(user=user)
-
-            entry.name.set(subjects)
-            # logged = MyUser.objects.get(email=request.user)
-            #
-            # friend = MyUser.objects.get(pk=self.kwargs['pk'])
-            #
-            # my_list = FriendList.objects.get(user=logged)
-            #
-            # my_list.friends.add(friend)
-
-            return HttpResponse(subjects)
 
 
 class Learning(TemplateView):

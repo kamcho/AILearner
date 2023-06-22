@@ -40,16 +40,23 @@
     </div>
   </div>
 <br>
-  <div class="col-md-8">
+
+
+<div class="col-md-8">
+  <select class="form-select" id="currency" name="currency" required>
+    {% for sub in types %}
+      <option value="{{ currency_code }}">{{ sub|upper }}</option>
+    {% endfor %}
+  </select>
+</div>
+<br>
+          <div class="col-md-8">
     <div class="form-group">
       <input type="number" class="form-control"   name="amount" placeholder="200"  required>
     </div>
   </div>
 <br>
-
-
-
-<button class="btn btn-warning">Donate</button>
+<button class="btn btn-warning">Pay</button>
 
 
 
