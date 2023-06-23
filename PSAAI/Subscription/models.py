@@ -1,3 +1,5 @@
+import datetime
+
 from django.db import models
 
 # Create your models here.
@@ -15,6 +17,8 @@ class Subscriptions(models.Model):
 class MySubscription(models.Model):
     user = models.OneToOneField(MyUser, on_delete=models.CASCADE)
     date = models.DateField(auto_now=True)
+    expiry = models.DateField(auto_created=True, default=datetime.date.today )
+    status = models.BooleanField(default=False)
     type = models.ForeignKey(Subscriptions, to_field='type', on_delete=models.CASCADE)
 
     def __str__(self):
@@ -31,6 +35,8 @@ class StripeCardPayments(models.Model):
     brand = models.CharField(max_length=30)
     date = models.DateTimeField(auto_now=True)
     created = models.CharField(max_length=15)
+    type = models.CharField(max_length=100, default='Platinum')
+    student_list = models.CharField(max_length=100, default='Null')
 
     def __str__(self):
         return str(self.user)

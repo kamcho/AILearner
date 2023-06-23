@@ -6,6 +6,6 @@ urlpatterns = [
 
     path('Subscription/', Subscribe.as_view(), name='subscription'),
     path('Card-Payment/', StripeCard.as_view(), name='stripe-pay'),
-    path('process-payment/', views.StripeWebhookView, name='processpayment'),
+    path('process-payment/', views.StripeWebhookView, name='process-payment'),
 
 ]
