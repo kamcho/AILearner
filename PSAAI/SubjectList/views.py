@@ -20,6 +20,19 @@ class Academia(TemplateView):
 
         return context
 
+    def post(self, request, **kwargs):
+
+        if request.method == 'POST':
+            subjects = request.POST.getlist('subjects')
+            print(subjects)
+            user = self.request.user
+            my_subjects = MySubjects.objects.get(user=user)
+            my_subjects.name.set(subjects)
+            my_subjects.save()
+
+            return redirect('home')
+
+
 
 
 
@@ -28,6 +41,7 @@ class Learning(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(Learning, self).get_context_data(**kwargs)
+
 
         return context
 
@@ -38,7 +52,7 @@ class Read(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(Read, self).get_context_data(**kwargs)
         grade = self.request.user.academicprofile.grade
-        topic = Topic.objects.get(subject__name=self.kwargs['pk'], subject__grade=4, order=1)
+        topic = Topic.objects.get(subject__name=self.kwargs['pk'], subject__grade=4, name=self.kwargs['name'])
         context['topic'] = topic
         context['subject'] = Subtopic.objects.filter(topic=topic)
         print(topic, '\n\n\n\n')
@@ -57,7 +71,7 @@ class Finish(TemplateView):
         topic = subtopic.topic.name
 
         context['topic'] = topic
-        context['subtopic'] = subtopic
+        # context['subtopic'] = subtopic
 
         return context
 
@@ -72,12 +86,13 @@ class Finish(TemplateView):
             print('\n\n\n\n',subject,'\n\n\n\n')
             message = 'The quiz for this topic is now ready. Once started the quiz will finish in 15 minutes. Good luck.'
             is_progress = Progress.objects.filter(user=self.request.user, topic=topic)
-            if  not is_progress:
+            if is_progress.exists():
+                pass
+            else:
                 progress = Progress.objects.create(user=user, subtopic=subtopic, subject=subject)
                 progress.topic.set([topic])
+                progress.save()
                 notification = Notifications.objects.create(user=user, about=about, message=message, topic=topic)
-            else:
-                pass
 
         return redirect('home')
 

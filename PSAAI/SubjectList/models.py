@@ -17,9 +17,10 @@ class Subject(models.Model):
     name = models.CharField(max_length=100)
     grade = models.CharField(max_length=2, default="1")
     topics = models.PositiveIntegerField(default='6')
+    course = models.ForeignKey(Course, default=1, on_delete=models.CASCADE)
 
     def __str__(self):
-        return str( self.name )
+        return str(self.name)
 
 
 class MySubjects(models.Model):
@@ -29,6 +30,13 @@ class MySubjects(models.Model):
 
     def __str__(self):
         return str(self.user)
+
+    def selected(self):
+        if self.name.exists():
+            return 'True'
+        else:
+            return 'False'
+
 
 
 class Topic(models.Model):
@@ -56,12 +64,13 @@ class Subtopic(models.Model):
 class Progress(models.Model):
 
     user = models.ForeignKey(MyUser, on_delete=models.CASCADE)
-    subject = models.OneToOneField(Subject, on_delete=models.CASCADE)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     subtopic = models.ForeignKey(Subtopic, on_delete=models.CASCADE)
     topic = models.ManyToManyField(Topic, related_name='progress')
 
     def __str__(self):
         return str(self.user)
+
 
 class Notifications(models.Model):
     user = models.ForeignKey(MyUser, on_delete=models.CASCADE)

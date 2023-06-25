@@ -24,6 +24,15 @@ class MySubscription(models.Model):
     def __str__(self):
         return str(self.user)
 
+    def active(self):
+        today = datetime.date.today()
+        if self.user.role == 'Student' and today > self.expiry:
+            return 'Subscription Expired'
+        elif self.user.role == 'Student' and self.expiry > today:
+            return 'Active'
+        else:
+            return self.user.role
+
 
 class StripeCardPayments(models.Model):
     user = models.ForeignKey(MyUser, on_delete=models.CASCADE)

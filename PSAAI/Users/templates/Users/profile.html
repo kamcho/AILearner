@@ -5,10 +5,7 @@
 
 <div class="container">
 <!--          <img class="image" src="{{ user.personalprofile.pic.url }}">-->
-  <br>
 
-
-<br>
         <div class="profile" id="accordionExample">
 
 
@@ -19,6 +16,15 @@
               <p>{{ user }} <button class="btn btn-info">{{ user.role }}</button></p>
             {% endif %}
         </div>
+
+
+  {% if user.role == "Student" %}
+                {% if user.mysubscription.status %}
+                    <p style="color:green;">Active</p>
+                {% else %}
+                    <p style="color:crimson;">Renew Subscription</p>
+                {% endif %}
+            {% endif %}
 
         <div class="">
 

@@ -27,6 +27,7 @@ class TopicalQuizAnswers(models.Model):
     def __str__(self):
         return str(self.id)
 
+
 class StudentTest(models.Model):
     user = models.ForeignKey(MyUser, on_delete=models.CASCADE)
     uuid = models.CharField(max_length=100, default=uuid.uuid4, unique=True)
@@ -34,7 +35,6 @@ class StudentTest(models.Model):
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     marks = models.CharField(max_length=100,default='0')
-    # quiz = models.ForeignKey(TopicalQuizes, on_delete=models.CASCADE)
 
     def __str__(self):
         return str(self.user)
@@ -47,6 +47,7 @@ class StudentsAnswers(models.Model):
     selection = models.ForeignKey(TopicalQuizAnswers, on_delete=models.CASCADE)
     test = models.ForeignKey(StudentTest,to_field='uuid', on_delete=models.CASCADE)
     is_correct = models.BooleanField(default=False)
+
     def __str__(self):
         return str(self.user)
 

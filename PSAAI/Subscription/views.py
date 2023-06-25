@@ -3,7 +3,6 @@ from datetime import timedelta
 
 import stripe
 from django.http import HttpResponse
-from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 
@@ -45,6 +44,7 @@ class StripeCard(TemplateView):
 
     def post(self, request, *args, **kwargs):
 
+        stripe.api_key = 'sk_test_51MrhGPHSDxMMHnYTxwz5LLK9vGRHde981TLoCjmE9HNOmtbvAlIZbn9eCk29JFq98zziGrwKOxfj1ol5N9TDEOHo00eHUdjtjw'
         if request.method == "POST":
             card_number = request.POST.get("card")
             exp_month = request.POST.get("month")
@@ -87,10 +87,11 @@ def StripeWebhookView(request):
         payload = request.body
 
         sig_header = request.META["HTTP_STRIPE_SIGNATURE"]
+        endpoint_secret = "whsec_WRS1nWAj4LEIt9vFZ0tMOM7bkynvjJlr"
 
         try:
             event = stripe.Webhook.construct_event(
-                payload, sig_header, "endpoint_secret"
+                payload, sig_header, endpoint_secret
             )
 
 

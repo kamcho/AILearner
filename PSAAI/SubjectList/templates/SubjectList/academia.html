@@ -7,8 +7,8 @@
 <div class="container">
 
 
-    <form method="">
-
+    <form method="post">
+        {% csrf_token %}
         <br>
 
         <p id="error" class="alert alert-info" style="display:none;color:green">7 subject limit reached</p>
@@ -29,7 +29,7 @@
         <h6>Humanities</h6>
         {% for subject in social %}
            <label>
-              <input type="checkbox" class="subject-checkbox" name="subjects" value="{{ subject.name }}">
+              <input type="checkbox" class="subject-checkbox" name="subjects" value="{{ subject.id }}">
                {{ subject.name }}
            </label>
            <br>
@@ -41,7 +41,7 @@
         <h6>Literature</h6>
         {% for subject in literature %}
            <label>
-              <input type="checkbox" class="subject-checkbox" name="subjects" value="{{ subject.name }}">
+              <input type="checkbox" class="subject-checkbox" name="subjects" value="{{ subject.id }}">
                {{ subject.name }}
            </label>
            <br>
