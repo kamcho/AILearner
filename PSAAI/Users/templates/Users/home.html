@@ -16,10 +16,15 @@
           <hr class="centered-hr">
           <div class="card-body">
             <br>
+            {% if last_subject %}
             <h6>{{ last_subject.subject }}</h6>
             <small class="text-muted">{{ last_subject.topic.last }}</small>
             <p>{{ next }}</p>
-
+            {% else %}
+            <h6>Start Learning</h6>
+            <p>Select Subject</p>
+            <small class="text-muted"></small>
+            {% endif %}
 
 
           </div>

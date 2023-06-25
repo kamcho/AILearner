@@ -15,6 +15,7 @@ class Course(models.Model):
 class Subject(models.Model):
 
     name = models.CharField(max_length=100)
+    order = models.IntegerField(default=1)
     grade = models.CharField(max_length=2, default="1")
     topics = models.PositiveIntegerField(default='6')
     course = models.ForeignKey(Course, default=1, on_delete=models.CASCADE)
@@ -45,7 +46,7 @@ class Topic(models.Model):
     order = models.IntegerField(default=1)
     subject = models.ForeignKey(Subject,related_name='subject_id', on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
-
+    topics_count = models.CharField(max_length=5, default='4')
     def __str__(self):
         return self.name
 
@@ -53,9 +54,11 @@ class Topic(models.Model):
 class Subtopic(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    subject = models.ForeignKey(Subject,default='9', on_delete=models.CASCADE)
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name='topic')
     name = models.CharField(max_length=100)
     file = models.FileField(upload_to='studyFiles', default='file.pdf')
+    order = models.CharField(max_length=5, default='1')
 
     def __str__(self):
         return self.name
@@ -74,7 +77,7 @@ class Progress(models.Model):
 
 class Notifications(models.Model):
     user = models.ForeignKey(MyUser, on_delete=models.CASCADE)
-    uuid = models.CharField(max_length=100,default=str(uuid.uuid4), unique=True)
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True)
     date = models.DateTimeField(auto_now=True)
     message = models.TextField(max_length=500)
     about = models.CharField(max_length=100)

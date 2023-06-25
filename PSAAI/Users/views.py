@@ -55,19 +55,22 @@ class Home(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(Home, self).get_context_data(**kwargs)
-        last_subject = Progress.objects.filter(user=self.request.user).last()
-        # number = last_subject.topic.last().order
-        # print(number)
-        # next_topic = Topic.objects.get(subject=last_subject.subject, order=int(number)+1)
-        subject = Progress.objects.filter(user=self.request.user, subject__isnull=False).values('subject__name','subject__topics',
+        try:
+            last_subject = Progress.objects.filter(user=self.request.user).last()
+            number = last_subject.topic.last().order
+            context['last_subject'] = last_subject
+            next_topic = Topic.objects.get(subject=last_subject.subject, order=int(number)+1)
+            subject = Progress.objects.filter(user=self.request.user, subject__isnull=False).values('subject__name','subject__topics',
                                                                                                 'subject__topics').annotate(
             topic_count=Count('topic', distinct=True))
-        count = Progress.objects.filter()
+            # count = Progress.objects.filter()
 
-        context['subjects'] = subject
-        context['last_subject'] = last_subject
-        # context['next'] = next_topic
-        unread = Notifications.objects.filter(user=self.request.user, read='False')
-        context['messages'] = unread
+            context['subjects'] = subject
+
+            context['next'] = next_topic
+            unread = Notifications.objects.filter(user=self.request.user, read='False')
+            context['messages'] = unread
+        except:
+            pass
 
         return context

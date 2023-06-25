@@ -1,8 +1,10 @@
 from django import template
+from django.shortcuts import redirect
 
-from SubjectList.models import Progress, Subject, Course, Topic
+from SubjectList.models import Progress, Subject, Course, Topic, Subtopic
 
 register = template.Library()
+
 
 @register.filter
 def divide(value, arg):
@@ -12,18 +14,41 @@ def divide(value, arg):
     except (ValueError, ZeroDivisionError):
         return 0
 
+
 @register.filter
 def get_user_progress_topic(user, subject):
-
-    subjects = Subject.objects.get(name=subject)
-    progress = Progress.objects.filter(user=user, subject=subjects).last()
-    introduction = Topic.objects.get(subject=subjects, order=1)
-
+    subject = Subject.objects.get(name=subject)
+    progress = Progress.objects.filter(user=user, subject=subject).last()
     if progress:
-        number = progress.topic.last().order
-        next_topic = Topic.objects.get(subject=progress.subject, order=int(number) + 1)
-        return next_topic
+        current_subtopic = Subtopic.objects.get(name=progress.subtopic)
+        return current_subtopic
     else:
-        # Return the first topic in the subject
+        introduction = Topic.objects.get(subject=subject, order=1)
+        introduction = Subtopic.objects.get(topic=introduction, order=1)
         return introduction
-    return subject
+
+
+@register.filter
+def topic_in_progress(user, topic):
+    try:
+        progress = Progress.objects.filter(user=user, topic=topic)
+        if progress.exists():
+            return True
+        else:
+            return False
+
+    except:
+        return redirect('home')
+
+@register.filter
+def subtopic_in_progress(user,subtopic):
+    try:
+        progress = Progress.objects.filter(user=user, subtopic=subtopic)
+        if progress.exists():
+            return True
+        else:
+            return False
+
+    except:
+        return redirect('home')
+

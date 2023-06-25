@@ -19,14 +19,14 @@
     </div>
 
     <div style="margin-left:100px;">
-        <a href="{% url 'finish' subject %}"><button class="btn btn-info">Finish</button></a>
+        <a href="{% url 'finish' subject.topic subject %}"><button class="btn btn-info">Finish</button></a>
     </div>
 
     </div>
 
 <br><br><br>
 
-    <div><h6 style="text-decoration:underline;">{{ topic.order }} : {{ topic }}</h6></div>
+    <div><h6 style="text-decoration:underline;">{{ subject.topic }} : {{ subject }}</h6></div>
 
 
     <div>

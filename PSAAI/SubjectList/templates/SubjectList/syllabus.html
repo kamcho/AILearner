@@ -1,5 +1,5 @@
 {% extends 'Users/base.html' %}
-{% load crispy_forms_tags %}
+{% load custom_filters %}
 {% load static %}
 
 {% block content %}
@@ -17,18 +17,32 @@
     </div>
 <br>
   <div>
+
+<div class="syllabus" style="text-decoration:none !important;">
 {% for coverage in syllabus %}
 
 
-    {% if coverage.id in done %}
+    {% if  user|topic_in_progress:coverage %}
       <div style="display:flex;width:60%;">
           <p style="color:purple;flex: 1;">{{ coverage.order }}.) {{ coverage }}</p>
           <input type="checkbox" style="margin-left: 0 auto;" checked>
       </div>
         <div>
            {% for subtopic in coverage.topic.all %}
-                <small class="text-muted" style="padding-left:30px">{{ subtopic }}</small>
-                <br>
+                {% if  user|subtopic_in_progress:subtopic %}
+
+                    <div style="display:flex;width:60%;padding-left:30px;">
+                        <small style="color:purple ;flex: 1;"><a href="{% url 'read' coverage subtopic %}">{{ subtopic }}</a></small>
+                        <i class="bi bi-check-all" style="margin-left: 0 auto;color:purple;font-size:20px;"></i>
+                    </div>
+
+                {% else %}
+                      <div style="display:flex;width:60%;padding-left:30px;">
+                        <small style="color:purple;flex: 1;"><a href="{% url 'read' coverage subtopic %}">{{ subtopic }}</a></small>
+                          <input type="checkbox" style="margin-left: 0 auto;" disabled>
+                      </div>
+                {% endif %}
+
             {% endfor %}
         </div>
 
@@ -39,21 +53,16 @@
       </div>
         <div>
            {% for subtopic in coverage.topic.all %}
-                <small class="text-muted" style="padding-left:30px">{{ subtopic }}</small>
-                <br>
+                        <div style="display:flex;width:60%;padding-left:30px;">
+                        <small style="color:purple;flex: 1;"><a href="{% url 'read' coverage subtopic %}">{{ subtopic }}</a></small>
+                          <input type="checkbox" style="margin-left: 0 auto;" disabled>
+                      </div>
             {% endfor %}
         </div>
     {% endif %}
+      <br>
 
 {% endfor %}
-
-
-
-
-
-
-
-
 
 
   </div>

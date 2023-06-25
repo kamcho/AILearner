@@ -329,3 +329,10 @@ tr:nth-child(even) {
     display:grid;
     grid-template-columns:auto auto auto;
 }
+
+
+
+/* SYLLABUS */
+.syllabus a {
+    text-decoration:none !important;
+}

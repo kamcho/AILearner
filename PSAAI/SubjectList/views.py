@@ -49,13 +49,14 @@ class Learning(TemplateView):
 class Read(TemplateView):
     template_name = 'SubjectList/read.html'
 
+
     def get_context_data(self, **kwargs):
         context = super(Read, self).get_context_data(**kwargs)
-        grade = self.request.user.academicprofile.grade
-        topic = Topic.objects.get(subject__name=self.kwargs['pk'], subject__grade=4, name=self.kwargs['name'])
-        context['topic'] = topic
-        context['subject'] = Subtopic.objects.filter(topic=topic)
-        print(topic, '\n\n\n\n')
+        # grade = self.request.user.academicprofile.grade
+        # topic = Topic.objects.get(subject__name=self.kwargs['pk'], subject__grade=4, name=self.kwargs['name'])
+        # context['topic'] = topic
+        context['subject'] = Subtopic.objects.get(name=self.kwargs['name'])
+        # print(topic, '\n\n\n\n')
 
         return context
 
@@ -81,18 +82,23 @@ class Finish(TemplateView):
             subtopic = Subtopic.objects.get(name=self.kwargs['name'])
             topic = subtopic.topic.name
             topic = Topic.objects.get(name=topic)
-            subject = subtopic.topic.subject
+            subject = Subject.objects.get(name=subtopic.subject)
             about = f'{subject}: {topic} quiz is ready.'
-            print('\n\n\n\n',subject,'\n\n\n\n')
             message = 'The quiz for this topic is now ready. Once started the quiz will finish in 15 minutes. Good luck.'
-            is_progress = Progress.objects.filter(user=self.request.user, topic=topic)
+            is_progress = Progress.objects.filter(user=self.request.user, topic=topic, subtopic=subtopic)
             if is_progress.exists():
                 pass
             else:
                 progress = Progress.objects.create(user=user, subtopic=subtopic, subject=subject)
                 progress.topic.set([topic])
                 progress.save()
-                notification = Notifications.objects.create(user=user, about=about, message=message, topic=topic)
+                total_topics = topic.topics_count
+                all_subtopics = Progress.objects.filter(user=user,topic=topic).values('subtopic').distinct().count()
+                print(all_subtopics)
+                if all_subtopics == int(total_topics):
+                    notification = Notifications.objects.create(user=user, about=about, message=message, topic=topic)
+                else:
+                    pass
 
         return redirect('home')
 
@@ -104,13 +110,9 @@ class Syllabus(TemplateView):
         context = super(Syllabus, self).get_context_data(**kwargs)
         print(self.kwargs['name'])
         subject = self.kwargs['name']
-        context['syllabus'] = Topic.objects.filter(subject__name=subject)
-        progress = Progress.objects.filter(subject__name=subject).values('topic')
+        context['syllabus'] = Topic.objects.filter(subject__name=subject).order_by('order')
 
-        print(progress)
-        progress = [item['topic'] for item in progress]
-        print(progress)
-        context['done'] = progress
+
 
         return context
 
