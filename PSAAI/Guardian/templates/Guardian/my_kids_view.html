@@ -1,0 +1,31 @@
+{% extends 'Users/base.html' %}
+
+
+{% block content %}
+
+
+
+    {% for kid in kids %}
+
+
+
+<p><a href="{% url 'task-view-select' kid %}">{{ kid }}</a></p>
+
+
+
+
+
+
+    {% endfor %}
+
+
+
+
+
+
+
+
+
+
+
+{% endblock %}

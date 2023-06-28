@@ -18,9 +18,12 @@
       </ul>
     </div>
 
+        {% if user.role == 'Student' %}
     <div style="margin-left:100px;">
         <a href="{% url 'finish' subject.topic subject %}"><button class="btn btn-info">Finish</button></a>
     </div>
+        {% else %}
+        {% endif %}
 
     </div>
 

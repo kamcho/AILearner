@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'SubjectList',
     'Exams',
     'Subscription',
+    'Guardian',
 ]
 
 MIDDLEWARE = [

@@ -2,6 +2,7 @@ from django import template
 from django.shortcuts import redirect
 
 from SubjectList.models import Progress, Subject, Course, Topic, Subtopic
+from Users.models import MyUser
 
 register = template.Library()
 
@@ -41,8 +42,35 @@ def topic_in_progress(user, topic):
         return redirect('home')
 
 @register.filter
+def guardian_topic_view(email, topic):
+    try:
+        user = MyUser.objects.get(email=email)
+
+        progress = Progress.objects.filter(user=user, topic=topic)
+        if progress.exists():
+            return True
+        else:
+            return False
+
+    except:
+        return redirect('home')
+
+@register.filter
 def subtopic_in_progress(user,subtopic):
     try:
+        progress = Progress.objects.filter(user=user, subtopic=subtopic)
+        if progress.exists():
+            return True
+        else:
+            return False
+
+    except:
+        return redirect('home')
+
+@register.filter
+def guardian_subtopic_view(email,subtopic):
+    try:
+        user = MyUser.objects.get(email=email)
         progress = Progress.objects.filter(user=user, subtopic=subtopic)
         if progress.exists():
             return True

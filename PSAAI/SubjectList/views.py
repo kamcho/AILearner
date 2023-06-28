@@ -52,11 +52,9 @@ class Read(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(Read, self).get_context_data(**kwargs)
-        # grade = self.request.user.academicprofile.grade
-        # topic = Topic.objects.get(subject__name=self.kwargs['pk'], subject__grade=4, name=self.kwargs['name'])
-        # context['topic'] = topic
+
         context['subject'] = Subtopic.objects.get(name=self.kwargs['name'])
-        # print(topic, '\n\n\n\n')
+
 
         return context
 
@@ -125,8 +123,13 @@ class Messages(TemplateView):
         user = self.request.user
         messages = Notifications.objects.filter(user=user)
         context['messages'] = messages
-        context['test'] = StudentTest.objects.filter(uuid__in=messages.values('uuid')).first()
+        context['messages'] = messages
 
+        print(messages.values('uuid'))
+        done_tests = StudentTest.objects.filter(uuid__in=[notification.uuid for notification in messages])
+
+        context['test'] = done_tests
+        print(done_tests)
         return context
 
 

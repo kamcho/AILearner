@@ -1,0 +1,46 @@
+{% extends 'Users/base.html' %}
+
+
+{% block content %}
+
+
+
+      <div class="event-view">
+      {% for subject in subjects %}
+            <a style="text-decoration:none;color:black;" href="{% url 'kid-tests-detail' child subject.subject %}">
+        <div class="progress-card">
+            <div class="p-txt">
+                <h6>{{ subject.subject }}.</h6>
+            {% for topic in subject.topics %}
+                <small>{{ topic }}</small><br>
+            {% endfor %}
+            </div>
+
+            <hr class="centered-hr">
+            <div class="p-txt">
+
+                <small>Grade {{ subject.grade }}</small>
+            <p>{{ subject.topics|length }} / {{ subject.topics.topics_count }}</p>
+            </div>
+
+
+
+        </div>
+
+</a>
+
+
+      {% endfor %}
+        </div>
+
+
+
+
+
+
+
+
+
+
+
+{% endblock %}
