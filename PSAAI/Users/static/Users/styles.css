@@ -332,3 +332,11 @@ tr:nth-child(even) {
 .syllabus a {
     text-decoration:none !important;
 }
+
+
+
+/* FOR GUARDIAN */
+.card{
+    width:300px;
+    height:250px;
+}

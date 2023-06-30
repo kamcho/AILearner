@@ -86,3 +86,44 @@ class Notifications(models.Model):
 
     def __str__(self):
         return str(self.user)
+
+
+class OnlineClass(models.Model):
+    name = models.CharField(max_length=100)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+    subtopic = models.ForeignKey(Subtopic, on_delete=models.CASCADE)
+    date = models.DateTimeField()
+    duration = models.IntegerField()
+
+    def __str__(self):
+        return self.name
+
+
+class ClassBooking(models.Model):
+    user = models.ForeignKey(MyUser, on_delete=models.CASCADE)
+    class_name = models.ForeignKey(OnlineClass, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.user)
+
+
+class VideoChannel(models.Model):
+    class_id = models.ForeignKey(OnlineClass, on_delete=models.CASCADE)
+    app_id = models.CharField(max_length=100)
+    channel_name = models.CharField(max_length=300, unique=True)
+    date = models.DateField(auto_created=True)
+
+    def __str__(self):
+        return self.channel_name
+
+
+class AgoraLearners(models.Model):
+    user = models.ForeignKey(MyUser, on_delete=models.CASCADE)
+    channel = models.ForeignKey(VideoChannel, unique=True,to_field='channel_name', on_delete=models.CASCADE)
+    token = models.CharField(max_length=100)
+    attended = models.BooleanField(def  ault=False)
+
+    def __str__(self):
+        return self.user
+

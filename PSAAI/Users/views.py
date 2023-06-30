@@ -50,6 +50,19 @@ class MyProfile(DetailView):
         # messages.success(request, 'Phone number updated successfully')
         return redirect(request.get_full_path())
 
+
+def loginRedirect(request):
+    if request.user.role == 'Student':
+        return redirect('student-home')
+    elif request.user.role == 'Guardian':
+        return redirect('guardian-home')
+    else:
+        pass
+
+
+
+
+
 class Home(TemplateView):
     template_name = 'Users/home.html'
 

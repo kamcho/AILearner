@@ -1,3 +1,5 @@
+from datetime import date, timedelta
+
 from django.db.models import Count
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
@@ -143,3 +145,77 @@ class MyProgress(TemplateView):
 
         context['subject'] = subject
         return context
+
+
+class UpcomingClasses(TemplateView):
+    template_name = 'SubjectList/upcoming_classes.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(UpcomingClasses, self).get_context_data(**kwargs)
+        today = date.today()
+
+        # Calculate the date range for the coming 7 days
+        end_date = today + timedelta(days=7)
+
+        # Filter OnlineClass objects with a date within the range
+        upcoming_classes = OnlineClass.objects.filter(date__range=(today, end_date))
+
+
+
+        context['classes'] = upcoming_classes
+        return context
+class ClassBookings(TemplateView):
+    template_name = 'SubjectList/class_booking.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(ClassBookings, self).get_context_data(**kwargs)
+        class_id = self.kwargs['id']
+        work = OnlineClass.objects.get(id=class_id)
+        context['class'] = work
+
+        return context
+
+    def post(self, request, **kwargs):
+        if request.method == 'POST':
+            user = request.user
+            class_id = self.kwargs['id']
+            class_instance = OnlineClass.objects.get(id=class_id)
+            booking = ClassBooking.objects.create(user=user, class_name=class_instance)
+
+
+        return redirect('student-home')
+
+
+class BookedClasses(TemplateView):
+    template_name = 'SubjectList/booked_classes.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(BookedClasses, self).get_context_data(**kwargs)
+        bookings = ClassBooking.objects.filter(user=self.request.user)
+        context['bookings'] = bookings
+
+        return context
+
+
+class CallLobby(TemplateView):
+    template_name = 'SubjectList/lobby.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(CallLobby, self).get_context_data(**kwargs)
+        class_id = self.kwargs['id']
+        class_instance = VideoChannel.objects.get(class_id=class_id)
+        context['class'] = class_instance
+
+        return context
+
+
+class VideoCall(TemplateView):
+    template_name = 'SubjectList/video_call.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(VideoCall, self).get_context_data(**kwargs)
+        app_id = 'b45a2ed7b1774731b2555d0c77264519'
+        context['app_id'] = app_id
+
+        return context
+

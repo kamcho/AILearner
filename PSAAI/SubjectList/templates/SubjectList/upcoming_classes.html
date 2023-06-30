@@ -1,0 +1,32 @@
+{% extends 'Users/base.html' %}
+{% load custom_filters %}
+{% block content %}
+
+<div>
+
+    <a href="{% url 'booked-classes' %}"><button class="btn btn-info">Booked classes</button></a>
+
+
+
+</div>
+    {% for class in classes %}
+
+
+        <p>{{ class }}</p>
+        <a href="{% url 'book-class' class.id %}">
+            {% if user|class_is_booked:class.id %}
+                <button class="btn btn-info">Book</button>
+            {% else %}
+                <button class="btn btn-warning">Booked</button>
+            {% endif %}
+        </a>
+
+
+    {% endfor %}
+
+
+
+
+
+
+{% endblock %}

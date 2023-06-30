@@ -1,7 +1,7 @@
 from django import template
 from django.shortcuts import redirect
 
-from SubjectList.models import Progress, Subject, Course, Topic, Subtopic
+from SubjectList.models import Progress, Subject, Course, Topic, Subtopic, ClassBooking
 from Users.models import MyUser
 
 register = template.Library()
@@ -39,7 +39,7 @@ def topic_in_progress(user, topic):
             return False
 
     except:
-        return redirect('home')
+        pass
 
 @register.filter
 def guardian_topic_view(email, topic):
@@ -53,7 +53,7 @@ def guardian_topic_view(email, topic):
             return False
 
     except:
-        return redirect('home')
+        pass
 
 @register.filter
 def subtopic_in_progress(user,subtopic):
@@ -65,7 +65,7 @@ def subtopic_in_progress(user,subtopic):
             return False
 
     except:
-        return redirect('home')
+        pass
 
 @register.filter
 def guardian_subtopic_view(email,subtopic):
@@ -78,5 +78,17 @@ def guardian_subtopic_view(email,subtopic):
             return False
 
     except:
-        return redirect('home')
+        pass
+
+@register.filter
+def class_is_booked(user, class_id):
+
+    try:
+        booking = ClassBooking.objects.get(user=user, id=class_id)
+        if booking.exists():
+            return True
+        else:
+            return False
+    except:
+        return False
 

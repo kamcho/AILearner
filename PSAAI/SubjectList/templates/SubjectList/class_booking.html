@@ -1,0 +1,40 @@
+{% extends 'Users/base.html' %}
+{% load custom_filters %}
+
+{% block content %}
+<h6>Class Info</h6>
+
+<p>{{ class.name }}</p>
+<p>Grade-{{ class.subject.grade }} {{ class.subject }}</p>
+   <p>Topic-{{ class.topic }}</p>
+   <p>on- {{ class.date }}</p>
+<p>class duration {{ class.duration }} Minutes</p>
+
+<p>Dear {{ user }} please ensure that you join the class at least 3
+    minutes before the starting time. The class begins on {{ class.date }} on the dot,
+    There is no waiting. Good luck.
+</p>
+<form method="post">
+    {% csrf_token %}
+    <small>By clicking this button you will be automatically booked.</small><br><br>
+    {% if user|class_is_booked:class.id %}
+        <button class="btn btn-info">Book</button>
+    {% else %}
+        <button class="btn btn-warning" disabled>Booked</button>
+    {% endif %}
+
+</form>
+
+<p></p>
+
+
+
+
+
+
+
+
+
+
+
+{% endblock %}

@@ -11,6 +11,20 @@ from SubjectList.models import Progress, Topic
 from Users.models import MyUser, PersonalProfile
 
 
+class GuardianHome(TemplateView):
+    template_name = 'Guardian/guardian_home.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(GuardianHome, self).get_context_data(**kwargs)
+        user = self.request.user
+        my_uuid = MyUser.objects.get(email=user).uuid
+        my_kids = PersonalProfile.objects.filter(ref_id=my_uuid)
+        context['kids'] = my_kids
+        print(my_kids)
+
+        return context
+
+
 class MyKidsView(TemplateView):
     template_name = 'Guardian/my_kids_view.html'
 

@@ -135,5 +135,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 AUTH_USER_MODEL = 'Users.MyUser'
-LOGIN_REDIRECT_URL='home'
+LOGIN_REDIRECT_URL='redirect'
 CRISPY_TEMPLATE_TAG='bootstrap4'

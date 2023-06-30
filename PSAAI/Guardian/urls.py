@@ -4,6 +4,7 @@ from .views import *
 
 urlpatterns = [
     path('My-Kids/', MyKidsView.as_view(), name='my-kids'),
+    path('Home/', GuardianHome.as_view(), name='guardian-home'),
     path('Learner/<str:email>/', TaskSelection.as_view(), name='task-view-select'),
     path('Learner/<str:user>/Tests', KidTests.as_view(), name='kid-tests'),
     path('Quiz/<str:user>/<str:name>/', KidTestDetail.as_view(), name='kid-tests-detail'),
