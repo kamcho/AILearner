@@ -10,6 +10,6 @@ urlpatterns = [
     path('Quiz/<str:user>/<str:name>/', KidTestDetail.as_view(), name='kid-tests-detail'),
     path('<str:email>/<str:uuid>/', KidQuizDetail.as_view(), name='my-kid-test-detail'),
     path('View/<str:email>/progress/', LearnerProgress.as_view(), name='learner-learning-progress'),
-    path('/<str:name>/<str:email>/syllabus-coverage/', LearnerSyllabus.as_view(), name='learners-syllabus'),
+    path('<str:name>/<str:email>/syllabus-coverage/', LearnerSyllabus.as_view(), name='learners-syllabus'),
 
 ]

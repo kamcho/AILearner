@@ -28,11 +28,17 @@ class Academia(TemplateView):
             subjects = request.POST.getlist('subjects')
             print(subjects)
             user = self.request.user
-            my_subjects = MySubjects.objects.get(user=user)
-            my_subjects.name.set(subjects)
-            my_subjects.save()
+            try:
+                my_subjects = MySubjects.objects.get(user=user)
+                my_subjects.name.set(subjects)
+                my_subjects.save()
+                return redirect('student-home')
 
-            return redirect('home')
+            except MySubjects.DoesNotExist:
+                return HttpResponse(
+                    'DatabaseError: We could not save your subject Selection')
+
+
 
 
 
@@ -96,11 +102,11 @@ class Finish(TemplateView):
                 all_subtopics = Progress.objects.filter(user=user,topic=topic).values('subtopic').distinct().count()
                 print(all_subtopics)
                 if all_subtopics == int(total_topics):
-                    notification = Notifications.objects.create(user=user, about=about, message=message, topic=topic)
+                    notification = TopicExamNotifications.objects.create(user=user, about=about, message=message, topic=topic)
                 else:
                     pass
 
-        return redirect('home')
+        return redirect('student-home')
 
 
 class Syllabus(TemplateView):
@@ -123,15 +129,15 @@ class Messages(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(Messages, self).get_context_data(**kwargs)
         user = self.request.user
-        messages = Notifications.objects.filter(user=user)
-        context['messages'] = messages
+        topical_exam_results = TopicalExamResults.objects.filter(user=user)
+        topical_exam = TopicExamNotifications.objects.filter(user=user)
+        class_bookings = ClassBookingNotifications.objects.filter(user=user)
+        subscription_notifications = SubscriptionNotifications.objects.filter(user=user)
+        payment_notification = PaymentNotifications.objects.filter(user=user)
+
+        messages = list(topical_exam)+list(topical_exam_results)+list(class_bookings)+list(subscription_notifications)+list(payment_notification)
         context['messages'] = messages
 
-        print(messages.values('uuid'))
-        done_tests = StudentTest.objects.filter(uuid__in=[notification.uuid for notification in messages])
-
-        context['test'] = done_tests
-        print(done_tests)
         return context
 
 
@@ -157,13 +163,16 @@ class UpcomingClasses(TemplateView):
         # Calculate the date range for the coming 7 days
         end_date = today + timedelta(days=7)
 
-        # Filter OnlineClass objects with a date within the range
-        upcoming_classes = OnlineClass.objects.filter(date__range=(today, end_date))
+        # Filter OnlineClass objects with a date within the
+        # OnlineClass.objects.filter(date__range=(today, end_date))
+        upcoming_classes = OnlineClass.objects.all()
 
 
 
         context['classes'] = upcoming_classes
         return context
+
+    
 class ClassBookings(TemplateView):
     template_name = 'SubjectList/class_booking.html'
 
@@ -176,14 +185,27 @@ class ClassBookings(TemplateView):
         return context
 
     def post(self, request, **kwargs):
-        if request.method == 'POST':
-            user = request.user
-            class_id = self.kwargs['id']
-            class_instance = OnlineClass.objects.get(id=class_id)
+        user = request.user
+        class_id = self.kwargs['id']
+        class_instance = OnlineClass.objects.get(id=class_id)
+        action = request.POST.get('action')
+        if 'book-class' in action:
+
             booking = ClassBooking.objects.create(user=user, class_name=class_instance)
+            return redirect('student-home')
+        elif 'delete-class' in action:
+            booking = ClassBooking.objects.filter(user=user, class_name=class_instance).first()
+            print(booking)
+            if booking:
+                booking.delete()
+            return redirect('student-home')
+        else:
+            return redirect('notifications')
 
 
-        return redirect('student-home')
+
+
+
 
 
 class BookedClasses(TemplateView):

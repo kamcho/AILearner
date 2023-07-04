@@ -1,0 +1,310 @@
+/* BOOKED CLASSES */
+
+.booked-classes-view a{
+    text-decoration:none !important;
+    color:black
+}
+.booked-classes-view p{
+    padding:0px;
+    margin:0px;
+}
+.booked-classes-view{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+}
+.booked-classes-card{
+    width:300px;
+    height:250px;
+    box-shadow: 2px 4px 20px 5px rgba(0, 0, 0, 0.09);
+
+}
+.booked-class-body{
+    padding:10px;
+    width:80%;
+    padding-top:20px;
+    padding-left:30px;
+
+}
+.booked-classes-hr{
+    width:80%;
+    margin: 0 auto;
+}
+
+/* Upcoming Classes */
+.upcoming-classes-view{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+}
+.upcoming-classes-card{
+    width:300px;
+    height:250px;
+    box-shadow: 2px 4px 20px 5px rgba(0, 0, 0, 0.09);
+
+}
+.upcoming-classes-view p,a{
+    text-decoration:none;
+    color:black ;
+    padding:0px;
+    margin:0px;
+}
+
+@media (min-width:1230px){
+    .upcoming-classes-view{
+        margin: 0 auto;
+        }
+    .upcoming-classes-card{
+        width:85%;
+    }
+    .booked-classes-view{
+        margin: 0 auto;
+        }
+    .booked-classes-card{
+        width:85%;
+    }
+
+}
+@media (max-width: 1200px) {
+    .upcoming-classes-view{
+        grid-template-columns:repeat(2,1fr);
+
+    }
+    .upcoming-classes-card{
+        margin-top:30px;
+        width:85%;
+
+    }
+    .booked-classes-view{
+        grid-template-columns:repeat(2,1fr);
+
+    }
+    .booked-classes-card{
+        margin-top:30px;
+        width:85%;
+
+    }
+    .booked-classes-hr{
+    width:90%;
+    margin: 0 auto;
+}
+}
+@media (max-width: 700px) {
+    .upcoming-classes-view{
+        display:inline;
+
+
+    }
+    .upcoming-classes-card{
+        margin: 0 auto;
+        margin-bottom:30px;
+    }
+    .main-body{
+        padding-left:20%;
+    }
+}
+/* FOR EXAMS */
+
+
+.exam-view{
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+}
+.exam-view .exam-card{
+    background-color: black;
+    width: 200px;
+    height: 180px;
+    color: white;
+    border-radius: 10px;
+    margin-top: 20px;
+}
+.exam-card div{
+    padding: 15px;
+}
+.exam-card small{
+    color: rgb(206, 200, 200);
+}
+.exam-card p,h6{
+    padding-top: 5px;
+}
+
+
+
+
+.image {
+    width:100px;
+    height:100px;
+    margin-left:10px;
+    margin-top:10px;
+    border-radius:50%;
+    float:left;
+    display: inline-block;
+    border: 3px solid aqua;
+    margin-right:30px;
+}
+
+.names {
+
+    margin-top:30px;
+    color:aqua;
+    left:30px;
+    text-align:center;
+
+
+}
+
+
+
+
+/* FOR QUIZ EXAMS */
+.quiz{
+    padding: 10px;
+}
+.quiz .answer{
+    margin-left:10px;
+}
+
+
+
+/* FOR LEARN */
+.subject-view{
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+}
+.learn-card{
+    width: 320px;
+    height: 220px;
+    background-color: white;
+    color: white;
+    margin-top: 30px;
+    margin-left:30px;
+    box-shadow: 2px 4px 20px 5px rgba(0, 0, 0, 0.09);
+
+}
+.learn-card h6{
+
+    padding-top: 20px;
+    width: 80%;
+    margin: 0 auto;
+    border: none;
+}
+.learn-body{
+    padding-top: 5px;
+    padding-left:10%;
+    margin: 0 auto;
+    border: none;
+    font-size:17px;
+}
+.learn-card a{
+    text-decoration:none;
+    color:black;
+}
+.learn-card i{
+    display: inline-block;
+    margin-top: 20px;
+    color:purple;
+    padding-left:30px;
+
+    font-size:22px;
+}
+.centered-hr {
+    width: 80%;
+    margin: 0 auto;
+    border: none;
+    border-top: 1px solid black;
+    margin-top:10%;
+  }
+
+
+  /* FOR PROGRESS */
+
+.progress-card{
+    width: 320px;
+    height: 220px;
+    background-color: white;
+
+    margin-top: 30px;
+    margin-left:30px;
+    box-shadow: 2px 4px 20px 5px rgba(0, 0, 0, 0.09);
+
+}
+.upcoming-classes-card .p-txt{
+    padding-top:20px;
+    padding-left:30px;
+    width: 80%;
+}
+.progress-card a{
+    text-decoration:none;
+    color:black;
+}
+
+
+/* FOR EXAM */
+
+.quiz-card {
+    width: 320px;
+    height: 220px;
+    background-color: white;
+
+    margin-top: 30px;
+    margin-left:30px;
+    box-shadow: 2px 4px 20px 5px rgba(0, 0, 0, 0.09);
+}
+.quiz-card a{
+
+}
+
+
+
+
+/* SUBSCRIPTION */
+
+.payment-option{
+    display:grid;
+    grid-template-columns: auto auto;
+}
+.payment-card{
+    width: 300px;
+    height: 320px;
+    background-color: white;
+
+    margin-top: 30px;
+    margin-left:30px;
+}
+.payment-img{
+    width:300px;
+    height:230px;
+}
+.payment-img img{
+    width:300px;
+    height:230px;
+    object-fit:contain;
+}
+.payment-option h6{
+    padding-top:15px;
+    text-align:center;
+}
+.payment-option button{
+    width:100%
+}
+
+
+/* FOR PROFILE */
+
+.subject-list{
+    display:grid;
+    grid-template-columns:auto auto auto;
+}
+
+
+
+/* SYLLABUS */
+.syllabus a {
+    text-decoration:none !important;
+}
+
+
+
+/* FOR GUARDIAN */
+.card{
+    width:300px;
+    height:250px;
+}

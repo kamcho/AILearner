@@ -4,11 +4,12 @@
 {% block content %}
 <h6>Class Info</h6>
 
-<p>{{ class.name }}</p>
+<h6>{{ class.name }}</h6>
 <p>Grade-{{ class.subject.grade }} {{ class.subject }}</p>
-   <p>Topic-{{ class.topic }}</p>
-   <p>on- {{ class.date }}</p>
-<p>class duration {{ class.duration }} Minutes</p>
+   <p>Topic - {{ class.topic }}</p>
+<p>Subtopic - {{ class.subtopic }}</p>
+   <h6>Time {{ class.date }}</h6>
+<p>Class Duration {{ class.duration }} Minutes</p>
 
 <p>Dear {{ user }} please ensure that you join the class at least 3
     minutes before the starting time. The class begins on {{ class.date }} on the dot,
@@ -16,16 +17,23 @@
 </p>
 <form method="post">
     {% csrf_token %}
-    <small>By clicking this button you will be automatically booked.</small><br><br>
     {% if user|class_is_booked:class.id %}
-        <button class="btn btn-info">Book</button>
+        <small>This class is already booked.</small><br><br>
+
+        <button class="btn btn-info" disabled>Booked</button>
+
+        <button class="btn btn-danger" name="action" value="delete-class">Delete</button>
+
     {% else %}
-        <button class="btn btn-warning" disabled>Booked</button>
+        <small>By clicking this button you will be automatically booked.</small><br><br>
+
+        <button class="btn btn-warning" name="action" value="book-class" >Book</button>
+
     {% endif %}
 
 </form>
 
-<p></p>
+
 
 
 

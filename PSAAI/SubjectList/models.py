@@ -1,3 +1,5 @@
+import datetime
+
 from django.db import models
 import uuid
 from Users.models import MyUser
@@ -76,13 +78,27 @@ class Progress(models.Model):
 
 
 class Notifications(models.Model):
-    user = models.ForeignKey(MyUser, on_delete=models.CASCADE)
-    uuid = models.UUIDField(default=uuid.uuid4, unique=True)
-    date = models.DateTimeField(auto_now=True)
+    uuid = models.UUIDField(default=uuid.uuid4,  unique=True)
+    user = models.ForeignKey(MyUser, default='1',on_delete=models.CASCADE)
     message = models.TextField(max_length=500)
     about = models.CharField(max_length=100)
+    is_read = models.BooleanField(default=False)
+
+    class Meta:
+        abstract = True
+
+
+class TopicExamNotifications(Notifications):
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
-    read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return str(self.user)
+
+
+class TopicalExamResults(Notifications):
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
 
     def __str__(self):
         return str(self.user)
@@ -95,9 +111,40 @@ class OnlineClass(models.Model):
     subtopic = models.ForeignKey(Subtopic, on_delete=models.CASCADE)
     date = models.DateTimeField()
     duration = models.IntegerField()
+    link = models.CharField(max_length=100, default='google.classroom.org/tyu565ffy')
 
     def __str__(self):
         return self.name
+    def end_time(self):
+        endtime = self.date + datetime.timedelta(minutes=self.duration)
+
+        return endtime
+
+
+class ClassBookingNotifications(Notifications):
+    class_id = models.ForeignKey(OnlineClass, on_delete=models.CASCADE)
+
+
+    def __str__(self):
+        return str(self.user)
+
+
+class SubscriptionNotifications(Notifications):
+    subs = models.CharField(max_length=200)
+
+    def __str__(self):
+        return str(self.user)
+
+
+class PaymentNotifications(Notifications):
+    amount = models.PositiveIntegerField(default=1)
+    subscription_type = models.CharField(max_length=200)
+    beneficiaries = models.CharField(max_length=100,default='njokevin9@gmail.com')
+
+    def __str__(self):
+        return str(self.user)
+
+
 
 
 class ClassBooking(models.Model):
@@ -122,7 +169,7 @@ class AgoraLearners(models.Model):
     user = models.ForeignKey(MyUser, on_delete=models.CASCADE)
     channel = models.ForeignKey(VideoChannel, unique=True,to_field='channel_name', on_delete=models.CASCADE)
     token = models.CharField(max_length=100)
-    attended = models.BooleanField(def  ault=False)
+    attended = models.BooleanField(default=False)
 
     def __str__(self):
         return self.user

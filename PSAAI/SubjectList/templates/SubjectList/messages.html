@@ -1,5 +1,5 @@
 {% extends 'Users/base.html' %}
-
+{% load custom_filters %}
 {% block content %}
   <div>
     {% for message in messages %}
@@ -14,11 +14,16 @@
               <div class="accordion-body">
                 {{ message.message }}
                 <br>
-                {% if test %}
-                <a href="{% url 'test-detail' message.uuid %}"><button class="btn btn-info">View Results</button></a>
+                {% notification_class user message message.uuid as class_type %}
+                {% if class_type == 'test_complete' %}
+                  <a href="{% url 'test-detail' message.uuid %}"><button class="btn btn-info">View Results</button></a>
+                {% elif class_type == 'quiz_result' %}
+                  <a href="{% url 'start' message.topic message.uuid %}"><button class="btn btn-danger">View Results</button></a>
                 {% else %}
-                <a href="{% url 'start' message.topic message.uuid %}"><button class="btn btn-warning">Take Quiz</button></a>
+                  <a href="{% url 'start' message.topic message.uuid %}"><button class="btn btn-info">Take Quiz</button></a>
+
                 {% endif %}
+
               </div>
             </div>
           </div>

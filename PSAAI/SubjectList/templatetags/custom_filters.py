@@ -1,7 +1,8 @@
 from django import template
 from django.shortcuts import redirect
 
-from SubjectList.models import Progress, Subject, Course, Topic, Subtopic, ClassBooking
+from Exams.models import StudentTest
+from SubjectList.models import *
 from Users.models import MyUser
 
 register = template.Library()
@@ -26,6 +27,7 @@ def get_user_progress_topic(user, subject):
     else:
         introduction = Topic.objects.get(subject=subject, order=1)
         introduction = Subtopic.objects.get(topic=introduction, order=1)
+        print(introduction)
         return introduction
 
 
@@ -83,12 +85,31 @@ def guardian_subtopic_view(email,subtopic):
 @register.filter
 def class_is_booked(user, class_id):
 
-    try:
-        booking = ClassBooking.objects.get(user=user, id=class_id)
-        if booking.exists():
-            return True
-        else:
-            return False
-    except:
+
+    booking = ClassBooking.objects.filter(user=user, class_name=class_id)
+    if booking.exists():
+        print(class_id)
+        return True
+    else:
+        print("not found", class_id)
         return False
+
+
+@register.simple_tag
+def notification_class(user, message, uuid):
+
+
+    test = StudentTest.objects.filter(user=user, uuid=uuid)
+
+    if isinstance(message, TopicExamNotifications):
+
+        if test.exists():
+            print('exists')
+            return 'test_complete'
+        else:
+            print('no results')
+            return False
+    elif isinstance(message, TopicalExamResults):
+        return 'quiz_result'
+
 

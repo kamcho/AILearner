@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect
 from .models import *
 from django.views.generic import TemplateView, DetailView
 from itertools import groupby
+from SubjectList.models import TopicalExamResults
 
 
 class Exams(TemplateView):
@@ -80,8 +81,9 @@ class Tests(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(Tests, self).get_context_data(**kwargs)
+        topic = kwargs['pk']
         question_index = self.request.session.get('index', 0)
-        questions = TopicalQuizes.objects.filter(topic__name=kwargs['pk'])
+        questions = TopicalQuizes.objects.filter(topic__name=topic)
         print(questions, question_index)
 
         if question_index >= len(questions):
@@ -100,13 +102,15 @@ class Tests(TemplateView):
             return context
 
     def post(self, request, *args, **kwargs):
+
         if request.method == 'POST':
             user = request.user
+            topic = kwargs['pk']
 
             selection = request.POST.get('choice')  # Get the selected choice ID from the POST data
 
             question_index = request.session.get('index', 0)
-            questions = TopicalQuizes.objects.filter(topic__name=kwargs['pk'])
+            questions = TopicalQuizes.objects.filter(topic__name=topic)
             print(question_index, len(questions))
             quiz = TopicalQuizes.objects.get(id=request.session['quiz'])
             test = StudentTest.objects.get(uuid=request.session['testId'])
@@ -118,7 +122,7 @@ class Tests(TemplateView):
                 if 'index' in request.session:
                     del request.session['index']
 
-                return redirect('finish')
+                return redirect('finish',topic)
             else:
                 current_question = questions[question_index]
 
@@ -129,10 +133,13 @@ class Tests(TemplateView):
 class Finish(TemplateView):
     template_name = 'Exams/finish.html'
 
+
+
     def get_context_data(self, **kwargs):
+        topic = self.kwargs['name']
         context = super(Finish, self).get_context_data(**kwargs)
         user = self.request.user
-        test = StudentTest.objects.filter(user=user, topic__name='Living Things').order_by('date').last()
+        test = StudentTest.objects.filter(user=user, topic__name=topic).order_by('date').last()
 
         if test:
             answers = StudentsAnswers.objects.filter(user=user, test=test).values('selection__uuid')
@@ -143,8 +150,17 @@ class Finish(TemplateView):
             for item in mark:
                 item.is_correct = True
                 item.save()
+            about = f'The results for {test.topic} on are out.'
+            message = f'Congratulations on completing your test. The results' \
+                      ' are out, click the button below to view the results. '
+
+            topic = Topic.objects.get(name=topic)
+            subject = topic.subject
+
+            notifications = TopicalExamResults.objects.create(user=user, about=about, message=message, topic=topic, subject=subject)
 
             context['score'] = correct_answers.count()
+            context['test'] = test
         else:
             pass
 

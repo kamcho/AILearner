@@ -21,6 +21,7 @@ html, body {
 .vertical-bar{
     position: fixed;
     width: 18%;
+    max-width:200px;
     margin: 1px ;
     color: white !important;
     padding-top: 1%;
@@ -107,8 +108,7 @@ border-radius:10px ;
 }
 .table{
     padding:30px;
-    
-   
+
 }
 
 table th{
@@ -128,215 +128,35 @@ tr:nth-child(even) {
     border: none;
     border-top: 1px solid black;
     margin-top:10%;
-
 }
+@media (min-width: 1030px) {
+    .event-view{
+        margin: 0 auto;
+    }
 
 
-
-/* FOR EXAMS */
-
-
-.exam-view{
-    display: grid;
-    grid-template-columns: repeat(3,1fr);
-}
-.exam-view .exam-card{
-    background-color: black;
-    width: 200px;
-    height: 180px;
-    color: white;
-    border-radius: 10px;
-    margin-top: 20px;
-}
-.exam-card div{
-    padding: 15px;
-}
-.exam-card small{
-    color: rgb(206, 200, 200);
-}
-.exam-card p,h6{
-    padding-top: 5px;
-}
-
-
-
-
-.image {
-    width:100px;
-    height:100px;
-    margin-left:10px;
-    margin-top:10px;
-    border-radius:50%;
-    float:left;
-    display: inline-block;
-    border: 3px solid aqua;
-    margin-right:30px;
-}
-
-.names {
-
-    margin-top:30px;
-    color:aqua;
-    left:30px;
-    text-align:center;
+    .event-card{
+        margin-top:30px;
+        width:85% !important;
+        height:250px;
+    }
+    }
+@media (max-width: 1030px) {
+    .event-view{
+        grid-template-columns:repeat(2,1fr)
+    }
+    .event-card{
+        margin-top:30px;
+        width:85% !important;
+        height:250px;
+    }
 
 
 }
+@media (max-width: 650px) {
+    .event-view{
+        display:inline;
+    }
 
 
-
-
-/* FOR QUIZ EXAMS */
-.quiz{
-    padding: 10px;
-}
-.quiz .answer{
-    margin-left:10px;
-}
-
-
-
-/* FOR LEARN */
-.subject-view{
-    display: grid;
-    grid-template-columns: repeat(3,1fr);
-}
-.learn-card{
-    width: 320px;
-    height: 220px;
-    background-color: white;
-    color: white;
-    margin-top: 30px;
-    margin-left:30px;
-    box-shadow: 2px 4px 20px 5px rgba(0, 0, 0, 0.09);
-
-}
-.learn-card h6{
-
-    padding-top: 20px;
-    width: 80%;
-    margin: 0 auto;
-    border: none;
-}
-.learn-body{
-    padding-top: 5px;
-    padding-left:10%;
-    margin: 0 auto;
-    border: none;
-    font-size:17px;
-}
-.learn-card a{
-    text-decoration:none;
-    color:black;
-}
-.learn-card i{
-    display: inline-block;
-    margin-top: 20px;
-    color:purple;
-    padding-left:30px;
-
-    font-size:22px;
-}
-.centered-hr {
-    width: 80%;
-    margin: 0 auto;
-    border: none;
-    border-top: 1px solid black;
-    margin-top:10%;
-  }
-
-
-  /* FOR PROGRESS */
-
-.progress-card{
-    width: 320px;
-    height: 220px;
-    background-color: white;
-
-    margin-top: 30px;
-    margin-left:30px;
-    box-shadow: 2px 4px 20px 5px rgba(0, 0, 0, 0.09);
-
-}
-.progress-card .p-txt{
-    padding-top:20px;
-    padding-left:30px;
-    width: 80%;
-}
-.progress-card a{
-    text-decoration:none;
-    color:black;
-}
-
-
-/* FOR EXAM */
-
-.quiz-card {
-    width: 320px;
-    height: 220px;
-    background-color: white;
-
-    margin-top: 30px;
-    margin-left:30px;
-    box-shadow: 2px 4px 20px 5px rgba(0, 0, 0, 0.09);
-}
-.quiz-card a{
-
-}
-
-
-
-
-/* SUBSCRIPTION */
-
-.payment-option{
-    display:grid;
-    grid-template-columns: auto auto;
-}
-.payment-card{
-    width: 300px;
-    height: 320px;
-    background-color: white;
-
-    margin-top: 30px;
-    margin-left:30px;
-}
-.payment-img{
-    width:300px;
-    height:230px;
-}
-.payment-img img{
-    width:300px;
-    height:230px;
-    object-fit:contain;
-}
-.payment-option h6{
-    padding-top:15px;
-    text-align:center;
-}
-.payment-option button{
-    width:100%
-}
-
-
-/* FOR PROFILE */
-
-.subject-list{
-    display:grid;
-    grid-template-columns:auto auto auto;
-}
-
-
-
-/* SYLLABUS */
-.syllabus a {
-    text-decoration:none !important;
-}
-
-
-
-/* FOR GUARDIAN */
-.card{
-    width:300px;
-    height:250px;
 }

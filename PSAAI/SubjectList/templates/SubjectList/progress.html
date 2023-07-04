@@ -8,10 +8,10 @@
 
 <div class="container">
 
-<div class="event-view">
+<div class="upcoming-classes-view">
 
         {% for prog in subject %}
-        <div class="progress-card">
+        <div class="upcoming-classes-card">
 
             <a href="{% url 'syllabus' prog.subject__name %}"><h6 class="p-txt">{{ prog.subject__name }}</h6></a>
             <hr class="centered-hr">

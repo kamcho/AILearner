@@ -25,6 +25,4 @@ urlpatterns = [
     path('Exams/', include('Exams.urls')),
     path('Subscription/', include('Subscription.urls')),
     path('Guardian/', include('Guardian.urls')),
-]
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

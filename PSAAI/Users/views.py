@@ -6,7 +6,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views.generic import CreateView, DetailView, TemplateView
 
-from SubjectList.models import MySubjects, Progress, Notifications, Topic
+from SubjectList.models import MySubjects, Progress, TopicExamNotifications, Topic
 from Users.forms import UserRegisterForm
 from Users.models import PersonalProfile
 
