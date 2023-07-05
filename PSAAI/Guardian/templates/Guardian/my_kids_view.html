@@ -1,15 +1,40 @@
-{% extends 'Guardian/base.html' %}
+{% extends 'Guardian/baseg.html' %}
 
 
 {% block content %}
 
-
+<div class="upcoming-classes-view">
 
     {% for kid in kids %}
 
+        <div class="upcoming-classes-card">
+
+            <div class="booked-class-body">
+               <h6><a href="{% url 'task-view-select' kid %}">{{ kid.f_name }} {{ kid.l_name.0 }}. {{ kid.surname }}. </a></h6>
+                <p>Grade ~ {{ kid.user.academicprofile.grade }}.</p>
+
+            </div>
+            <hr>
+            <div class="booked-class-body">
+
+                <small>Last login {{ kid.user.last_login }}</small>
+                {% if kid.user.mysubscription.active == 'Active' %}
+                <p class="active">Active.</p>
+                {% else %}
+                <p class="error">{{ kid.user.mysubscription.active }}.</p>
+
+                {% endif %}
 
 
-<p><a href="{% url 'task-view-select' kid %}">{{ kid }}</a></p>
+            </div>
+
+
+        </div>
+
+
+
+
+
 
 
 
@@ -18,7 +43,7 @@
 
     {% endfor %}
 
-
+    </div>
 
 
 

@@ -143,14 +143,14 @@ def StripeWebhookView(request):
         return HttpResponse(status=200)
 
 
-def update_subscription(users, type):
+def update_subscription(users, sub_type):
     email_list = [email.strip() for email in users.split(",")]
     print(type, '\n\n\n\n\n\n')
 
     for user in email_list:
         myuser = MyUser.objects.get(email=user)
         subscribe = MySubscription.objects.get(user=myuser)
-        subs = Subscriptions.objects.get(type=type.title())
+        subs = Subscriptions.objects.get(type=sub_type.title())
         print(myuser, subscribe)
         subscribe.type = subs
         subscribe.status = True

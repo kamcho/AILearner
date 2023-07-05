@@ -19,7 +19,7 @@
 
 }
 .booked-class-body{
-    padding:10px;
+
     width:80%;
     padding-top:20px;
     padding-left:30px;
@@ -70,7 +70,8 @@
     }
     .upcoming-classes-card{
         margin-top:30px;
-        width:85%;
+        width:97%;
+        height:250px;
 
     }
     .booked-classes-view{
@@ -92,10 +93,19 @@
         display:inline;
 
 
+
+    }
+    .upcoming-classes-card{
+        margin-top:60px !important;
+        width:85%;
+        height:250px;
+
     }
     .upcoming-classes-card{
         margin: 0 auto;
         margin-bottom:30px;
+
+
     }
     .main-body{
         padding-left:20%;

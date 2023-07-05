@@ -1,0 +1,57 @@
+.task-select{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    margin:0 auto;
+}
+.task-select-card{
+    width:300px;
+    height:250px;
+
+}
+
+.active{
+    color:green !important;
+
+}
+.error{
+    color:crimson !important;
+}
+
+
+@media (max-width:1030px){
+
+    .booked-class-body{
+        width:100%;
+
+        padding-left:0px;
+    }
+}
+@media (max-width:650px){
+    .task-select{
+        margin-top:60px;
+
+    }
+
+
+
+}
+@media (max-width:550px){
+    .task-select{
+        display:inline;
+        padding-top:80px !important;
+
+
+    }
+    .task-select-card{
+            width:80%;
+            height:200px;
+            margin-top:30px;
+
+
+    }
+    .main-body{
+        padding-top:40px;
+    }
+
+
+}

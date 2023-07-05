@@ -14,6 +14,7 @@ class Subscriptions(models.Model):
     def __str__(self):
         return str(self.type)
 
+
 class MySubscription(models.Model):
     user = models.OneToOneField(MyUser, on_delete=models.CASCADE)
     date = models.DateField(auto_now=True)

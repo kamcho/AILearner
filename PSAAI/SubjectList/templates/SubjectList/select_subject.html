@@ -5,28 +5,33 @@
 {% block content %}
 
     <div class="container">
-        <div class="subject-view">
+        <div class="upcoming-classes-view">
 
 
 
 
 {% for subject in user.mysubjects.name.all %}
-    <div class="learn-card">
-        <i class="bi bi-gear"> Grade 4</i>
+    <div class="upcoming-classes-card">
+        <div class="booked-class-body">
+            <i class="bi bi-gear"> Grade 4</i>
+
+        </div>
         <hr class="centered-hr">
+        <div class="booked-class-body">
         {% with progress_topic=user|get_user_progress_topic:subject %}
         <a href="{% url 'syllabus' subject.name  %}"><h6>{{ subject }}</h6></a>
-        <div class="learn-body">
-            <small class="text-muted">
 
+
+             <small >
                         {{ progress_topic }}
 
-            </small>
-            <div style="">
+             </small>
+            <br>
+
                 <a href="{% url 'syllabus' subject %}"><button class="btn btn-info">Syllabus</button></a>
             {% endwith %}
             </div>
-        </div>
+
     </div>
 {% endfor %}
 

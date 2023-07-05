@@ -26,7 +26,6 @@ class Academia(TemplateView):
 
         if request.method == 'POST':
             subjects = request.POST.getlist('subjects')
-            print(subjects)
             user = self.request.user
             try:
                 my_subjects = MySubjects.objects.get(user=user)
@@ -39,32 +38,31 @@ class Academia(TemplateView):
                     'DatabaseError: We could not save your subject Selection')
 
 
-
-
-
-
-
 class Learning(TemplateView):
-    template_name = 'SubjecTlist\select_subject.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(Learning, self).get_context_data(**kwargs)
-
-
-        return context
+    template_name = 'SubjectList/select_subject.html'
 
 
 class Read(TemplateView):
     template_name = 'SubjectList/read.html'
 
-
     def get_context_data(self, **kwargs):
         context = super(Read, self).get_context_data(**kwargs)
+        name = self.kwargs['name']
 
-        context['subject'] = Subtopic.objects.get(name=self.kwargs['name'])
+        try:
+            context['subject'] = Subtopic.objects.get(name=name)
+            return context
+
+        except Subtopic.DoesNotExist:
+            return HttpResponse('Subtopic does not exist.')
+
+        except Subtopic.DoesNotExist:
+            return HttpResponse('Subtopic does not exist.')
+
+        except Subtopic.MultipleObjectsReturned:
+            return HttpResponse('More than one Subtopic returned.')
 
 
-        return context
 
 
 class Finish(TemplateView):
@@ -72,39 +70,51 @@ class Finish(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(Finish, self).get_context_data(**kwargs)
-        subtopic = Subtopic.objects.get(name=self.kwargs['name'])
+        try:
+            subtopic = Subtopic.objects.get(name=self.kwargs['name'])
+            topic = subtopic.topic.name
+            context['topic'] = topic
+            return context
 
-        # Access the related Topic object and its name
-        topic = subtopic.topic.name
+        except Subtopic.DoesNotExist:
+            return HttpResponse('Subtopic does not exist.')
 
-        context['topic'] = topic
-        # context['subtopic'] = subtopic
+        except Subtopic.DoesNotExist:
+            return HttpResponse('Subtopic does not exist.')
 
-        return context
+        except Subtopic.MultipleObjectsReturned:
+            return HttpResponse('More than one Subtopic returned.')
+
+
+
 
     def post(self, request, **kwargs):
         if request.method == 'POST':
             user = request.user
-            subtopic = Subtopic.objects.get(name=self.kwargs['name'])
-            topic = subtopic.topic.name
-            topic = Topic.objects.get(name=topic)
-            subject = Subject.objects.get(name=subtopic.subject)
-            about = f'{subject}: {topic} quiz is ready.'
-            message = 'The quiz for this topic is now ready. Once started the quiz will finish in 15 minutes. Good luck.'
-            is_progress = Progress.objects.filter(user=self.request.user, topic=topic, subtopic=subtopic)
-            if is_progress.exists():
-                pass
-            else:
-                progress = Progress.objects.create(user=user, subtopic=subtopic, subject=subject)
-                progress.topic.set([topic])
-                progress.save()
-                total_topics = topic.topics_count
-                all_subtopics = Progress.objects.filter(user=user,topic=topic).values('subtopic').distinct().count()
-                print(all_subtopics)
-                if all_subtopics == int(total_topics):
-                    notification = TopicExamNotifications.objects.create(user=user, about=about, message=message, topic=topic)
-                else:
+            try:
+                subtopic = Subtopic.objects.get(name=self.kwargs['name'])
+                topic = subtopic.topic.name
+                topic = Topic.objects.get(name=topic)
+                subject = Subject.objects.get(name=subtopic.subject)
+                about = f'{subject}: {topic} quiz is ready.'
+                message = 'The quiz for this topic is now ready. Once started the quiz will finish in 15 minutes. Good luck.'
+                is_progress = Progress.objects.filter(user=self.request.user, topic=topic, subtopic=subtopic)
+                if is_progress.exists():
                     pass
+                else:
+                    progress = Progress.objects.create(user=user, subtopic=subtopic, subject=subject)
+                    progress.topic.set([topic])
+                    progress.save()
+                    total_topics = topic.topics_count
+                    all_subtopics = Progress.objects.filter(user=user, topic=topic).values('subtopic').distinct().count()
+                    print(all_subtopics)
+                    if all_subtopics == int(total_topics):
+                        notification = TopicExamNotifications.objects.create(user=user, about=about, message=message,
+                                                                             topic=topic)
+                    else:
+                        pass
+            except subtopic.MultipleObjectsReturned:
+                return HttpResponse('We could not save your progress, try again.')
 
         return redirect('student-home')
 
@@ -114,11 +124,8 @@ class Syllabus(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(Syllabus, self).get_context_data(**kwargs)
-        print(self.kwargs['name'])
         subject = self.kwargs['name']
         context['syllabus'] = Topic.objects.filter(subject__name=subject).order_by('order')
-
-
 
         return context
 
@@ -135,7 +142,8 @@ class Messages(TemplateView):
         subscription_notifications = SubscriptionNotifications.objects.filter(user=user)
         payment_notification = PaymentNotifications.objects.filter(user=user)
 
-        messages = list(topical_exam)+list(topical_exam_results)+list(class_bookings)+list(subscription_notifications)+list(payment_notification)
+        messages = list(topical_exam) + list(topical_exam_results) + list(class_bookings) + list(
+            subscription_notifications) + list(payment_notification)
         context['messages'] = messages
 
         return context
@@ -146,7 +154,9 @@ class MyProgress(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(MyProgress, self).get_context_data(**kwargs)
-        subject = Progress.objects.filter(user=self.request.user, subject__isnull=False).values('subject__name','subject__topics').annotate(topic_count=Count('topic', distinct=True))
+        subject = Progress.objects.filter(user=self.request.user, subject__isnull=False).values('subject__name',
+                                                                                                'subject__topics').annotate(
+            topic_count=Count('topic', distinct=True))
         count = Progress.objects.filter()
 
         context['subject'] = subject
@@ -167,12 +177,10 @@ class UpcomingClasses(TemplateView):
         # OnlineClass.objects.filter(date__range=(today, end_date))
         upcoming_classes = OnlineClass.objects.all()
 
-
-
         context['classes'] = upcoming_classes
         return context
 
-    
+
 class ClassBookings(TemplateView):
     template_name = 'SubjectList/class_booking.html'
 
@@ -201,11 +209,6 @@ class ClassBookings(TemplateView):
             return redirect('student-home')
         else:
             return redirect('notifications')
-
-
-
-
-
 
 
 class BookedClasses(TemplateView):
@@ -240,4 +243,3 @@ class VideoCall(TemplateView):
         context['app_id'] = app_id
 
         return context
-

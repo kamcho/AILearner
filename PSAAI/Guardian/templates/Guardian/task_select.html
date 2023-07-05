@@ -1,4 +1,4 @@
-{% extends 'Guardian/base.html' %}
+{% extends 'Guardian/baseg.html' %}
 
 
 {% block content %}
@@ -6,26 +6,29 @@
 
 
 
-<div class="row">
-  <div class="col-sm-5">
-    <div class="card">
-      <div class="card-body">
-        <h6 class="card-title">View Tests Progress</h6>
-        <p class="card-text">View {{ email }}`s examination history.</p>
-        <a href="{% url 'kid-tests' email %}" class="btn" style="background-color:purple;color:white;">View Tests</a>
-      </div>
+    <div class="task-select">
+
+        <div class="task-select-card">
+          <div class="booked-class-body">
+            <h6 class="card-title">View Learning Progress</h6>
+            <p class="card-text">View {{ email }}`s learning progress.</p>
+            <a href="{% url 'learner-learning-progress' email %}" class="btn" style="background-color:purple;color:white;">Learning Progress</a>
+          </div>
+        </div>
+
+
+        <div class="task-select-card">
+          <div class="booked-class-body">
+            <h6 class="card-title">View Tests Progress</h6>
+            <p class="card-text">View {{ email }}`s examination history.</p>
+            <a href="{% url 'kid-test' email %}" class="btn" style="background-color:purple;color:white;">View Tests</a>
+          </div>
+        </div>
+
+
+
+
     </div>
-  </div>
-  <div class="col-sm-5">
-    <div class="card">
-      <div class="card-body">
-        <h6 class="card-title">View Learning Progress</h6>
-        <p class="card-text">View {{ email }}`s learning progress.</p>
-        <a href="{% url 'learner-learning-progress' email %}" class="btn" style="background-color:purple;color:white;">Learning Progress</a>
-      </div>
-    </div>
-  </div>
-</div>
 
 
 

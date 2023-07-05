@@ -5,6 +5,7 @@ from django.shortcuts import render
 
 # Create your views here.
 from django.views.generic import ListView, TemplateView
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 from Exams.models import StudentTest, StudentsAnswers
 from SubjectList.models import Progress, Topic
@@ -54,11 +55,10 @@ class KidTests(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(KidTests, self).get_context_data(**kwargs)
-        user = self.kwargs['user']
-        subject_tests = StudentTest.objects.filter(user__email=user).values('topic__subject__name',
+        kid = self.kwargs['email']
+        subject_tests = StudentTest.objects.filter(user__email=kid).values('topic__subject__name',
                                                                             'topic__subject__grade',
                                                                             'topic__name').distinct()
-
         grouped_subjects = []
         for subject, tests in groupby(subject_tests,
                                       key=lambda x: (x['topic__subject__name'], x['topic__subject__grade'])):
@@ -67,7 +67,7 @@ class KidTests(TemplateView):
             grouped_subjects.append({'subject': subject[0], 'grade': grade, 'topics': topics})
 
         context['subjects'] = grouped_subjects
-        context['child'] = user
+        context['child'] = kid
         return context
 
 
@@ -77,7 +77,7 @@ class KidTestDetail(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(KidTestDetail, self).get_context_data(**kwargs)
         subject = self.kwargs['name']
-        email = self.kwargs['user']
+        email = self.kwargs['email']
         subject = StudentTest.objects.filter(user__email=email, subject__name=subject)
         context['tests'] = subject
         context['email'] = email
