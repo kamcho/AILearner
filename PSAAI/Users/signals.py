@@ -9,5 +9,6 @@ from django.dispatch import receiver
 def create_profile(sender,instance,created,**kwargs):
     if created:
         PersonalProfile.objects.create(user=instance)
-        AcademicProfile.objects.create(user=instance)
-        MySubjects.objects.create(user=instance)
+        if instance.role == 'Student':
+            AcademicProfile.objects.create(user=instance)
+            MySubjects.objects.create(user=instance)

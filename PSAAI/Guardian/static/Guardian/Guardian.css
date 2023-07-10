@@ -1,3 +1,68 @@
+.main-body{
+
+    background-color: rgba(250, 247, 247,.3);
+}
+
+/* FOR GUARDIAN HOME */
+.guardian-home-view{
+    display:grid;
+    grid-template-columns:repeat(2,.9fr);
+    grid-gap:25px;
+    position:relative;
+}
+.guardian-home-card{
+    width:97%;
+    height:350px;
+    border-radius:2px;
+    box-shadow: 2px 4px 40px 5px rgba(0, 0, 0, 0.2);
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+}
+.guardian-card-body{
+    font-weight:light;
+    box-shadow: 0 0 2px 0 rgba(0, .2, 0, 0.2);
+    width:98%;
+    height:60%;
+    margin:0 auto;
+    border-radius: 10px;
+    padding: 10px;
+    overflow-y: scroll;
+    scrollbar-arrow-color: brown;
+    align-items: center;
+    background-color: rgb(255, 255, 255);
+}
+.guardian-card-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.guardian-card-body::-webkit-scrollbar-track {
+    background-color: #f1f1f1;
+}
+
+.guardian-card-body::-webkit-scrollbar-thumb {
+    background-color:  #555;
+    border-radius: 4px;
+}
+
+.guardian-card-body::-webkit-scrollbar-thumb:hover {
+    background-color:purple;
+}
+
+.guardian-home-card a{
+    align-self: flex-end;
+    position:absolute;
+    bottom:5px;
+    margin:0 auto;
+    
+}
+.guardian-home-card i{
+    color: rgb(9, 12, 78);
+}
+.guardian-home-card small{
+    color: purple;    
+    font-size: 15px;
+}
 .task-select{
     display:grid;
     grid-template-columns:repeat(2,1fr);
@@ -17,6 +82,95 @@
     color:crimson !important;
 }
 
+/* GUARDIAN HOME END */
+
+
+
+/* FOR CHILD SELECT */
+.kids-view{
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    margin:0 auto;
+}
+.kid-card{
+    width: 95%;
+    height: 250px;
+    border-radius: 10px;
+    background-color:white;
+    padding:15px;
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.2);
+    /* box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px; */
+
+    margin-top: 30px;
+
+}
+.kid-card small{
+
+    font-size: 12px;
+}
+.kid-exam-card{
+    width: 95%;
+    height: 280px;
+    padding: 15px;
+    box-shadow: 2px 4px 20px 5px rgba(0, 0, 0, 0.09);
+
+}
+.kid-exam-topics-card{
+    width: 99%;
+    height: 40%;
+    border-radius: 5px;
+    padding-top: 5px;
+    padding:5px;
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.2);
+    margin: 5px auto;
+    overflow-y: scroll;
+
+}
+.kid-exam-progress-card{
+    width: 99%;
+    height: 30%;
+    border-radius: 5px;
+    padding-top: 5px;
+    padding:5px;
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.2);
+    margin: 5px auto;
+    }
+    .kid-exam-topics-card::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    .kid-exam-topics-card::-webkit-scrollbar-track {
+        background-color: #f1f1f1;
+    }
+    
+    .kid-exam-topics-card::-webkit-scrollbar-thumb {
+        background-color:  #555;
+        border-radius: 4px;
+    }
+    
+    .kid-exam-topics-card::-webkit-scrollbar-thumb:hover {
+        background-color:purple;
+    }
+
+/* END */
+
+
+/* FOR LEARNERS PROGRESS */
+.kid-in-card{
+    width: 90%;
+    height: 60%;
+    border-radius: 5px;
+    padding:15px;
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.2);
+    /* box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px; */
+
+    margin:0 auto;
+
+}
+
+
+
+
 
 @media (max-width:1030px){
 
@@ -25,11 +179,49 @@
 
         padding-left:0px;
     }
+    .kids-view{
+        grid-template-columns: repeat(2,.9fr);
+    }
+}
+@media (max-width:800px){
+
+    .guardian-home-view{
+        display:inline;
+       
+    }
+    .guardian-home-card a{
+        
+        position:relative;
+        margin-top:10px;
+    }
+    .guardian-home-card{
+        margin-top: 30px;
+
+    }
+    .kids-view{
+        margin: 0 auto;
+        padding-left: 3%;
+        }
+    
 }
 @media (max-width:650px){
     .task-select{
         margin-top:60px;
 
+    }
+    .guardian-home-view{
+  
+        margin-top:30px;
+    }
+    
+    .guardian-home-card{
+
+        margin:auto auto 50px auto;
+        width:80%;
+
+    }
+    .kids-view{
+        margin-top: 40px;
     }
 
 
@@ -51,6 +243,13 @@
     }
     .main-body{
         padding-top:40px;
+    }
+    .kids-view{
+        display: inline;
+    }
+    .kid-card{
+        margin: 0 auto;
+        margin-top: 20px;
     }
 
 

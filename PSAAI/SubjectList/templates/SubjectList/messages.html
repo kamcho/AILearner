@@ -3,33 +3,37 @@
 {% block content %}
   <div>
     {% for message in messages %}
-        <div class="accordion" id="accordionExample">
-          <div class="accordion-item">
-            <h2 class="accordion-header" id="headingOne">
-              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                {{ message.about }} <small style="position:absolute;right:45px;"> {{ message.date|timesince }} ago.</small>
-              </button>
-            </h2>
-            <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
-              <div class="accordion-body">
-                {{ message.message }}
-                <br>
-                {% notification_class user message message.uuid as class_type %}
-                {% if class_type == 'test_complete' %}
-                  <a href="{% url 'test-detail' message.uuid %}"><button class="btn btn-info">View Results</button></a>
-                {% elif class_type == 'quiz_result' %}
-                  <a href="{% url 'start' message.topic message.uuid %}"><button class="btn btn-danger">View Results</button></a>
+  <div class="accordion" id="accordionExample">
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="true" aria-controls="collapse{{ forloop.counter }}">
+          {{ message.about }} <small style="position:absolute;right:45px;"> {{ message.date|timesince }} ago.</small>
+        </button>
+      </h2>
+      <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#accordionExample">
+        <div class="accordion-body">
+          {{ message.message }}
+          <br>
+          {% if message.notification_type == 'quiz' %}
+            {% if user|test_is_done:message.uuid %}
+                <a href="{% url 'test-detail' message.uuid %}"><button class="btn btn-warning">View Results</button></a>
                 {% else %}
-                  <a href="{% url 'start' message.topic message.uuid %}"><button class="btn btn-info">Take Quiz</button></a>
+                <a href="{% url 'start' message.topic message.uuid %}"><button class="btn btn-info">Take Test</button></a>
 
                 {% endif %}
+            {% elif message.notification_type == 'results' %}
+                <a href="{% url 'test-detail' message.test %}"><button class="btn btn-warning">View Results</button></a>
+            {% else %}
 
-              </div>
-            </div>
-          </div>
+
+          {% endif %}
         </div>
-    <br><br>
-    {% endfor %}
+      </div>
+    </div>
+  </div>
+  <br>
+{% endfor %}
+
   </div>
 
 

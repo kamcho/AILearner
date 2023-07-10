@@ -4,40 +4,32 @@
 
 {% block content %}
 
-    <div>
-        <div class="upcoming-classes-view">
-      {% for subject in subjects %}
-            <a style="text-decoration:none;color:black;" href="{% url 'exam-subject-id' subject.subject %}">
-        <div class="upcoming-classes-card">
-            <div class="p-txt">
-                <h6>{{ subject.subject }}.</h6>
-            {% for topic in subject.topics %}
-                <small>{{ topic }}</small><br>
-            {% endfor %}
-            </div>
-
-            <hr class="centered-hr">
-            <div class="p-txt">
-
-                <small>Grade {{ subject.grade }}</small>
-            <p>{{ subject.topics|length }} / 15</p>
-            </div>
 
 
+    <div class="event-view">
+        {% for subject in subjects %}
+            <a href="{% url  'exam-subject-id'  subject.subject %}">
+                <div class="kid-exam-card">
+                    <div class="">
+                        <h6><i class="bi bi-bookmark-plus"></i>{{ subject.subject }}.</h6>
+                        <small>Grade {{ subject.grade }}</small>
+                    </div>
 
-        </div>
+                    <div class="kid-exam-topics-card">
+                        <small class="text-muted">Subtopics</small><br>
+                        {% for topic in subject.topics %}
+                            <small>{{ topic }}</small><br>
+                        {% endfor %}
+                    </div>
+                    <div class="kid-exam-progress-card">
+                        <small >Topics covered  <span class="badge bg-info" style="margin-left: 30px;">{{ subject.topics|length }}</span></small>
+                <br>
+                <small >Total topics  <span class="badge bg-secondary" style="margin-left:50px;">6</span></small>
+                <br>
+                    </div>
 
-</a>
-
-
-      {% endfor %}
-        </div>
-
-
-
-
-
-
-    </div>
-
+                </div>
+            </a>
+        {% endfor %}
+      </div>
 {% endblock %}

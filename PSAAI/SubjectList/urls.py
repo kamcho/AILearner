@@ -15,6 +15,7 @@ urlpatterns = [
     path('Video-Call', VideoCall.as_view(), name='video-call'),
     path('online-class/<str:id>/booking', ClassBookings.as_view(), name='book-class'),
     path('booked-classes/', BookedClasses.as_view(), name='booked-classes'),
-    path('<str:id>/lobby', CallLobby.as_view(), name='lobby')
+    path('<str:id>/lobby', CallLobby.as_view(), name='lobby'),
+    path('contact/', ContactUs.as_view(), name='contact')
 
 ]

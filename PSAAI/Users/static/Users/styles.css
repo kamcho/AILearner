@@ -32,6 +32,7 @@ html, body {
 .vertical-bar{
     position: fixed;
     width: 18%;
+    min-width:15%;
     max-width:200px;
     margin: 1px ;
     color: white !important;
@@ -97,6 +98,8 @@ border-radius:10px ;
 .event-view{
     display: grid;
     grid-template-columns: repeat(3,1fr);
+    margin:0 auto;
+
 
 }
 .event-view .event-card{
@@ -143,9 +146,7 @@ tr:nth-child(even) {
     margin-top:10%;
 }
 @media (min-width: 1030px) {
-    .event-view{
-        margin: 0 auto;
-    }
+
     .main-body{
         padding-left:19%;
         padding-right:3%;
@@ -171,14 +172,19 @@ tr:nth-child(even) {
 
 
 }
-@media (max-width: 650px) {
+@media (max-width: 670px) {
 
     .vertical-bar{
         display:none;
 
     }
+    .quiz-form{
+        margin:60px auto;
+    }
     .event-view{
-        padding-top:30px;
+        padding-top:50px;
+        padding-left:1px;
+        margin:0 auto;
     }
     .main-body{
         padding-left:0% !important;
@@ -189,6 +195,10 @@ tr:nth-child(even) {
         color:black !important;
 
     }
+    .event-card{
+        width:95% !important;
+    }
+
 
 
 }
@@ -198,15 +208,13 @@ tr:nth-child(even) {
         margin: 0 auto;
 
 
-        padding-top:40px !important;
 
         }
-        .main-body{
-            margin-top:30px;
 
-        }
         .event-card{
             margin-left:8% !important;
+            width:85% !important;
+            margin:20px 50px  auto;
 
 
         }

@@ -72,6 +72,7 @@
         margin-top:30px;
         width:97%;
         height:250px;
+        padding: 15px;
 
     }
     .booked-classes-view{
@@ -247,74 +248,32 @@
 }
 
 
-/* FOR EXAM */
-
-.quiz-card {
-    width: 320px;
-    height: 220px;
-    background-color: white;
-
-    margin-top: 30px;
-    margin-left:30px;
+#accordionExample{
+    background-color:white;
+}
+/* FOR MESSAGING */
+.message-card{
+    width:90%;
+    height:80px;
     box-shadow: 2px 4px 20px 5px rgba(0, 0, 0, 0.09);
+    padding:10px;
+    margin-top:10px;
+
+
 }
-.quiz-card a{
-
+.message-img{
+    width:60px;
+    height:60px;
+    border-radius:50%;
+    float:left;
+    border:2px solid purple;
 }
-
-
-
-
-/* SUBSCRIPTION */
-
-.payment-option{
-    display:grid;
-    grid-template-columns: auto auto;
+.message-txt{
+    left:5px;
 }
-.payment-card{
-    width: 300px;
-    height: 320px;
-    background-color: white;
-
-    margin-top: 30px;
-    margin-left:30px;
-}
-.payment-img{
-    width:300px;
-    height:230px;
-}
-.payment-img img{
-    width:300px;
-    height:230px;
-    object-fit:contain;
-}
-.payment-option h6{
-    padding-top:15px;
-    text-align:center;
-}
-.payment-option button{
-    width:100%
-}
-
-
-/* FOR PROFILE */
-
-.subject-list{
-    display:grid;
-    grid-template-columns:auto auto auto;
-}
-
-
-
-/* SYLLABUS */
-.syllabus a {
-    text-decoration:none !important;
-}
-
-
-
-/* FOR GUARDIAN */
-.card{
-    width:300px;
-    height:250px;
+.message-img img{
+    width:60px;
+    height:60px;
+    border-radius:50%;
+    float:left;
 }

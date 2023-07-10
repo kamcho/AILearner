@@ -1,4 +1,4 @@
-
+from django.db import DatabaseError, IntegrityError
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from .models import *
@@ -12,20 +12,24 @@ class Exams(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(Exams, self).get_context_data(**kwargs)
-        subject_tests = StudentTest.objects.filter(user=self.request.user).values('topic__subject__name',
-                                                                                  'topic__subject__grade',
-                                                                                  'topic__name').distinct()
 
-        grouped_subjects = []
-        for subject, tests in groupby(subject_tests,
-                                      key=lambda x: (x['topic__subject__name'], x['topic__subject__grade'])):
-            grade = subject[1]
-            topics = [test['topic__name'] for test in tests]
-            grouped_subjects.append({'subject': subject[0], 'grade': grade, 'topics': topics})
+        try:
+            subject_tests = StudentTest.objects.filter(user=self.request.user).values('topic__subject__name',
+                                                                                      'topic__subject__grade',
+                                                                                      'topic__name').distinct()
+            grouped_subjects = []
+            for subject, tests in groupby(subject_tests,
+                                          key=lambda x: (x['topic__subject__name'], x['topic__subject__grade'])):
+                grade = subject[1]
+                topics = [test['topic__name'] for test in tests]
+                grouped_subjects.append({'subject': subject[0], 'grade': grade, 'topics': topics})
 
-        context['subjects'] = grouped_subjects
+            context['subjects'] = grouped_subjects
 
-        return context
+            return context
+
+        except DatabaseError as error:
+            pass
 
 
 class ExamSubjectDetail(TemplateView):
@@ -33,10 +37,15 @@ class ExamSubjectDetail(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(ExamSubjectDetail, self).get_context_data(**kwargs)
-        subject = StudentTest.objects.filter(user=self.request.user, subject__name=self.kwargs['name'])
-        context['subject'] = subject
 
-        return context
+        try:
+            subject = StudentTest.objects.filter(user=self.request.user, subject__name=self.kwargs['name'])
+            context['subject'] = subject
+
+            return context
+
+        except DatabaseError as error:
+            pass
 
 
 class TestDetail(TemplateView):
@@ -46,13 +55,18 @@ class TestDetail(TemplateView):
         context = super(TestDetail, self).get_context_data(**kwargs)
         user = self.request.user
         test = str(self.kwargs['uuid'])
-        answers = StudentsAnswers.objects.filter(user=user, test=test)
-        test = StudentTest.objects.get(user=user, uuid=test)
 
-        context['quizzes'] = answers
-        context['marks'] = test
+        try:
+            answers = StudentsAnswers.objects.filter(user=user, test=test)
+            test = StudentTest.objects.filter(user=user, uuid=test).last()
 
-        return context
+            context['quizzes'] = answers
+            context['marks'] = test
+
+            return context
+
+        except DatabaseError as error:
+            pass
 
 
 class Start(TemplateView):
@@ -60,20 +74,35 @@ class Start(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(Start, self).get_context_data(**kwargs)
-        context['topic'] = Topic.objects.get(name=self.kwargs['pk'])
 
-        return context
+        try:
+            context['topic'] = Topic.objects.filter(name=self.kwargs['pk']).first()
+
+            return context
+
+        except DatabaseError as error:
+            pass
 
     def post(self, *args, **kwargs):
         if self.request.method == 'POST':
             user = self.request.user
-            topic = Topic.objects.get(name=self.kwargs['pk'])
-            test = StudentTest.objects.create(user=user,subject=topic.subject, uuid=str(self.kwargs['uuid']), topic=topic)
-            self.request.session['testId'] = str(test.uuid)
+            try:
 
-            return redirect('tests', topic.name)
+                topic = Topic.objects.filter(name=self.kwargs['pk']).first()
+                try:
 
-        return HttpResponse('success')
+                    test = StudentTest.objects.create(user=user,subject=topic.subject, uuid=str(self.kwargs['uuid']), topic=topic)
+                    return redirect('tests', topic.name)
+                except IntegrityError:
+                    pass
+                except DatabaseError as error:
+                    pass
+                self.request.session['testId'] = str(test.uuid)
+
+
+
+            except DatabaseError as error:
+                pass
 
 
 class Tests(TemplateView):
@@ -83,23 +112,31 @@ class Tests(TemplateView):
         context = super(Tests, self).get_context_data(**kwargs)
         topic = kwargs['pk']
         question_index = self.request.session.get('index', 0)
-        questions = TopicalQuizes.objects.filter(topic__name=topic)
-        print(questions, question_index)
+        try:
+            questions = TopicalQuizes.objects.filter(topic__name=topic)
+            print(questions, question_index)
 
-        if question_index >= len(questions):
-            return {}
+            if question_index >= len(questions):
+                return {}
 
-        else:
-            current_question = questions[question_index]
-            self.request.session['quiz'] = str(current_question)
-            choices = TopicalQuizAnswers.objects.filter(quiz=current_question)
-            context['choices'] = choices
-            context['quiz'] = current_question
-            context['index'] = question_index + 1
-            numbers = [i + 1 for i in range(len(questions))]
-            context['list'] = numbers
+            else:
+                current_question = questions[question_index]
+                self.request.session['quiz'] = str(current_question)
+                try:
+                    choices = TopicalQuizAnswers.objects.filter(quiz=current_question)
+                    context['choices'] = choices
+                    context['quiz'] = current_question
+                    context['index'] = question_index + 1
+                    numbers = [i + 1 for i in range(len(questions))]
+                    context['list'] = numbers
 
-            return context
+                    return context
+
+                except DatabaseError as error:
+                    pass
+
+        except DatabaseError as error:
+            pass
 
     def post(self, request, *args, **kwargs):
 
@@ -112,58 +149,66 @@ class Tests(TemplateView):
             question_index = request.session.get('index', 0)
             questions = TopicalQuizes.objects.filter(topic__name=topic)
             print(question_index, len(questions))
-            quiz = TopicalQuizes.objects.get(id=request.session['quiz'])
-            test = StudentTest.objects.get(uuid=request.session['testId'])
+            quiz = TopicalQuizes.objects.filter(id=request.session['quiz']).first()
+            test = StudentTest.objects.filter(uuid=request.session['testId']).first()
             selection = TopicalQuizAnswers.objects.get(uuid=selection)
 
-            answer = StudentsAnswers.objects.create(user=user, quiz=quiz, selection=selection, test=test)
-            if question_index >= len(questions) - 1:
-                # The exam is completed, redirect to a summary page
-                if 'index' in request.session:
-                    del request.session['index']
+            try:
+                answer = StudentsAnswers.objects.create(user=user, quiz=quiz, selection=selection, test=test)
+                if question_index >= len(questions) - 1:
+                    # The exam is completed, redirect to a summary page
+                    if 'index' in request.session:
+                        del request.session['index']
 
-                return redirect('finish',topic)
-            else:
-                current_question = questions[question_index]
+                    return redirect('finish', topic)
+                else:
+                    current_question = questions[question_index]
 
-                request.session['index'] = question_index + 1
-                return redirect(request.path)
+                    request.session['index'] = question_index + 1
+                    return redirect(request.path)
+            except IntegrityError as error:
+                pass
 
 
 class Finish(TemplateView):
     template_name = 'Exams/finish.html'
 
-
-
     def get_context_data(self, **kwargs):
         topic = self.kwargs['name']
         context = super(Finish, self).get_context_data(**kwargs)
         user = self.request.user
-        test = StudentTest.objects.filter(user=user, topic__name=topic).order_by('date').last()
 
-        if test:
-            answers = StudentsAnswers.objects.filter(user=user, test=test).values('selection__uuid')
-            correct_answers = TopicalQuizAnswers.objects.filter(uuid__in=answers, is_correct='True')
-            test.marks = correct_answers.count()
-            test.save()
-            mark = StudentsAnswers.objects.filter(selection__in=correct_answers)
-            for item in mark:
-                item.is_correct = True
-                item.save()
-            about = f'The results for {test.topic} on are out.'
-            message = f'Congratulations on completing your test. The results' \
-                      ' are out, click the button below to view the results. '
+        try:
+            test = StudentTest.objects.filter(user=user, topic__name=topic).order_by('date').last()
+            print(test.uuid, '\n\n\n\n\n')
+            if test:
+                answers = StudentsAnswers.objects.filter(user=user, test=test).values('selection__uuid')
+                correct_answers = TopicalQuizAnswers.objects.filter(uuid__in=answers, is_correct='True')
+                test.marks = correct_answers.count()
+                test.save()
+                mark = StudentsAnswers.objects.filter(selection__in=correct_answers)
+                for item in mark:
+                    item.is_correct = True
+                    item.save()
+                about = f'The results for {test.topic} on are out.'
+                message = f'Congratulations on completing your test. The results' \
+                          ' are out, click the button below to view the results. '
 
-            topic = Topic.objects.get(name=topic)
-            subject = topic.subject
+                topic = Topic.objects.filter(name=topic).first()
+                subject = topic.subject
+                try:
+                    notifications = TopicalExamResults.objects.create(user=user, test=test.uuid, about=about, message=message, topic=topic, subject=subject)
 
-            notifications = TopicalExamResults.objects.create(user=user, about=about, message=message, topic=topic, subject=subject)
+                except IntegrityError as error:
+                    pass
+                context['score'] = correct_answers.count()
+                context['test'] = test
+            else:
+                pass
 
-            context['score'] = correct_answers.count()
-            context['test'] = test
-        else:
+            return context
+
+        except DatabaseError as error:
             pass
-
-        return context
 
 

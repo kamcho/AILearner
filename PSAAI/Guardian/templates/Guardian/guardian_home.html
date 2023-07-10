@@ -5,32 +5,45 @@
 
 
 
-<div class="row d-flex align-items-center justify-content-center">
-  <div class="col-sm-5">
-    <div class="card">
-      <div class="card-body">
-        <h6 class="card-title">View Kids Progress</h6>
-        <p class="card-text">View your kids progress and examination results</p>
+<div class="guardian-home-view align-items-center justify-content-center">
+
+    <div class="guardian-home-card">
+      <h6 class="card-title">View Kids Progress</h6>
+      <p class="card-text">View your kids progress and results.</p>
+
+      <div class="guardian-card-body">
+        
           {% for kid in kids %}
-          <small>{{ kid }}</small>
-          <br>
+            <div class="mb-3">
+              <input type="email" class="form-control" id="exampleFormControlInput1" placeholder="{{ kid }}">
+            </div>
           {% endfor %}
-        <a href="{% url 'my-kids'  %}" class="btn" style="background-color:purple;color:white;">View</a>
       </div>
+      <br>
+      <a href="{% url 'my-kids'  %}" class="btn" style="background-color:purple;color:white;">View</a>
+
     </div>
-  </div>
-  <div class="col-sm-5">
-    <div class="card">
-      <div class="card-body">
+
+
+    <div class="guardian-home-card">
         <h6 class="card-title">View Upcoming Events</h6>
-        <p class="card-text">View all upcoming events and activities.</p>
-        <small>National Exams</small><br>
-        <small>National Exams</small><br>
-        <small>National Exams</small><br><br>
-        <a href="" class="btn" style="background-color:purple;color:white;">Learning Progress</a>
+        <p class="card-text">View all upcoming events.</p>
+      <div class="guardian-card-body">
+        
+        <ul class="list-group">
+          <li class="list-group-item">An item</li>
+          <li class="list-group-item">A second item</li>
+          <li class="list-group-item">A third item</li>
+          
+        </ul>
       </div>
+      <a href="" class="btn" style="background-color:purple;color:white;">Learning Progress</a>
+
     </div>
-  </div>
+
+
+
+</div>
 
 
 

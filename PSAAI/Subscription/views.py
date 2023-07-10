@@ -2,9 +2,11 @@ import datetime
 from datetime import timedelta
 
 import stripe
+from django.db import DatabaseError, IntegrityError
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
+from stripe.error import StripeError
 
 from SubjectList.models import PaymentNotifications
 from Users.models import MyUser, PersonalProfile
@@ -20,10 +22,14 @@ class Subscribe(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(Subscribe, self).get_context_data(**kwargs)
         user = self.request.user
-        context['subscriptions'] = Subscriptions.objects.all()
-        context['my_subscription'] = MySubscription.objects.filter(user=user)
+        try:
+            context['subscriptions'] = Subscriptions.objects.all()
+            context['my_subscription'] = MySubscription.objects.filter(user=user)
 
-        return context
+            return context
+
+        except DatabaseError:
+            pass
 
 
 class StripeCard(TemplateView):
@@ -31,13 +37,18 @@ class StripeCard(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(StripeCard, self).get_context_data(**kwargs)
-        subs = Subscriptions.objects.all()
 
-        context['subs'] = subs
-        kids = PersonalProfile.objects.filter(ref_id=self.request.user.uuid)
-        context['kids'] = kids
+        try:
+            subs = Subscriptions.objects.all()
 
-        return context
+            context['subs'] = subs
+            kids = PersonalProfile.objects.filter(ref_id=self.request.user.uuid)
+            context['kids'] = kids
+
+            return context
+
+        except DatabaseError:
+            pass
 
     def post(self, request, *args, **kwargs):
         stripe.api_key = 'sk_test_51MrhGPHSDxMMHnYTxwz5LLK9vGRHde981TLoCjmE9HNOmtbvAlIZbn9eCk29JFq98zziGrwKOxfj1ol5N9TDEOHo00eHUdjtjw'
@@ -50,30 +61,35 @@ class StripeCard(TemplateView):
             selected = request.POST.getlist('selected_kids')
             type = request.POST.get('subscription')
             amount = request.POST.get('amount')
-            token = stripe.Token.create(
-                card={
-                    'number': card_number,
-                    'exp_month': exp_month,
-                    'exp_year': exp_year,
-                    'cvc': cvc,
-                    "name": names,
-                },
-            )
-            customer = stripe.Customer.create(
-                source=token, email=request.user, name=names
-            )
-            amount = int(amount) * 100
-            charge = stripe.Charge.create(
-                amount=amount,
-                currency='kes',
-                customer=customer.id,
-                description="Test payment",
-                metadata={'students': ', '.join(selected),
-                          'user': request.user,
-                          'type': type,
-                          },
-            )
-            return self.render_to_response({"success": True})
+            try:
+                token = stripe.Token.create(
+                    card={
+                        'number': card_number,
+                        'exp_month': exp_month,
+                        'exp_year': exp_year,
+                        'cvc': cvc,
+                        "name": names,
+                    },
+                )
+
+                customer = stripe.Customer.create(
+                    source=token, email=request.user, name=names
+                )
+                amount = int(amount) * 100
+                charge = stripe.Charge.create(
+                    amount=amount,
+                    currency='kes',
+                    customer=customer.id,
+                    description="Test payment",
+                    metadata={'students': ', '.join(selected),
+                              'user': request.user,
+                              'type': type,
+                              },
+                )
+                return self.render_to_response({"success": True})
+
+            except StripeError as e:
+                pass
 
 
 @csrf_exempt
@@ -119,28 +135,40 @@ def StripeWebhookView(request):
             sub = charge['metadata']['type']
             print(type(amount))
             print("\n\n\n\n\n\n\n")
-            user = MyUser.objects.get(email=user)
-            payment = StripeCardPayments.objects.create(
-                user=user,
-                amount=amount,
 
-                transact_id=transact_id,
-                student_list=students,
-                type=sub,
+            try:
+                user = MyUser.objects.get(email=user)
+                payment = StripeCardPayments.objects.create(
+                    user=user,
+                    amount=amount,
 
-                currency=currency,
-                name=name,
-                country=country,
-                brand=brand,
-                created=created
-            )
-            payment.save()
-            update_subscription(students, sub)
-            notify(user=user,amount=amount, beneficiaries=students, subscription_type=sub)
+                    transact_id=transact_id,
+                    student_list=students,
+                    type=sub,
 
+                    currency=currency,
+                    name=name,
+                    country=country,
+                    brand=brand,
+                    created=created
+                )
+                payment.save()
+                update_subscription(students, sub)
+                notify(user=user,amount=amount, beneficiaries=students, subscription_type=sub)
+
+            except MyUser.MultipleObjectsReturned:
+                pass
+            except MyUser.DoesNotExist:
+                pass
+            except IntegrityError:
+                pass
+            except DatabaseError:
+                pass
         else:
             print('Unhandled event type {}'.format(event['type']))
         return HttpResponse(status=200)
+
+
 
 
 def update_subscription(users, sub_type):
@@ -148,16 +176,24 @@ def update_subscription(users, sub_type):
     print(type, '\n\n\n\n\n\n')
 
     for user in email_list:
-        myuser = MyUser.objects.get(email=user)
-        subscribe = MySubscription.objects.get(user=myuser)
-        subs = Subscriptions.objects.get(type=sub_type.title())
-        print(myuser, subscribe)
-        subscribe.type = subs
-        subscribe.status = True
-        expiry = subscribe.expiry + timedelta(days=30)
-        subscribe.expiry = expiry
-        subscribe.date = datetime.date.today()
-        subscribe.save()
+        try:
+            myuser = MyUser.objects.get(email=user)
+            subscribe = MySubscription.objects.get(user=myuser)
+            subs = Subscriptions.objects.get(type=sub_type.title())
+
+            subscribe.type = subs
+            subscribe.status = True
+            expiry = subscribe.expiry + timedelta(days=30)
+            subscribe.expiry = expiry
+            subscribe.date = datetime.date.today()
+            subscribe.save()
+
+        except MyUser.MultipleObjectsReturned:
+            pass
+        except MySubscription.MultipleObjectsReturned:
+            pass
+
+
 
     return None
 

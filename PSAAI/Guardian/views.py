@@ -1,5 +1,5 @@
 from itertools import groupby
-
+from datetime import datetime
 from django.db.models import Count
 from django.shortcuts import render
 
@@ -35,6 +35,7 @@ class MyKidsView(TemplateView):
         my_uuid = MyUser.objects.get(email=user).uuid
         my_kids = PersonalProfile.objects.filter(ref_id=my_uuid)
         context['kids'] = my_kids
+        context['current_time'] = datetime.now()
 
         return context
 

@@ -10,8 +10,9 @@ register = template.Library()
 
 @register.filter
 def divide(value, arg):
-    value = int(value)
+
     try:
+        value = int(value)
         return round((value / arg) * 100)
     except (ValueError, ZeroDivisionError):
         return 0
@@ -19,16 +20,35 @@ def divide(value, arg):
 
 @register.filter
 def get_user_progress_topic(user, subject):
-    subject = Subject.objects.get(name=subject)
+
+
+    subject = Subject.objects.filter(name=subject).first()
     progress = Progress.objects.filter(user=user, subject=subject).last()
     if progress:
-        current_subtopic = Subtopic.objects.get(name=progress.subtopic)
-        return current_subtopic
+        try:
+            current_subtopic = Subtopic.objects.filter(name=progress.subtopic).last()
+            return current_subtopic
+
+        except Subtopic.DoesNotExist:
+            try:
+                introduction = Topic.objects.get(subject=subject, order=1)
+                introduction = Subtopic.objects.get(topic=introduction, order=1)
+                print(introduction)
+                return introduction
+            except Topic.DoesNotExist:
+                return None
+            except Subtopic.DoesNotExist:
+                return None
     else:
-        introduction = Topic.objects.get(subject=subject, order=1)
-        introduction = Subtopic.objects.get(topic=introduction, order=1)
-        print(introduction)
-        return introduction
+        try:
+            introduction = Topic.objects.get(subject=subject, order=1)
+            introduction = Subtopic.objects.get(topic=introduction, order=1)
+            print(introduction)
+            return introduction
+        except Topic.DoesNotExist:
+            return None
+        except Subtopic.DoesNotExist:
+            return None
 
 
 @register.filter
@@ -40,25 +60,29 @@ def topic_in_progress(user, topic):
         else:
             return False
 
-    except:
-        pass
+    except Progress.DoesNotExist:
+        return False
+
 
 @register.filter
 def guardian_topic_view(email, topic):
     try:
         user = MyUser.objects.get(email=email)
-
         progress = Progress.objects.filter(user=user, topic=topic)
         if progress.exists():
             return True
         else:
             return False
 
-    except:
+    except Progress.DoesNotExist:
         pass
 
+    except MyUser.DoesNotExist:
+        pass
+
+
 @register.filter
-def subtopic_in_progress(user,subtopic):
+def subtopic_in_progress(user, subtopic):
     try:
         progress = Progress.objects.filter(user=user, subtopic=subtopic)
         if progress.exists():
@@ -66,11 +90,12 @@ def subtopic_in_progress(user,subtopic):
         else:
             return False
 
-    except:
+    except Progress.DoesNotExist:
         pass
 
+
 @register.filter
-def guardian_subtopic_view(email,subtopic):
+def guardian_subtopic_view(email, subtopic):
     try:
         user = MyUser.objects.get(email=email)
         progress = Progress.objects.filter(user=user, subtopic=subtopic)
@@ -79,37 +104,40 @@ def guardian_subtopic_view(email,subtopic):
         else:
             return False
 
-    except:
+    except MyUser.DoesNotExist:
         pass
+
+    except Progress.DoesNotExist:
+        pass
+
 
 @register.filter
 def class_is_booked(user, class_id):
 
+    try:
+        booking = ClassBooking.objects.filter(user=user, class_name=class_id)
+        if booking.exists():
+            print(class_id)
+            return True
+        else:
+            print("not found", class_id)
+            return False
 
-    booking = ClassBooking.objects.filter(user=user, class_name=class_id)
-    if booking.exists():
-        print(class_id)
-        return True
-    else:
-        print("not found", class_id)
+    except ClassBooking.DoesNotExist:
         return False
 
 
-@register.simple_tag
-def notification_class(user, message, uuid):
+@register.filter
+def test_is_done(user, test_uuid):
 
+    try:
+        test = StudentTest.objects.get(user=user, uuid=test_uuid)
+        return True
 
-    test = StudentTest.objects.filter(user=user, uuid=uuid)
+    except StudentTest.DoesNotExist:
+        return False
+    except StudentTest.MultipleObjectsReturned:
+        return False
 
-    if isinstance(message, TopicExamNotifications):
-
-        if test.exists():
-            print('exists')
-            return 'test_complete'
-        else:
-            print('no results')
-            return False
-    elif isinstance(message, TopicalExamResults):
-        return 'quiz_result'
 
 

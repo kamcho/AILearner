@@ -23,12 +23,92 @@
 </head>
 <body class="base-html">
 
+  <nav class="navbar navbar-light bg-light fixed-top" id="responsive">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">Offcanvas navbar</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Offcanvas</h5>
+          <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+          <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+            {% if user.is_authenticated %}
+
+            <div class="user-img" style="display: none;">
+                <img src="{{ user.personalprofile.pic.url }}">
+    
+            </div>
+           <li>
+                <a class="nav-link" href=""><i class="bi bi-option" style="color:white;"> </i>Dash Board</a>
+              </li>
+    
+    
+           <li>
+                  <a class="nav-link" href="{% url 'my-kids' %}"><i class="bi bi-house" style="color:white;"> </i>Home</a>
+              </li>
+           <li>
+                  <a class="nav-link" href="{% url 'subscription' %}"><i class="bi bi-credit-card" style="color:white;"> </i>Subscription</a>
+              </li>
+    
+           <li>
+               <a class="nav-link" href="{% url 'notifications' %}">
+                <button  style="background-color:purple;color:white;" class="btn  position-relative">
+                  Messages
+                  <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    {{ messages.count }}+
+                    <span class="visually-hidden">unread messages</span>
+                  </span>
+                </button>
+                </a>
+           </li>
+    
+    
+    
+            <li>
+                <a class="nav-link" href="{% url 'profile' user.id %}"><i class="bi bi-person-circle" style="color:white;"> </i>Profile</a>
+              </li>
+           <li>
+                <a class="nav-link" href="{% url 'profile' user.id %}"><i class="bi bi-headset" style="color:white;"> </i>Call Us</a>
+              </li>
+    
+    
+    
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'logout' %}"><i class="bi bi-box-arrow-left" style="color:white;"> </i>Sign out</a>
+              </li>
+    
+    
+    
+            {% else %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'login' %}">Sign In</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'register' %}">Sign Up</a>
+            </li>
+            {% endif %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'password-reset' %}"><i class="bi bi-x-octagon" style="color:white;"> </i>Reset</a>
+              </li>
+          </ul>
+          <form class="d-flex">
+            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+            <button class="btn btn-outline-success" type="submit">Search</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </nav>
 
 
 <nav class="vertical-bar">
     <div class="text-center">
         <br>
-          <p>{{ user }}]</p>
+          <p>{{ user }}</p>
 
       </div>
     <hr class="hr">

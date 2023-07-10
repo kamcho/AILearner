@@ -80,6 +80,7 @@ class Progress(models.Model):
 class Notifications(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4,  unique=True)
     user = models.ForeignKey(MyUser, default='1',on_delete=models.CASCADE)
+    notification_type = models.CharField(max_length=100, default='payment')
     message = models.TextField(max_length=500)
     about = models.CharField(max_length=100)
     is_read = models.BooleanField(default=False)
@@ -99,6 +100,7 @@ class TopicExamNotifications(Notifications):
 class TopicalExamResults(Notifications):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+    test = models.UUIDField()
 
     def __str__(self):
         return str(self.user)
@@ -137,7 +139,7 @@ class SubscriptionNotifications(Notifications):
 
 
 class PaymentNotifications(Notifications):
-    amount = models.PositiveIntegerField(default=1)
+    amount = models.PositiveIntegerField(default='1')
     subscription_type = models.CharField(max_length=200)
     beneficiaries = models.CharField(max_length=100,default='njokevin9@gmail.com')
 
@@ -174,3 +176,21 @@ class AgoraLearners(models.Model):
     def __str__(self):
         return self.user
 
+
+class UserInquiries(models.Model):
+    user = models.ForeignKey(MyUser, on_delete=models.CASCADE)
+    quiz_class = models.CharField(max_length=30)
+    date = models.DateField(auto_now=True)
+    uuid = models.UUIDField(unique=True, default=uuid.uuid4)
+
+    class Meta:
+        abstract = True
+
+
+class AcademicInquiries(UserInquiries):
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    message = models.TextField(max_length=500)
+
+
+class AccountInquiries(UserInquiries):
+    message = models.TextField(max_length=500)
