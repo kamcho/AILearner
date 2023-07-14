@@ -1,5 +1,6 @@
 from datetime import date, timedelta
 
+import requests
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import IntegrityError, DatabaseError
 from django.db.models import Count
@@ -132,6 +133,35 @@ class Syllabus(LoginRequiredMixin, TemplateView):
         subject = self.kwargs['name']
         try:
             context['syllabus'] = Topic.objects.filter(subject__name=subject).order_by('order')
+            url = "https://graph.facebook.com/v17.0/105011719329269/messages"
+
+            # Request payload
+            data = {
+                "messaging_product": "whatsapp",
+                "to": "254742134431",
+                "type": "template",
+                "template": {
+                    "name": "hello_world",
+                    "language": {
+                        "code": "en_US"
+                    }
+                }
+            }
+
+            # Headers containing the required authentication token
+            headers = {
+                'Authorization': 'Bearer EAAPX1RhRW7IBAM8AeYnZAjYYyVjXFaiqM6ULeHGWYVy0oL9z0SmGGsnLUhZBPDEJXZB7P7rMKAx7kmohBgMqcczMjKFeC6ZCWLYTvyz0813DvcC5dDUAnr8GfbopNK8OIaRL62ZA2dp1OZCuinsi2aYqWWwTtA2xVLOXHZAq5bzg3p4hRfbBwn9Fb7bXZAUKP9ptEn92fMx9G4b5Xu6qimQQzMSj0ix3h4kZD',
+                'Content-Type': 'application/json'
+            }
+
+            # Send the POST request to the API endpoint
+            response = requests.post(url, json=data, headers=headers)
+
+            # Check the response status
+            if response.status_code == 200:
+                print('Message sent successfully.')
+            else:
+                print('Failed to send the message. Error:', response.text)
 
         except DatabaseError as error:
             pass

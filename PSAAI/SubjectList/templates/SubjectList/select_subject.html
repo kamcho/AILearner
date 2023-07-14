@@ -4,33 +4,44 @@
 
 {% block content %}
 
-    <div class="container">
-        <div class="upcoming-classes-view">
 
 
 
 
-{% for subject in user.mysubjects.name.all %}
-    <div class="upcoming-classes-card">
-        <div class="booked-class-body">
-            <i class="bi bi-gear"> Grade 4</i>
-
-        </div>
-        <hr class="centered-hr">
-        <div class="booked-class-body">
-        {% with progress_topic=user|get_user_progress_topic:subject %}
-        <a href="{% url 'syllabus' subject.name  %}"><h6>{{ subject }}</h6></a>
+    <div class="align-self-center">
+        <div class="align-self-center subject-select-view">
 
 
-             <small >
+
+
+        {% for subject in user.mysubjects.name.all %}
+        <div class="subject-select-card">
+            <div class="booked-class-ody">
+                {% with progress_topic=user|get_user_progress_topic:subject %}
+            <a href="{% url 'syllabus' subject.name  %}"><h6>{{ subject }} </h6></a>
+
+            <small><i class="bi bi-gear"> </i> Grade 4</small>
+
+            </div>
+            <br>
+
+            <div class="subject-select-in-card">
+                <h6>Topic {{ progress_topic.order }} </h6>
+        
+
+             <small ><i class="bi bi-bookmark"></i>
                         {{ progress_topic }}
 
              </small>
             <br>
 
-                <a href="{% url 'syllabus' subject %}"><button class="btn btn-info">Syllabus</button></a>
             {% endwith %}
-            </div>
+        </div>
+        <br>
+        <div>
+            <a href="{% url 'syllabus' subject %}"><button class="btn btn-info">Syllabus</button></a>
+
+        </div>
 
     </div>
 {% endfor %}

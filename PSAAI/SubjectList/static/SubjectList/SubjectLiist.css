@@ -1,23 +1,29 @@
-/* BOOKED CLASSES */
+.subject-select-view{
 
-.booked-classes-view a{
-    text-decoration:none !important;
-    color:black
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    margin:0 auto;
+    gap: 30px;
+    justify-items: center;
+  align-items: center;
 }
-.booked-classes-view p{
-    padding:0px;
-    margin:0px;
-}
-.booked-classes-view{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-}
-.booked-classes-card{
-    width:300px;
-    height:250px;
+.subject-select-card{
+    width:95%;
+    height:270px;
     box-shadow: 2px 4px 20px 5px rgba(0, 0, 0, 0.09);
+    padding: 20px;
 
 }
+.subject-select-in-card{
+    width: 98%;
+    height: 40%;
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    padding: 10px;
+
+}
+
+/* BOOKED CLASSES */
 .booked-class-body{
 
     width:80%;
@@ -67,6 +73,20 @@
     .upcoming-classes-view{
         grid-template-columns:repeat(2,1fr);
 
+        
+    }
+    .subject-select-view{
+        grid-template-columns: repeat(2,1fr);
+        gap: 20px;
+        row-gap:40px ;
+        column-gap: 40px;
+        margin: 0 auto;
+        /* padding-left: 13%; */
+       
+        
+    }
+    .subject-select-card{
+        width: 97%;
     }
     .upcoming-classes-card{
         margin-top:30px;
@@ -85,16 +105,24 @@
 
     }
     .booked-classes-hr{
-    width:90%;
+    width:95%;
     margin: 0 auto;
 }
 }
+
 @media (max-width: 700px) {
     .upcoming-classes-view{
         display:inline;
 
 
 
+    }
+    .subject-select-view{
+        display: inline;
+    }
+    .subject-select-card{
+        margin: 30px auto;
+        width: 80%;
     }
     .upcoming-classes-card{
         margin-top:60px !important;
@@ -103,7 +131,7 @@
 
     }
     .upcoming-classes-card{
-        margin: 0 auto;
+        margin: 20px auto;
         margin-bottom:30px;
 
 

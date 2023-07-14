@@ -1,7 +1,7 @@
 import uuid
 
 from django.db import models
-from SubjectList.models import Topic, Subject
+from SubjectList.models import Topic, Subject, Subtopic
 # Create your models here.
 from SubjectList.models import Course
 import datetime
@@ -11,6 +11,8 @@ from Users.models import MyUser
 
 class TopicalQuizes(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    subtopic = models.ForeignKey(Subtopic, on_delete=models.CASCADE)
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
     quiz = models.TextField(max_length=500)
 

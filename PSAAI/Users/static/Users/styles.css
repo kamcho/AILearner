@@ -31,9 +31,8 @@ html, body {
 
 .vertical-bar{
     position: fixed;
-    width: 18%;
-    min-width:15%;
-    max-width:200px;
+    width: 150px;
+
     margin: 1px ;
     color: white !important;
     padding-top: 1%;
@@ -84,7 +83,7 @@ border-radius:10px ;
 
 }
 .main-body{
-    padding-left:23%;
+    padding-left:180px;
     padding-top:3%;
 }
 
@@ -148,8 +147,8 @@ tr:nth-child(even) {
 @media (min-width: 1030px) {
 
     .main-body{
-        padding-left:19%;
-        padding-right:3%;
+
+
     }
 
 

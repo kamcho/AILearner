@@ -97,7 +97,9 @@ class Start(TemplateView):
                     pass
                 except DatabaseError as error:
                     pass
-                self.request.session['testId'] = str(test.uuid)
+
+                finally:
+                    self.request.session['testId'] = str(test.uuid)
 
 
 
@@ -158,6 +160,7 @@ class Tests(TemplateView):
                 if question_index >= len(questions) - 1:
                     # The exam is completed, redirect to a summary page
                     if 'index' in request.session:
+                        print('\n\n\n\n\n\n\n, deleting session key')
                         del request.session['index']
 
                     return redirect('finish', topic)

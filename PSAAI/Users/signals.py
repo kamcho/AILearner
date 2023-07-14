@@ -12,3 +12,6 @@ def create_profile(sender,instance,created,**kwargs):
         if instance.role == 'Student':
             AcademicProfile.objects.create(user=instance)
             MySubjects.objects.create(user=instance)
+
+        elif instance.role == 'Teacher':
+            pass

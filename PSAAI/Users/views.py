@@ -70,8 +70,9 @@ def loginRedirect(request):
         return redirect('student-home')
     elif request.user.role == 'Guardian':
         return redirect('guardian-home')
-    else:
-        pass
+    elif request.user.role == 'Teacher':
+        return redirect('teachers-home')
+
 
 
 class Home(LoginRequiredMixin, TemplateView):
@@ -81,9 +82,11 @@ class Home(LoginRequiredMixin, TemplateView):
         context = super(Home, self).get_context_data(**kwargs)
         try:
             last_subject = Progress.objects.filter(user=self.request.user).last()
-            number = last_subject.topic.last().order
+            if last_subject:
+                number = last_subject.topic.last().order
+                next_topic = Topic.objects.filter(subject=last_subject.subject, order=int(number) + 1).first()
+
             context['last_subject'] = last_subject
-            next_topic = Topic.objects.filter(subject=last_subject.subject, order=int(number) + 1).first()
             subject = Progress.objects.filter(user=self.request.user, subject__isnull=False).values('subject__name',
                                                                                                     'subject__topics',
                                                                                                     'subject__topics').annotate(
@@ -94,9 +97,11 @@ class Home(LoginRequiredMixin, TemplateView):
 
             context['next'] = next_topic
             return context
-            # unread = Notifications.objects.filter(user=self.request.user, read='False')
-            # context['messages'] = unread
-        except DatabaseError as error:
+            # unread = Notifications.objects.filteread
+            #         except DatabaseError as error:r(user=self.request.user, read='False')
+            # context['messages'] = un
+
+        except:
             pass
 
 
