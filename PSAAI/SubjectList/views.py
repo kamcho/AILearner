@@ -9,6 +9,7 @@ from django.shortcuts import render, redirect
 from itsdangerous import json
 
 from Exams.models import StudentTest
+from Teacher.models import ClassTest
 from .models import *
 # Create your views here.
 from django.views.generic import TemplateView
@@ -168,6 +169,17 @@ class Syllabus(LoginRequiredMixin, TemplateView):
 
         return context
 
+
+class Assignment(TemplateView):
+    template_name = 'SubjectList/assignment.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(Assignment, self).get_context_data(**kwargs)
+        current_class = self.request.user.academicprofile.current_class
+        assignments = ClassTest.objects.filter(class_id=current_class)
+        context['assignments'] = assignments
+
+        return context
 
 class Messages(LoginRequiredMixin, TemplateView):
     template_name = 'SubjectList/messages.html'

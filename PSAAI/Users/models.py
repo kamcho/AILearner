@@ -11,6 +11,7 @@ from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
 
+# from Teacher.models import SchoolClass
 
 
 class MyUserManager(BaseUserManager):
@@ -147,6 +148,14 @@ class Supervisor(MyUser):
         proxy = True
 
 
+class SchoolClass(models.Model):
+    grade = models.PositiveIntegerField()
+    class_name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return str(str(self.grade) + ' ' + self.class_name)
+
+
 class PersonalProfile(models.Model):
     user = models.OneToOneField(MyUser, on_delete=models.CASCADE)
     f_name = models.CharField(max_length=30, default='F_NAME')
@@ -154,12 +163,12 @@ class PersonalProfile(models.Model):
     l_name = models.CharField(max_length=30, default='M_NAME')
     surname = models.CharField(max_length=30, default='SURNAME',blank=True)
     gender = models.CharField(max_length=10,default="FEMALE",blank=True)
-    pic = models.ImageField(upload_to='profile_pics/', default='E:\\IPweb\\media\\profile_pics\\TT.png')
+    pic = models.ImageField(upload_to='profile_pics/', default='\\profile_pics\\TT.png')
     phone1=models.CharField(max_length=15)
     phone2=models.CharField(max_length=15)
-    country = models.CharField(max_length=10,default="Kenya",blank=True)
-    city = models.CharField(max_length=10,default="Nairobi",blank=True)
-    area = models.CharField(max_length=10,default="Karen",blank=True)
+    country = models.CharField(max_length=10, default="Kenya", blank=True)
+    city = models.CharField(max_length=10, default="Nairobi", blank=True)
+    area = models.CharField(max_length=10, default="Karen", blank=True)
 
 
 
@@ -171,7 +180,7 @@ class AcademicProfile(models.Model):
     user = models.OneToOneField(MyUser, on_delete=models.CASCADE)
     school = models.CharField(max_length=100)
     county = models.CharField(max_length=20)
-    grade = models.IntegerField(default=1)
+    current_class = models.ForeignKey(SchoolClass, default='1', on_delete=models.CASCADE)
 
     def __str__(self):
         return self.user.email

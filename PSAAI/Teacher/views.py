@@ -1,3 +1,4 @@
+from django.forms import model_to_dict
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect
 
@@ -6,14 +7,177 @@ from SubjectList.models import Topic, Subtopic
 from .models import *
 # Create your views here.
 from django.views.generic import TemplateView
+from django.db import IntegrityError
 
 
 class TeacherView(TemplateView):
     template_name = 'Teacher/teachers_home.html'
 
 
-class ClassView(TemplateView):
-    template_name = 'Teacher/class.html'
+class StudentsView(TemplateView):
+    template_name = 'Teacher/students_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(StudentsView, self).get_context_data(**kwargs)
+
+        return context
+
+
+class ClassesView(TemplateView):
+    template_name = 'Teacher/my_classes.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(ClassesView, self).get_context_data(**kwargs)
+        my_class = MyClasses.objects.filter(user=self.request.user)
+        context['my_classes'] = my_class
+
+        return context
+
+
+class InitialiseCreateTest(TemplateView):
+    template_name = 'Teacher/initialise_create_test.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(InitialiseCreateTest, self).get_context_data(**kwargs)
+
+        context['classes'] = StudentList.objects.filter(user=self.request.user)
+        return context
+
+    def post(self, request, **kwargs):
+        if self.request.method == "POST":
+            subject = self.request.POST.get('subject')
+            class_id = self.request.POST.get('class-id')
+            exam_type = self.request.POST.get('exam-type')
+            selection_type = self.request.POST.get('selection-type')
+            size = self.request.POST.get('test-size')
+            date = self.request.POST.get('date')
+
+            if subject and exam_type and selection_type and size and date and class_id:
+                test_data = {'subject': subject, 'exam_type': exam_type, 'date': date,
+                             'selection_type': selection_type, 'size': size, 'class_id': class_id}
+                self.request.session['test_data'] = test_data
+
+                if selection_type == 'user':
+                    return redirect('user-question-selection', subject)
+
+                elif selection_type == 'system':
+                    return redirect('system-question-selection')
+
+                else:
+                    return redirect(self.request.get_full_path())
+            else:
+                return redirect(self.request.get_full_path())
+
+
+def load_class(request):
+    subject = request.GET.get('subject')
+    classes = StudentList.objects.filter(user=request.user, subject=subject)
+    class_data = [{'id': class_obj.class_id.id, 'name': class_obj.class_id.class_name} for class_obj in classes]
+    print(class_data)
+    return JsonResponse(class_data, safe=False)
+
+
+def get_topical_quizzes(request):
+    topic_id = request.GET.get('topic_id')
+    questions = TopicalQuizes.objects.filter(topic_id=topic_id)
+
+    # Prepare the data in a format suitable for JSON serialization
+    questions_data = [{'id': question.id, 'quiz': question.quiz} for question in questions]
+
+    return JsonResponse({'questions': questions_data})
+
+
+def add_question_to_session(request):
+    question_id = request.POST.get('question_id')
+    question_ids = request.session.get('selected', [])
+    # del request.session['selected']
+    if question_id not in question_ids:
+        question_ids.append(question_id)
+        request.session['selected'] = question_ids
+
+    return JsonResponse({'success': True, 'session_data': len(question_ids)})
+
+
+class UserQuestionsSelect(TemplateView):
+    template_name = 'Teacher/user_questions_select.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(UserQuestionsSelect, self).get_context_data(**kwargs)
+        subject = self.kwargs['subject']
+        context['topics'] = Topic.objects.filter(subject=subject)
+
+        return context
+
+
+def SystemQuestionsSelect(request):
+    subject = request.session['test_data']['subject']
+
+    quizes = TopicalQuizes.objects.filter(subject=subject).order_by('?')[:15]
+    print(quizes)
+    items = []
+    try:
+        del request.session['selected']
+
+    except KeyError:
+        pass
+    finally:
+
+        for item in list(quizes.values_list('id', flat=True)):
+            items.append(str(item))
+        request.session['selected'] = items
+
+        return redirect('save-test')
+
+
+class SaveTest(TemplateView):
+    template_name = 'Teacher/save_test.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(SaveTest, self).get_context_data(**kwargs)
+        ids = self.request.session.get('selected', [])
+        class_id = self.request.session['test_data']['class_id']
+        quizes = TopicalQuizes.objects.filter(id__in=ids)
+        context['quizzes'] = quizes
+        class_name = SchoolClass.objects.filter(id=class_id).first()
+        context['class'] = class_name
+        print(ids, quizes)
+
+        return context
+
+    def post(self, request, **kwargs):
+        if self.request.method == "POST":
+            teacher = self.request.user
+            subject = self.request.session['test_data']['subject']
+            size = self.request.session['test_data']['size']
+            date = self.request.session['test_data']['date']
+            subject = Subject.objects.filter(id=subject).first()
+            ids = self.request.session.get('selected', [])
+
+            print(date)
+            try:
+                test = ClassTest(teacher=teacher, subject=subject, test_size=size, expiry=date)
+                test.save()
+                test.quiz.set(ids)
+                del self.request.session['test_data']
+                del self.request.session['selected']
+
+                return redirect('teachers-home')
+
+
+            except IntegrityError:
+
+                return redirect(self.request.get_full_path())
+
+
+class TaskSelection(TemplateView):
+    template_name = 'Guardian/task_select.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(TaskSelection, self).get_context_data(**kwargs)
+
+        context['email'] = self.kwargs['email']
+
+        return context
 
 
 def load_topic(request):

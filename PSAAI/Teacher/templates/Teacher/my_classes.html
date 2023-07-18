@@ -1,0 +1,41 @@
+{% extends 'Teacher/teachers_base.html' %}
+{% block content %}
+
+
+  {% for class in my_classes %}
+
+
+    <p>{{ class }}</p>
+    {% for student in class.students.all %}
+
+    <small>{{ student }}</small>
+
+
+{% endfor %}
+
+
+
+
+
+
+
+
+
+  {% endfor %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% endblock %}

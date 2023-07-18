@@ -119,6 +119,6 @@ class UserAdmin(BaseUserAdmin):
 admin.site.register(MyUser, UserAdmin)
 admin.site.register(PersonalProfile)
 admin.site.register(AcademicProfile)
-
+admin.site.register(SchoolClass)
 
 admin.site.unregister(Group)

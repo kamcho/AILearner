@@ -2,9 +2,9 @@
 {% block content %}
 
     <div class="container">
-        {% for student in teacher_user.studentlist.students.all %}
+        {% for student in user.teacher_user.students.all %}
 
-            <p>{{ student }}</p>
+            <p><a href="{% url 'task-view-select' student %}">{{ student }}</a></p>
 
         {% endfor %}
     </div>

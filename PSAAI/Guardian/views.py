@@ -47,6 +47,10 @@ class TaskSelection(TemplateView):
         context = super(TaskSelection, self).get_context_data(**kwargs)
 
         context['email'] = self.kwargs['email']
+        if self.request.user.role == 'Guardian':
+            context['base_html'] = 'Guardian/baseg.html'
+        elif self.request.user.role == 'Teacher':
+            context['base_html'] = 'Teacher/teachers_base.html'
 
         return context
 
@@ -69,6 +73,10 @@ class KidTests(TemplateView):
 
         context['subjects'] = grouped_subjects
         context['child'] = kid
+        if self.request.user.role == 'Guardian':
+            context['base_html'] = 'Guardian/baseg.html'
+        elif self.request.user.role == 'Teacher':
+            context['base_html'] = 'Teacher/teachers_base.html'
         return context
 
 
@@ -82,6 +90,10 @@ class KidTestDetail(TemplateView):
         subject = StudentTest.objects.filter(user__email=email, subject__name=subject)
         context['tests'] = subject
         context['email'] = email
+        if self.request.user.role == 'Guardian':
+            context['base_html'] = 'Guardian/baseg.html'
+        elif self.request.user.role == 'Teacher':
+            context['base_html'] = 'Teacher/teachers_base.html'
 
         return context
 
@@ -99,6 +111,10 @@ class KidQuizDetail(TemplateView):
 
         context['quizzes'] = answers
         context['marks'] = test
+        if self.request.user.role == 'Guardian':
+            context['base_html'] = 'Guardian/baseg.html'
+        elif self.request.user.role == 'Teacher':
+            context['base_html'] = 'Teacher/teachers_base.html'
 
         return context
 
@@ -115,6 +131,10 @@ class LearnerProgress(TemplateView):
             topic_count=Count('topic', distinct=True))
 
         context['subject'] = subject
+        if self.request.user.role == 'Guardian':
+            context['base_html'] = 'Guardian/baseg.html'
+        elif self.request.user.role == 'Teacher':
+            context['base_html'] = 'Teacher/teachers_base.html'
         return context
 
 
@@ -129,5 +149,9 @@ class LearnerSyllabus(TemplateView):
         context['email'] = self.kwargs['email']
         context['syllabus'] = coverage
         print(coverage)
+        if self.request.user.role == 'Guardian':
+            context['base_html'] = 'Guardian/baseg.html'
+        elif self.request.user.role == 'Teacher':
+            context['base_html'] = 'Teacher/teachers_base.html'
 
         return context

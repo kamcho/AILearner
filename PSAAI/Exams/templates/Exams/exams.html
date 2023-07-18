@@ -5,8 +5,15 @@
 {% block content %}
 
 
-
+    <div >
+            <p>You have 2 pending test assignments. Press the button below to view them.</p>
+            <div>
+               <a href="{% url 'assignments' %}"><button class="btn btn-info">View Assignment.</button></a>
+            </div>
+        </div>
+    <br>
     <div class="event-view">
+
         {% for subject in subjects %}
             <a href="{% url  'exam-subject-id'  subject.subject %}">
                 <div class="kid-exam-card">

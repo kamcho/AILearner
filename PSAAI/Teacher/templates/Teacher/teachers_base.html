@@ -49,8 +49,8 @@
                 My-Class
               </button>
               <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                <li  style="color:black;"><a class="nav-link" href="{% url 'class' %}" style="color:black !important;"><i class="bi bi-camera-video" style="color:black;"> </i>My-Classes</a></li>
-                <li  style="color:black;"><a class="nav-link" href="" style="color:black !important;"><i class="bi bi-camera-video" style="color:black;"> </i>My-Classes</a></li>
+                <li  style="color:black;"><a class="nav-link" href="{% url 'students-list' %}" style="color:black !important;"><i class="bi bi-camera-video" style="color:black;"> </i>Students</a></li>
+                <li  style="color:black;"><a class="nav-link" href="{% url 'my-classes' %}" style="color:black !important;"><i class="bi bi-camera-video" style="color:black;"> </i>Classes</a></li>
               </ul>
            </div>
 
@@ -71,8 +71,15 @@
               <a class="nav-link" href="{% url 'create-questions' %}"><i class="bi bi-clipboard-check" style="color:white;"> </i>Crete Quiz</a>
           </li>
         <li>
-            <a class="nav-link" href=""><i class="bi bi-journal-check" style="color:white;"> </i>Students</a>
-          </li>
+<div class="dropdown" style="">
+              <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                My-Class
+              </button>
+              <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                <li  style="color:black;"><a class="nav-link" href="{% url 'initialise-test' %}" style="color:black !important;"><i class="bi bi-camera-video" style="color:black;"> </i>Create</a></li>
+                <li  style="color:black;"><a class="nav-link" href="{% url 'my-classes' %}" style="color:black !important;"><i class="bi bi-camera-video" style="color:black;"> </i>Classes</a></li>
+              </ul>
+           </div>          </li>
 
         <li>
             <a class="nav-link" href="{% url 'profile' user.id %}"><i class="bi bi-person-circle" style="color:white;"> </i>Profile</a>
