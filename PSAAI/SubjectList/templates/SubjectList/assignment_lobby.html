@@ -1,0 +1,40 @@
+{% extends 'Users/base.html' %}
+{% load static %}
+
+{% block content %}
+
+
+
+<br><br>
+<div class="container">
+    <h5>{{ assignment.subject }} (<small>{{ assignment.teacher }}</small>)</h5>
+    <h6>Deadline {{ assignment.expiry }}</h6>
+    <p>Number of questions ~ {{ assignment.test_size }} </p>
+    <p>Duration - {{ assignment.duration }} Minutes.</p>
+    <p>This test contains {{ assignment.test_size }} questions and will take {{ assignment.duration }} minutes to complete. Click
+    the button below to start. Once started the test cannot be paused nor restarted, make sure you have ample uninterrupted time.</p>
+
+    <form method="post">
+        {% csrf_token %}
+            <button class="btn btn-danger">Start</button>
+
+    </form>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% endblock %}

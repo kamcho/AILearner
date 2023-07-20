@@ -158,6 +158,14 @@ class SaveTest(TemplateView):
                 test = ClassTest(teacher=teacher, subject=subject, test_size=size, expiry=date)
                 test.save()
                 test.quiz.set(ids)
+
+                message = f'The monthly {subject.name} is now available. Please finish before {date}.'
+                about = f'{subject.name} class-test is now available.'
+                notification_type = 'class-test'
+                class_instance = ClassTest.objects.filter(uuid=test.uuid).first()
+                msg = ClassTestNotifications.objects.create(user=teacher, subject=subject,
+                                                            class_id=class_instance.class_id, test=class_instance, message=message,
+                                                            notification_type=notification_type, about=about)
                 del self.request.session['test_data']
                 del self.request.session['selected']
 

@@ -153,7 +153,7 @@ class SchoolClass(models.Model):
     class_name = models.CharField(max_length=100)
 
     def __str__(self):
-        return str(str(self.grade) + ' ' + self.class_name)
+        return str(str(self.class_name))
 
 
 class PersonalProfile(models.Model):

@@ -1,6 +1,8 @@
 from django.db import DatabaseError, IntegrityError
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
+
+from Teacher.models import ClassTestStudentTest, classTestStudentAnswers
 from .models import *
 from django.views.generic import TemplateView, DetailView
 from itertools import groupby
@@ -58,12 +60,24 @@ class TestDetail(TemplateView):
 
         try:
             answers = StudentsAnswers.objects.filter(user=user, test=test)
-            test = StudentTest.objects.filter(user=user, uuid=test).last()
+            topical_test = StudentTest.objects.filter(user=user, uuid=test).last()
+            if not answers and test:
+                class_test = ClassTestStudentTest.objects.filter(user=user, test=test).last()
+                class_test_answers = classTestStudentAnswers.objects.filter(user=user, test=test)
+                print(class_test_answers, class_test)
+                context['quizzes'] = class_test_answers
+                context['marks'] = class_test
 
-            context['quizzes'] = answers
-            context['marks'] = test
+                return context
 
-            return context
+            else:
+
+                context['quizzes'] = answers
+                context['marks'] = topical_test
+
+                return context
+
+
 
         except DatabaseError as error:
             pass

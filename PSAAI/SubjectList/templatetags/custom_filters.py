@@ -3,6 +3,7 @@ from django.shortcuts import redirect
 
 from Exams.models import StudentTest
 from SubjectList.models import *
+from Teacher.models import ClassTestStudentTest
 from Users.models import MyUser
 
 register = template.Library()
@@ -131,13 +132,20 @@ def class_is_booked(user, class_id):
 def test_is_done(user, test_uuid):
 
     try:
-        test = StudentTest.objects.get(user=user, uuid=test_uuid)
+        class_test = ClassTestStudentTest.objects.filter(user=user, test=test_uuid).first()
+        test = StudentTest.objects.filter(user=user, uuid=test_uuid).first()
+        if test or class_test:
+
+            return True
+        else:
+            return False
+
+
         return True
 
-    except StudentTest.DoesNotExist:
+    except DatabaseError:
         return False
-    except StudentTest.MultipleObjectsReturned:
-        return False
+
 
 
 

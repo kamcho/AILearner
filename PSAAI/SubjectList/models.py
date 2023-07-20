@@ -2,7 +2,8 @@ import datetime
 
 from django.db import models
 import uuid
-from Users.models import MyUser
+
+from Users.models import MyUser, SchoolClass
 
 
 class Course(models.Model):
@@ -80,7 +81,7 @@ class Progress(models.Model):
 
 class Notifications(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4,  unique=True)
-    user = models.ForeignKey(MyUser, default='1',on_delete=models.CASCADE)
+    user = models.ForeignKey(MyUser, default='1', on_delete=models.CASCADE)
     notification_type = models.CharField(max_length=100, default='payment')
     message = models.TextField(max_length=500)
     about = models.CharField(max_length=100)
@@ -88,6 +89,11 @@ class Notifications(models.Model):
 
     class Meta:
         abstract = True
+
+
+
+
+
 
 
 class TopicExamNotifications(Notifications):

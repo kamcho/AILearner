@@ -8,8 +8,8 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from itsdangerous import json
 
-from Exams.models import StudentTest
-from Teacher.models import ClassTest
+from Exams.models import StudentTest, TopicalQuizAnswers, StudentsAnswers, TopicalQuizes
+from Teacher.models import ClassTest, ClassTestStudentTest, classTestStudentAnswers, ClassTestNotifications
 from .models import *
 # Create your views here.
 from django.views.generic import TemplateView
@@ -181,21 +181,140 @@ class Assignment(TemplateView):
 
         return context
 
+
+class AssignmentDetail(TemplateView):
+    template_name = 'SubjectList/assignment_lobby.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(AssignmentDetail, self).get_context_data(**kwargs)
+        test_uuid = self.kwargs['uuid']
+        test = ClassTest.objects.filter(uuid=test_uuid).first()
+        context['assignment'] = test
+
+        return context
+
+    def post(self, request, **kwargs):
+        if request.method == "POST":
+            user = request.user
+            test = self.kwargs['uuid']
+            class_test = ClassTest.objects.filter(uuid=test).first()
+            save_test = ClassTestStudentTest.objects.create(user=user, test=class_test, finished=False)
+
+            return redirect('take-assessment', test)
+
+
+class TakeAssessment(TemplateView):
+    template_name = 'SubjectList/assessment.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(TakeAssessment, self).get_context_data(**kwargs)
+
+        test_id = self.kwargs['uuid']
+        class_test = ClassTest.objects.filter(uuid=test_id).first()
+        # del self.request.session['class_test_quiz_index']
+        index = self.request.session.get('class_test_quiz_index', 0)
+        test_size = class_test.test_size
+        current_quiz = class_test.quiz.all()[index]
+        self.request.session['quiz'] = str(current_quiz)
+        self.request.session['test_size'] = test_size
+        context['quiz'] = current_quiz
+        context['index'] = index+1
+        numbers = [i + 1 for i in range(test_size)]
+        choices = TopicalQuizAnswers.objects.filter(quiz=current_quiz)
+        context['choices'] = choices
+
+        context['test_size'] = numbers
+
+        return context
+
+    def post(self, request, **kwargs):
+        user = request.user
+        test = self.kwargs['uuid']
+        selection = request.POST.get('choice')
+        quiz = request.session.get('quiz')
+        index = self.request.session.get('class_test_quiz_index', 0)
+        test_size = request.session['test_size']
+        quiz = TopicalQuizes.objects.filter(id=quiz).first()
+        selection = TopicalQuizAnswers.objects.get(uuid=selection)
+        test = ClassTest.objects.filter(uuid=test).first()
+
+        answer = classTestStudentAnswers.objects.create(user=user, quiz=quiz, selection=selection, test=test)
+
+        if int(index) >= int(test_size - 1):
+            del self.request.session['class_test_quiz_index']
+            del self.request.session['test_size']
+            del self.request.session['quiz']
+
+            return redirect('finish-assessment', self.kwargs['uuid'])
+        else:
+            request.session['class_test_quiz_index'] = index + 1
+
+            return redirect(request.path, test)
+
+
+class FinishAssessment(TemplateView):
+    template_name = 'SubjectList/finish_assessment.html'
+
+    def get_context_data(self, **kwargs):
+        test = self.kwargs['uuid']
+
+        context = super(FinishAssessment, self).get_context_data(**kwargs)
+        user = self.request.user
+        class_test = ClassTest.objects.filter(uuid=test).first()
+        context['test_size']= class_test.test_size
+
+
+        try:
+            test = ClassTestStudentTest.objects.filter(user=user, test=test).order_by('date').last()
+            print(test.uuid, '\n\n\n\n\n')
+            if test:
+                answers = classTestStudentAnswers.objects.filter(user=user, test=class_test).values('selection__uuid')
+                correct_answers = TopicalQuizAnswers.objects.filter(uuid__in=answers, is_correct='True')
+                print(correct_answers, '\n\n\n')
+                test.marks = correct_answers.count()
+                test.save()
+                mark = classTestStudentAnswers.objects.filter(selection__in=correct_answers)
+                for item in mark:
+                    item.is_correct = True
+                    item.save()
+                # about = f'The results for {test.topic} on are out.'
+                # message = f'Congratulations on completing your test. The results' \
+                #           ' are out, click the button below to view the results. '
+                #
+                # topic = Topic.objects.filter(name=topic).first()
+                # subject = topic.subject
+                # try:
+                #     notifications = TopicalExamResults.objects.create(user=user, test=test.uuid, about=about, message=message, topic=topic, subject=subject)
+                #
+                # except IntegrityError as error:
+                #     pass
+                context['score'] = correct_answers.count()
+                context['test'] = test
+            else:
+                pass
+
+            return context
+
+        except DatabaseError as error:
+            pass
+
+
 class Messages(LoginRequiredMixin, TemplateView):
     template_name = 'SubjectList/messages.html'
 
     def get_context_data(self, **kwargs):
         context = super(Messages, self).get_context_data(**kwargs)
         user = self.request.user
+        class_id = user.academicprofile.current_class
         try:
             topical_exam_results = TopicalExamResults.objects.filter(user=user)
             topical_exam = TopicExamNotifications.objects.filter(user=user)
             class_bookings = ClassBookingNotifications.objects.filter(user=user)
             subscription_notifications = SubscriptionNotifications.objects.filter(user=user)
             payment_notification = PaymentNotifications.objects.filter(user=user)
-
+            class_test_notifications = ClassTestNotifications.objects.filter(class_id=class_id)
             messages = list(topical_exam) + list(topical_exam_results) + list(class_bookings) + list(
-                subscription_notifications) + list(payment_notification)
+                subscription_notifications) + list(payment_notification) + list(class_test_notifications)
             context['messages'] = messages
             return context
 
