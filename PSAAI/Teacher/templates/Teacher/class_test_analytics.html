@@ -1,0 +1,75 @@
+{% extends 'Teacher/teachers_base.html' %}
+{% block content %}
+
+
+
+  <h6>{{ test.subject.name }}</h6>
+  <p>{{ test_count }} of 64 students have undertaken the test</p>
+  <p>Most failed question - {{ passed }}</p>
+  <p>Most passed question - question 15</p>
+
+
+  <p>The graph below shows students performance in this test. The x-axis represents
+      the questions and y-axis the number of students that passed or failed that question.
+    <br>
+    Green == Passed
+    Red == Failed
+  </p>
+
+
+
+
+<p>{{ performance_data }}</p>
+<!-- Include Chart.js library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Create a canvas element for the line graph -->
+<canvas id="lineChart" width="400" height="200"></canvas>
+
+ <script>
+        // Get the performance data from the context (assuming it's a dictionary)
+        var performanceData = {{ performance_data|safe }};
+
+        // Convert the dictionary to arrays for labels (x-axis) and data (y-axis)
+        var labels = Object.keys(performanceData).map(Number);
+        var data = Object.values(performanceData).map(Number);
+
+        var ctx = document.getElementById('lineChart').getContext('2d');
+        var lineChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Performance',
+                    data: data,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    x: {
+                        beginAtZero: true, // Start x-axis from 0
+                        type: 'linear', // Use linear scale for whole numbers
+                        ticks: {
+                            stepSize: 1, // Display whole number increments
+                            precision: 0 // Disable showing decimal points
+                        }
+                    },
+                    y: {
+                        beginAtZero: true, // Start y-axis from 0
+                        type: 'linear', // Use linear scale for whole numbers
+                        ticks: {
+                            stepSize: 1, // Display whole number increments
+                            precision: 0 // Disable showing decimal points
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+
+
+
+{% endblock %}

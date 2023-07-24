@@ -2,13 +2,12 @@
 {% block content %}
 
 
-  {% for class in my_classes %}
 
 
-    <p>{{ class }}</p>
-    {% for student in class.students.all %}
+    {% for class in classes %}
 
-    <small>{{ student }}</small>
+    <a href="{% url 'class-task-view-select' class.class_id %}"><h6>{{ class.class_id }}</h6></a>
+    <p> {{ class.subject }} </p>
 
 
 {% endfor %}
@@ -20,8 +19,6 @@
 
 
 
-
-  {% endfor %}
 
 
 

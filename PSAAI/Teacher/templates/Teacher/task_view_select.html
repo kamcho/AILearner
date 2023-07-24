@@ -1,0 +1,33 @@
+{% extends 'Teacher/teachers_base.html' %}
+{% block content %}
+
+
+
+
+    <div>
+
+        <h6>StudentList</h6>
+        {% for student in students %}
+            <p>{{ student }}</p>
+
+        {% endfor %}
+    </div>
+
+
+
+    <div>
+        <a href="{% url 'teacher-tests-view' tests.0.class_id %}"><h6>Class Tests</h6></a>
+        {% for test in tests %}
+            <p>{{ test }}</p>
+        {% endfor %}
+    </div>
+
+
+
+
+
+
+
+
+
+{% endblock %}

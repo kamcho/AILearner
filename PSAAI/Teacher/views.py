@@ -1,6 +1,8 @@
+from django.db.models import Count
 from django.forms import model_to_dict
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
+from django.urls import reverse
 
 from Exams.models import TopicalQuizes, TopicalQuizAnswers
 from SubjectList.models import Topic, Subtopic
@@ -14,6 +16,117 @@ class TeacherView(TemplateView):
     template_name = 'Teacher/teachers_home.html'
 
 
+class ClassesView(TemplateView):
+    template_name = 'Teacher/my_classes.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(ClassesView, self).get_context_data(**kwargs)
+        my_class = StudentList.objects.filter(user=self.request.user)
+        context['classes'] = my_class
+        print(my_class, '\n\n\n\n\n')
+
+        return context
+
+
+class TaskViewSelect(TemplateView):
+    template_name = 'Teacher/task_view_select.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(TaskViewSelect, self).get_context_data(**kwargs)
+        user = self.request.user
+        class_id = self.kwargs['class']
+        # subject = self.kwargs['class']
+        students = StudentList.objects.filter(user=user, class_id__class_name=class_id)[:5]
+        tests = ClassTest.objects.filter(teacher=user, class_id__class_name=class_id)[:5]
+
+        context['tests'] = tests
+        context['students'] = students
+
+        return context
+
+
+class TestsView(TemplateView):
+    template_name = 'Teacher/tests_view.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(TestsView, self).get_context_data(**kwargs)
+        user = self.request.user
+        class_id = self.kwargs['class']
+        tests = ClassTest.objects.filter(teacher=user, class_id__class_name=class_id)
+        print(tests, '\n\n\n\n')
+
+        context['tests'] = tests
+
+        return context
+
+
+def get_failed_value_by_uuid(queryset, uuid_str):
+    # print(queryset)
+    result_dict = {str(item['quiz']): item['failed'] for item in queryset}
+    # print(result_dict)
+    # return result_dict
+
+    for key, value in result_dict.items():
+        # print(key)
+        if key == uuid_str:
+            return value
+
+
+
+    return 0
+
+
+
+
+class ClassTestAnalytics(TemplateView):
+    template_name = 'Teacher/class_test_analytics.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(ClassTestAnalytics, self).get_context_data(**kwargs)
+        test_uuid = self.kwargs['uuid']
+        test_count = ClassTestStudentTest.objects.filter(test=test_uuid).count()
+        test_count = int(test_count)
+        context['test_count'] = test_count
+
+        class_test = ClassTest.objects.filter(uuid=test_uuid).last()
+        test_dict = {}
+        index = 1
+        perfomance_data={}
+
+        for quiz in class_test.quiz.all():
+            test_dict[index] = quiz
+            index += 1
+        passed_count = classTestStudentAnswers.objects.filter(test=test_uuid, is_correct=True).values('quiz').annotate(failed=Count('quiz')).order_by('quiz')
+
+        passed = classTestStudentAnswers.objects.filter(test=test_uuid, is_correct=True).values('quiz').distinct()
+        print(passed_count)
+        passed_list = [item['quiz'] for item in passed]
+        p_index=1
+        # print(passed)
+        for choice in passed_list:
+            # print(choice)
+
+            for key, value in test_dict.items():
+                relative = get_failed_value_by_uuid(passed_count, str(value))
+
+                if str(choice) == str(value):
+                    # print("Trure")
+                    perfomance_data[int(key)] = relative
+                    p_index += 1
+
+        print(perfomance_data)
+        # print(passed_count)
+
+        failed_test = classTestStudentAnswers.objects.filter(test=test_uuid, is_correct=False).values('quiz').order_by('selection')
+        most_failed = max(perfomance_data, key=perfomance_data.get)
+        # print(failed_test)
+        context['passed'] = most_failed
+        context['performance_data'] = perfomance_data
+        return context
+
+
+
+
 class StudentsView(TemplateView):
     template_name = 'Teacher/students_list.html'
 
@@ -23,15 +136,7 @@ class StudentsView(TemplateView):
         return context
 
 
-class ClassesView(TemplateView):
-    template_name = 'Teacher/my_classes.html'
 
-    def get_context_data(self, **kwargs):
-        context = super(ClassesView, self).get_context_data(**kwargs)
-        my_class = MyClasses.objects.filter(user=self.request.user)
-        context['my_classes'] = my_class
-
-        return context
 
 
 class InitialiseCreateTest(TemplateView):
@@ -57,15 +162,46 @@ class InitialiseCreateTest(TemplateView):
                              'selection_type': selection_type, 'size': size, 'class_id': class_id}
                 self.request.session['test_data'] = test_data
 
-                if selection_type == 'user':
+                if exam_type == 'topical' and selection_type == 'user':
+
+                    # return redirect('test-topic-select',subject)
                     return redirect('user-question-selection', subject)
 
-                elif selection_type == 'system':
-                    return redirect('system-question-selection')
+                elif exam_type == 'topical' or exam_type == 'general' and selection_type == 'system':
+                    return redirect('test-topic-select', subject)
+
+
 
                 else:
                     return redirect(self.request.get_full_path())
             else:
+                return redirect(self.request.get_full_path())
+
+
+class ClassTestSelectTopic(TemplateView):
+    template_name = 'Teacher/topic_select.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(ClassTestSelectTopic, self).get_context_data(**kwargs)
+        subject = self.kwargs['subject']
+        topics = Topic.objects.filter(subject=subject)
+
+        context['topics'] = topics
+        return context
+
+    def post(self, request, **kwargs):
+        if request.method == "POST":
+            selected = request.POST.getlist('selected')
+            # print(selected)
+
+            if selected:
+                url = reverse('system-question-selection') + '?' + '&'.join(
+                    ['topics={}'.format(topic_id) for topic_id in selected])
+                return HttpResponseRedirect(url)
+
+
+
+        else:
                 return redirect(self.request.get_full_path())
 
 
@@ -110,9 +246,13 @@ class UserQuestionsSelect(TemplateView):
 
 
 def SystemQuestionsSelect(request):
-    subject = request.session['test_data']['subject']
+    selected_topics = request.GET.getlist('topics')
 
-    quizes = TopicalQuizes.objects.filter(subject=subject).order_by('?')[:15]
+    subject = request.session['test_data']['subject']
+    test_size = int( request.session.get('test_data')['size'])
+
+
+    quizes = TopicalQuizes.objects.filter(subject=subject, topic__in=selected_topics).order_by('?')[:test_size]
     print(quizes)
     items = []
     try:
@@ -159,12 +299,13 @@ class SaveTest(TemplateView):
                 test.save()
                 test.quiz.set(ids)
 
-                message = f'The monthly {subject.name} is now available. Please finish before {date}.'
+                message = f'{subject.name} test is now available. Please finish before {date}.'
                 about = f'{subject.name} class-test is now available.'
                 notification_type = 'class-test'
                 class_instance = ClassTest.objects.filter(uuid=test.uuid).first()
                 msg = ClassTestNotifications.objects.create(user=teacher, subject=subject,
-                                                            class_id=class_instance.class_id, test=class_instance, message=message,
+                                                            class_id=class_instance.class_id, test=class_instance,
+                                                            message=message,
                                                             notification_type=notification_type, about=about)
                 del self.request.session['test_data']
                 del self.request.session['selected']

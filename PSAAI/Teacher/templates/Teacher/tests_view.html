@@ -1,0 +1,42 @@
+{% extends 'Teacher/teachers_base.html' %}
+{% block content %}
+
+
+
+<table class="table">
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Questions</th>
+            <th>Date</th>
+
+
+          </tr>
+        </thead>
+        <tbody>
+        {% for test in tests %}
+        <tr>
+
+            <td><a href="{% url 'class-test-analytics' test.uuid %}">{{ test.subject.name }}</a></td>
+
+            <td>{{ test.test_size }}</td>
+
+            <td>{{ test.date }}</td>
+
+
+
+
+          </tr>
+         {% endfor %}
+        </tbody>
+      </table>
+
+
+
+
+
+
+
+
+
+{% endblock %}

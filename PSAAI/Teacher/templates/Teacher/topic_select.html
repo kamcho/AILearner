@@ -1,0 +1,29 @@
+{% extends 'Teacher/teachers_base.html' %}
+{% block content %}
+
+  <div class="container">
+    <form method="post">
+    {% for topic in topics %}
+
+      <div class="for">
+        <input class="form-check-input" name="selected" type="checkbox" value="{{ topic.id }}">
+          {{ topic }}
+        </label>
+      </div>
+      <br>
+
+    {% endfor %}
+
+
+        {% csrf_token %}
+        <button class="btn btn-info">Next</button>
+     </form>
+
+
+  </div>
+
+
+
+
+
+{% endblock %}
