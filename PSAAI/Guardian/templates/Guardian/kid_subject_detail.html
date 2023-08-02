@@ -1,0 +1,34 @@
+{% extends base_html %}
+{% load crispy_forms_tags %}
+{% load static %}
+{% load custom_filters %}
+{% block content %}
+
+
+
+
+
+
+
+     <table class="table">
+        <thead>
+          <tr>
+            <th>Topic</th>
+            <th>Score</th>
+            <th>Percentage</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for topic in subject %}
+          <tr>
+              <td><a href="{% url 'test-detail' topic.uuid %}">{{ topic.topic }}</a></td>
+            <td>{{ topic.marks }} / 15</td>
+            <td>{{ topic.marks|divide:15 }}%</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+     </table>
+
+
+
+{% endblock %}

@@ -1,14 +1,14 @@
 .subject-select-view{
 
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, .6fr);
     margin:0 auto;
-    gap: 30px;
-    justify-items: center;
-  align-items: center;
+    gap: 20px;
+    padding-top:50px;
+
 }
 .subject-select-card{
-    width:95%;
+    width:90%;
     height:270px;
     box-shadow: 2px 4px 20px 5px rgba(0, 0, 0, 0.09);
     padding: 20px;
@@ -136,9 +136,7 @@
 
 
     }
-    .main-body{
-        padding-left:20%;
-    }
+
 }
 /* FOR EXAMS */
 

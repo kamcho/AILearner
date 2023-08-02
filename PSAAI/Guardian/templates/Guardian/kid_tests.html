@@ -5,7 +5,7 @@
 
       <div class="event-view">
         {% for subject in subjects %}
-            <a href="{% url 'kid-tests-detail' child subject.subject %}">
+            <a href="{% url 'kid-exam-topic-id' child subject.subject %}">
                 <div class="kid-exam-card">
                     <div class="">
                         <h6><i class="bi bi-bookmark-plus"></i>{{ subject.subject }}.</h6>

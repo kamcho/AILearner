@@ -8,7 +8,9 @@
 
         <h6>StudentList</h6>
         {% for student in students %}
-            <p>{{ student }}</p>
+            <p></p>
+        <a href="{% url 'students-list' tests.0.class_id %}">{{ student }}</a>
+
 
         {% endfor %}
     </div>

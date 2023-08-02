@@ -24,18 +24,20 @@
 
 <body>
 
+    <nav class="navbar navbar-dark fixed-top" id="top-bar" style="background-color:purple;">
+      <div class="container-fluid">
+        <a class="navbar-brand" style="color:white;" href="#">Edu-Ke</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Offcanvas</h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <ul class="navbar-nav justify-content-end flex-grow-1 pe-3" style="color:black;">
 
-<nav class="vertical-bar">
-    <div class="text-center">
-        <br>
-          <p>{{ user.personalprofile.f_name }}</p>
-
-
-          <small >{{ user.mysubscription.active }}</small>
-
-      </div>
-    <hr class="hr">
-   <ul class="navbar-nav">
         {% if user.is_authenticated %}
 
 
@@ -49,7 +51,6 @@
                 My-Class
               </button>
               <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                <li  style="color:black;"><a class="nav-link" href="{% url 'students-list' %}" style="color:black !important;"><i class="bi bi-camera-video" style="color:black;"> </i>Students</a></li>
                 <li  style="color:black;"><a class="nav-link" href="{% url 'my-classes' %}" style="color:black !important;"><i class="bi bi-camera-video" style="color:black;"> </i>Classes</a></li>
               </ul>
            </div>
@@ -108,7 +109,14 @@
           </li>
       </ul>
 
-</nav>
+            <form class="d-flex">
+              <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+              <button class="btn btn-outline-success" type="submit">Search</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </nav>
 
 
 
@@ -122,3 +130,4 @@
 
 </body>
 </html>
+

@@ -39,15 +39,35 @@ class ExamSubjectDetail(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(ExamSubjectDetail, self).get_context_data(**kwargs)
-
+        subject = self.kwargs['subject']
+        topic = self.kwargs['topic']
         try:
-            subject = StudentTest.objects.filter(user=self.request.user, subject__name=self.kwargs['name'])
+            subject = StudentTest.objects.filter(user=self.request.user, subject__name=subject, topic__name=topic)
             context['subject'] = subject
 
             return context
 
         except DatabaseError as error:
             pass
+
+
+class ExamTopicView(TemplateView):
+    template_name = 'Exams/exam_topic_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(ExamTopicView, self).get_context_data(**kwargs)
+
+        try:
+            subject = StudentTest.objects.filter(user=self.request.user, subject__name=self.kwargs['subject'])\
+                .values('topic__name').order_by('topic')
+            context['subject'] = subject
+            context['subject_name'] = self.kwargs['subject']
+
+            return context
+
+        except DatabaseError as error:
+            pass
+
 
 
 class TestDetail(TemplateView):
@@ -61,6 +81,12 @@ class TestDetail(TemplateView):
         try:
             answers = StudentsAnswers.objects.filter(user=user, test=test)
             topical_test = StudentTest.objects.filter(user=user, uuid=test).last()
+            if self.request.user.role == 'Guardian':
+                context['base_html'] = 'Guardian/baseg.html'
+            elif self.request.user.role == 'Teacher':
+                context['base_html'] = 'Teacher/teachers_base.html'
+            else:
+                context['base_html'] = 'Users/base.html'
             if not answers and test:
                 class_test = ClassTestStudentTest.objects.filter(user=user, test=test).last()
                 class_test_answers = classTestStudentAnswers.objects.filter(user=user, test=test)
@@ -74,6 +100,9 @@ class TestDetail(TemplateView):
 
                 context['quizzes'] = answers
                 context['marks'] = topical_test
+
+
+
 
                 return context
 

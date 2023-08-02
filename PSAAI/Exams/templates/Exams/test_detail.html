@@ -1,8 +1,9 @@
-{% extends 'Users/base.html' %}
+{% extends base_html %}
 {% load crispy_forms_tags %}
 {% load static %}
 
 {% block content %}
+<h5>{{ marks }}</h5>
 
     <h6>Scores {{ marks.marks }} / {{ marks.test.test_size }}</h6>
 

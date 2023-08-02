@@ -151,6 +151,7 @@ class Supervisor(MyUser):
 class SchoolClass(models.Model):
     grade = models.PositiveIntegerField()
     class_name = models.CharField(max_length=100)
+    class_size = models.PositiveIntegerField(default=30)
 
     def __str__(self):
         return str(str(self.class_name))

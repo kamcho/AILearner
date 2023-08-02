@@ -1,4 +1,5 @@
 {% extends 'Teacher/teachers_base.html' %}
+{% load custom_filters %}
 {% block content %}
 
 
@@ -7,8 +8,9 @@
         <thead>
           <tr>
             <th>Subject</th>
-            <th>Questions</th>
-            <th>Date</th>
+            <th>Progress</th>
+            <th>Expiry</th>
+            <th>Average</th>
 
 
           </tr>
@@ -19,9 +21,20 @@
 
             <td><a href="{% url 'class-test-analytics' test.uuid %}">{{ test.subject.name }}</a></td>
 
-            <td>{{ test.test_size }}</td>
+            <td>{{ test.uuid|class_test_progress }}</td>
 
-            <td>{{ test.date }}</td>
+            {% if  test.expiry|class_test_active %}
+            <td style="color:crimson;">
+                {{ test.expiry|date:'Y-m-d' }}
+                <br>
+                <small>expired</small>
+
+            </td>
+            {% else %}
+            <td style="color:green;">{{ test.expiry|date:'Y-m-d' }}</td>
+
+            {% endif %}
+            <td>{{ test.uuid|class_test_average }}</td>
 
 
 

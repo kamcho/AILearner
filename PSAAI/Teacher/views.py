@@ -6,6 +6,7 @@ from django.urls import reverse
 
 from Exams.models import TopicalQuizes, TopicalQuizAnswers
 from SubjectList.models import Topic, Subtopic
+from Users.models import AcademicProfile
 from .models import *
 # Create your views here.
 from django.views.generic import TemplateView
@@ -40,6 +41,18 @@ class TaskViewSelect(TemplateView):
         tests = ClassTest.objects.filter(teacher=user, class_id__class_name=class_id)[:5]
 
         context['tests'] = tests
+        context['students'] = students
+
+        return context
+
+
+class StudentsView(TemplateView):
+    template_name = 'Teacher/students_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(StudentsView, self).get_context_data(**kwargs)
+        class_id = self.kwargs['class']
+        students = AcademicProfile.objects.filter(current_class__class_name=class_id)
         context['students'] = students
 
         return context
@@ -88,7 +101,12 @@ class ClassTestAnalytics(TemplateView):
         test_count = int(test_count)
         context['test_count'] = test_count
 
+
         class_test = ClassTest.objects.filter(uuid=test_uuid).last()
+        context['test'] = class_test
+        class_id = class_test.class_id
+        student_count = SchoolClass.objects.filter(class_name=class_id).first()
+        context['class_size'] = student_count.class_size
         test_dict = {}
         index = 1
         perfomance_data={}
@@ -99,41 +117,31 @@ class ClassTestAnalytics(TemplateView):
         passed_count = classTestStudentAnswers.objects.filter(test=test_uuid, is_correct=True).values('quiz').annotate(failed=Count('quiz')).order_by('quiz')
 
         passed = classTestStudentAnswers.objects.filter(test=test_uuid, is_correct=True).values('quiz').distinct()
-        print(passed_count)
         passed_list = [item['quiz'] for item in passed]
         p_index=1
-        # print(passed)
         for choice in passed_list:
-            # print(choice)
 
             for key, value in test_dict.items():
                 relative = get_failed_value_by_uuid(passed_count, str(value))
 
                 if str(choice) == str(value):
-                    # print("Trure")
                     perfomance_data[int(key)] = relative
                     p_index += 1
 
-        print(perfomance_data)
-        # print(passed_count)
-
         failed_test = classTestStudentAnswers.objects.filter(test=test_uuid, is_correct=False).values('quiz').order_by('selection')
-        most_failed = max(perfomance_data, key=perfomance_data.get)
+        most_failed = min(perfomance_data, key=perfomance_data.get)
+        most_passed = max(perfomance_data, key=perfomance_data.get)
         # print(failed_test)
-        context['passed'] = most_failed
+        context['passed'] = most_passed
+        context['quizzes'] = class_test.quiz.all()
+        context['failed'] = most_failed
         context['performance_data'] = perfomance_data
         return context
 
 
 
 
-class StudentsView(TemplateView):
-    template_name = 'Teacher/students_list.html'
 
-    def get_context_data(self, **kwargs):
-        context = super(StudentsView, self).get_context_data(**kwargs)
-
-        return context
 
 
 

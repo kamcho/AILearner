@@ -1,0 +1,46 @@
+{% extends 'Users/base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+{% load custom_filters %}
+{% block content %}
+
+
+
+
+
+
+
+     <table class="table">
+        <thead>
+          <tr>
+            <th>Topic</th>
+            <th>Average</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for topic in subject %}
+          <tr>
+              <td><a href="{% url 'exam-subject-id' subject_name topic.topic__name %}">{{ topic.topic__name}}</a></td>
+<td>{{ user|topical_average:topic.topic__name }} / 15</td>
+            <td>{{ user|topical_average_count:topic.topic__name }} </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+     </table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% endblock %}

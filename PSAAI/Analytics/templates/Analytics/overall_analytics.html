@@ -8,7 +8,7 @@
             {% for test in tests %}
             <div class="upcoming-classes-card">
 
-                <h6>{{ test }}</h6>
+                <a href="{% url 'subject-analysis' test.subject__name %}">{{ test.subject__name }}</a>
 
                 <small>{{ test.topic__count }}</small>
 

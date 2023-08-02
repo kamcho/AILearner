@@ -1,5 +1,7 @@
 from itertools import groupby
 from datetime import datetime
+
+from django.db import DatabaseError
 from django.db.models import Count
 from django.shortcuts import render
 
@@ -78,6 +80,55 @@ class KidTests(TemplateView):
         elif self.request.user.role == 'Teacher':
             context['base_html'] = 'Teacher/teachers_base.html'
         return context
+
+
+class KidExamTopicView(TemplateView):
+    template_name = 'Guardian/kid_exam_topic_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(KidExamTopicView, self).get_context_data(**kwargs)
+        user = self.kwargs['email']
+
+        try:
+            subject = StudentTest.objects.filter(user__email=user, subject__name=self.kwargs['subject'])\
+                .values('topic__name').order_by('topic')
+            context['subject'] = subject
+            context['subject_name'] = self.kwargs['subject']
+            if self.request.user.role == 'Guardian':
+                context['base_html'] = 'Guardian/baseg.html'
+            elif self.request.user.role == 'Teacher':
+                context['base_html'] = 'Teacher/teachers_base.html'
+            context['email'] = MyUser.objects.filter(email=user).first()
+
+            return context
+
+        except DatabaseError as error:
+            pass
+
+
+class KidExamSubjectDetail(TemplateView):
+    template_name = 'Guardian/kid_subject_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(KidExamSubjectDetail, self).get_context_data(**kwargs)
+        subject = self.kwargs['subject']
+        topic = self.kwargs['topic']
+        user = self.kwargs['email']
+        user = MyUser.objects.filter(email=user).first()
+        try:
+            subject = StudentTest.objects.filter(user=user, subject__name=subject, topic__name=topic)
+            context['subject'] = subject
+            if self.request.user.role == 'Guardian':
+                context['base_html'] = 'Guardian/baseg.html'
+            elif self.request.user.role == 'Teacher':
+                context['base_html'] = 'Teacher/teachers_base.html'
+            context['email'] = user
+
+
+            return context
+
+        except DatabaseError as error:
+            pass
 
 
 class KidTestDetail(TemplateView):

@@ -26,7 +26,7 @@
 
 
 
-    <nav class="navbar navbar-dark fixed-top" id="responsive" style="background-color:purple;">
+    <nav class="navbar navbar-dark fixed-top" id="top-bar" style="background-color:purple;">
       <div class="container-fluid">
         <a class="navbar-brand" style="color:white;" href="#">Edu-Ke</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
@@ -64,17 +64,17 @@
             </a>
        </li>
        <li>
-              <a class="nav-link" href="{% url 'exams' %}" ><i class="bi bi-clipboard-check"> </i>Quiz</a>
+              <a class="nav-link" href="{% url 'exams' %}" ><i class="bi bi-clipboard-check"> </i>Exams</a>
           </li>
         <li>
-            <a class="nav-link" href="{% url 'progress' %}" ><i class="bi bi-journal-check" > </i>Progress</a>
+            <a class="nav-link" href="{% url 'progress' %}" ><i class="bi bi-activity" > </i>Progress</a>
           </li>
 
         <li>
             <a class="nav-link" href="{% url 'profile' user.id %}" ><i class="bi bi-person-circle" > </i>Profile</a>
           </li>
         <li>
-            <a class="nav-link" href="{% url 'contact'  %}" ><i class="bi bi-headphone" > </i>Profile</a>
+            <a class="nav-link" href="{% url 'contact'  %}" ><i class="bi bi-headset" > </i>Contact Us</a>
           </li>
 
 
@@ -92,29 +92,13 @@
           <a class="nav-link" href="{% url 'register' %}">Sign Up</a>
         </li>
         {% endif %}
-                <p>Student
-                </p>
+
         <li class="nav-item">
             <a class="nav-link" href="{% url 'password-reset' %}"><i class="bi bi-x-octagon" > </i>Reset</a>
           </li>
-              <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="offcanvasNavbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  Dropdown
-                </a>
-                <ul class="dropdown-menu" aria-labelledby="offcanvasNavbarDropdown">
-                  <li><a class="dropdown-item" href="#">Action</a></li>
-                  <li><a class="dropdown-item" href="#">Another action</a></li>
-                  <li>
-                    <hr class="dropdown-divider">
-                  </li>
-                  <li><a class="dropdown-item" href="#">Something else here</a></li>
-                </ul>
-              </li>
+
             </ul>
-            <form class="d-flex">
-              <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-              <button class="btn btn-outline-success" type="submit">Search</button>
-            </form>
+
           </div>
         </div>
       </div>
@@ -145,7 +129,7 @@
 
 
 
-<nav class="vertical-bar">
+<nav class="vertical-bar" style="display:none;">
     <div class="text-center">
         <br>
           <p>{{ user.personalprofile.f_name }}</p>

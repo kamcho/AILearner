@@ -1,0 +1,48 @@
+{% extends 'Users/base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block content %}
+
+
+<h6>Total tests done {{ total_tests }}</h6>
+<p>Average Score 3%</p>
+<p>Overall Position - Top 30%</p>
+
+<br>
+
+<h5>Weakness</h5>
+{% for topic in weakness %}
+    <h6>{{ topic.quiz__topic__name }}</h6>
+    <p>Failed {{ topic.quiz__topic__name__count  }} of 216 questions.</p>
+
+{% endfor %}
+
+
+<h5>Strengths</h5>
+{% for topic in strength %}
+    <h6>{{ topic.quiz__topic__name }}</h6>
+    <p>Passed {{ topic.quiz__topic__name__count  }} of 216 questions.</p>
+
+
+{% endfor %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% endblock %}
