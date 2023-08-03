@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save
 
-from SubjectList.models import MySubjects
-from .models import MyUser ,PersonalProfile, AcademicProfile
+from SubjectList.models import MySubjects, Course
+from .models import MyUser, PersonalProfile, AcademicProfile
 from django.dispatch import receiver
 
 
@@ -11,7 +11,9 @@ def create_profile(sender,instance,created,**kwargs):
         PersonalProfile.objects.create(user=instance)
         if instance.role == 'Student':
             AcademicProfile.objects.create(user=instance)
-            MySubjects.objects.create(user=instance)
+            selected_courses = Course.objects.all()  # Add your filtering condition here.
 
+            subjects = MySubjects.objects.create(user=instance)
+            subjects.name.add(*selected_courses)
         elif instance.role == 'Teacher':
             pass

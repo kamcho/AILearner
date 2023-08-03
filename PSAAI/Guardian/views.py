@@ -7,14 +7,15 @@ from django.shortcuts import render
 
 # Create your views here.
 from django.views.generic import ListView, TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 from Exams.models import StudentTest, StudentsAnswers
 from SubjectList.models import Progress, Topic
+from Teacher.models import ClassTestStudentTest, classTestStudentAnswers
 from Users.models import MyUser, PersonalProfile
 
 
-class GuardianHome(TemplateView):
+class GuardianHome(LoginRequiredMixin, TemplateView):
     template_name = 'Guardian/guardian_home.html'
 
     def get_context_data(self, **kwargs):
@@ -28,7 +29,7 @@ class GuardianHome(TemplateView):
         return context
 
 
-class MyKidsView(TemplateView):
+class MyKidsView(LoginRequiredMixin, TemplateView):
     template_name = 'Guardian/my_kids_view.html'
 
     def get_context_data(self, **kwargs):
@@ -42,7 +43,7 @@ class MyKidsView(TemplateView):
         return context
 
 
-class TaskSelection(TemplateView):
+class TaskSelection(LoginRequiredMixin, TemplateView):
     template_name = 'Guardian/task_select.html'
 
     def get_context_data(self, **kwargs):
@@ -57,7 +58,7 @@ class TaskSelection(TemplateView):
         return context
 
 
-class KidTests(TemplateView):
+class KidTests(LoginRequiredMixin, TemplateView):
     template_name = 'Guardian/kid_tests.html'
 
     def get_context_data(self, **kwargs):
@@ -82,7 +83,7 @@ class KidTests(TemplateView):
         return context
 
 
-class KidExamTopicView(TemplateView):
+class KidExamTopicView(LoginRequiredMixin, TemplateView):
     template_name = 'Guardian/kid_exam_topic_detail.html'
 
     def get_context_data(self, **kwargs):
@@ -106,7 +107,7 @@ class KidExamTopicView(TemplateView):
             pass
 
 
-class KidExamSubjectDetail(TemplateView):
+class KidExamSubjectDetail(LoginRequiredMixin, TemplateView):
     template_name = 'Guardian/kid_subject_detail.html'
 
     def get_context_data(self, **kwargs):
@@ -131,7 +132,7 @@ class KidExamSubjectDetail(TemplateView):
             pass
 
 
-class KidTestDetail(TemplateView):
+class KidTestDetail(LoginRequiredMixin, TemplateView):
     template_name = 'Guardian/kid_test_detail.html'
 
     def get_context_data(self, **kwargs):
@@ -149,28 +150,52 @@ class KidTestDetail(TemplateView):
         return context
 
 
-class KidQuizDetail(TemplateView):
+
+
+
+
+class KidTestRevision(LoginRequiredMixin, TemplateView):
     template_name = 'Guardian/kid_quiz_detail.html'
 
     def get_context_data(self, **kwargs):
-        context = super(KidQuizDetail, self).get_context_data(**kwargs)
-        mail = self.kwargs['email']
-        user = MyUser.objects.get(email=mail)
+        context = super(KidTestRevision, self).get_context_data(**kwargs)
+        user = self.kwargs['email']
         test = str(self.kwargs['uuid'])
-        answers = StudentsAnswers.objects.filter(user=user, test=test)
-        test = StudentTest.objects.get(user=user, uuid=test)
+        user = MyUser.objects.filter(email=user).first()
 
-        context['quizzes'] = answers
-        context['marks'] = test
-        if self.request.user.role == 'Guardian':
-            context['base_html'] = 'Guardian/baseg.html'
-        elif self.request.user.role == 'Teacher':
-            context['base_html'] = 'Teacher/teachers_base.html'
+        try:
+            answers = StudentsAnswers.objects.filter(user=user, test=test)
+            topical_test = StudentTest.objects.filter(user=user, uuid=test).last()
+            if self.request.user.role == 'Guardian':
+                context['base_html'] = 'Guardian/baseg.html'
+            elif self.request.user.role == 'Teacher':
+                context['base_html'] = 'Teacher/teachers_base.html'
+            else:
+                context['base_html'] = 'Users/base.html'
+            if not answers and test:
+                class_test = ClassTestStudentTest.objects.filter(user=user, test=test).last()
+                class_test_answers = classTestStudentAnswers.objects.filter(user=user, test=test)
+                print(class_test_answers, class_test)
+                context['quizzes'] = class_test_answers
+                context['marks'] = class_test
 
-        return context
+                return context
+
+            else:
+
+                context['quizzes'] = answers
+                context['marks'] = topical_test
 
 
-class LearnerProgress(TemplateView):
+
+
+                return context
+
+        except DatabaseError as error:
+            pass
+
+
+class LearnerProgress(LoginRequiredMixin, TemplateView):
     template_name = 'Guardian/learner_progress.html'
 
     def get_context_data(self, **kwargs):
@@ -189,8 +214,17 @@ class LearnerProgress(TemplateView):
         return context
 
 
-class LearnerSyllabus(TemplateView):
+class LearnerSyllabus(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = 'Guardian/learners_syllabus.html'
+
+    def test_func(self):
+        user = self.request.user
+        if user.role == 'Guardian' or user.role == 'Teacher':
+            # Allow access for users with 'Guardian' or 'Teacher' roles.
+            return True
+        else:
+            # For other roles, deny access.
+            return False
 
     def get_context_data(self, **kwargs):
         context = super(LearnerSyllabus, self).get_context_data(**kwargs)

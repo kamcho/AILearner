@@ -37,10 +37,12 @@ class TaskViewSelect(TemplateView):
         user = self.request.user
         class_id = self.kwargs['class']
         # subject = self.kwargs['class']
-        students = StudentList.objects.filter(user=user, class_id__class_name=class_id)[:5]
+
+        students = AcademicProfile.objects.filter(current_class__class_name=class_id)
         tests = ClassTest.objects.filter(teacher=user, class_id__class_name=class_id)[:5]
 
         context['tests'] = tests
+        context['class'] = class_id
         context['students'] = students
 
         return context

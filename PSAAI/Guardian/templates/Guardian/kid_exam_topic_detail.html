@@ -9,7 +9,9 @@
 
 
 
-
+{% if not subject %}
+        <h6>This student has no learning history</h6>
+    {% else %}
      <table class="table">
         <thead>
           <tr>
@@ -29,5 +31,5 @@
         </tbody>
      </table>
 
-
+{% endif %}
 {% endblock %}

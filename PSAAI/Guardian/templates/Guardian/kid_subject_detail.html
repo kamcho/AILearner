@@ -21,7 +21,7 @@
         <tbody>
         {% for topic in subject %}
           <tr>
-              <td><a href="{% url 'test-detail' topic.uuid %}">{{ topic.topic }}</a></td>
+              <td><a href="{% url 'kid-test-revision' email topic.uuid %}">{{ topic.topic }}</a></td>
             <td>{{ topic.marks }} / 15</td>
             <td>{{ topic.marks|divide:15 }}%</td>
           </tr>

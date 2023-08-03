@@ -5,7 +5,9 @@
 
 {% block content %}
 
-
+{% if not subject %}
+<h6>You do not have any progress history</h6>
+{% else %}
 <div class="container">
     <a href="{% url 'overall-analytics' %}" class="btn btn-warning">Analytics</a>
 <div class="upcoming-classes-view">
@@ -41,7 +43,7 @@
 
 
 
-
+{% endif %}
 
 
 {% endblock %}

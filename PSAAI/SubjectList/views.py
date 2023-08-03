@@ -170,7 +170,7 @@ class Syllabus(LoginRequiredMixin, TemplateView):
         return context
 
 
-class Assignment(TemplateView):
+class Assignment(LoginRequiredMixin, TemplateView):
     template_name = 'SubjectList/assignment.html'
 
     def get_context_data(self, **kwargs):
@@ -182,7 +182,7 @@ class Assignment(TemplateView):
         return context
 
 
-class AssignmentDetail(TemplateView):
+class AssignmentDetail(LoginRequiredMixin, TemplateView):
     template_name = 'SubjectList/assignment_lobby.html'
 
     def get_context_data(self, **kwargs):
@@ -203,7 +203,7 @@ class AssignmentDetail(TemplateView):
             return redirect('take-assessment', test)
 
 
-class TakeAssessment(TemplateView):
+class TakeAssessment(LoginRequiredMixin, TemplateView):
     template_name = 'SubjectList/assessment.html'
 
     def get_context_data(self, **kwargs):
@@ -252,7 +252,7 @@ class TakeAssessment(TemplateView):
             return redirect(request.path, test)
 
 
-class FinishAssessment(TemplateView):
+class FinishAssessment(LoginRequiredMixin, TemplateView):
     template_name = 'SubjectList/finish_assessment.html'
 
     def get_context_data(self, **kwargs):
@@ -322,7 +322,7 @@ class Messages(LoginRequiredMixin, TemplateView):
             pass
 
 
-class MyProgress(TemplateView):
+class MyProgress(LoginRequiredMixin, TemplateView):
     template_name = 'SubjectList/progress.html'
 
     def get_context_data(self, **kwargs):

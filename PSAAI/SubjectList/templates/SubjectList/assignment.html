@@ -1,29 +1,25 @@
 {% extends 'Users/base.html' %}
 {% load static %}
-
+{% load custom_filters %}
 {% block content %}
 
 
 
+{% if not assignments %}
+<h6>You do not have any assignment history </h6>
 
+{% else %}
    {% for assignment in assignments %}
-
-<br><br>
-    <a href="{% url 'assignment-lobby' assignment.uuid %}">{{ assignment }}</a>
-
-
-
-
-
-
-
+    <br><br>
+    {% if not user|test_is_done:assignment.uuid %}
+    <a href="{% url 'assignment-lobby' assignment.uuid %}">{{ assignment }}</a><br>
+        <p style="padding-left:10px;color:crimson;"><i class="bi bi-arrow-return-right">{{ assignment.expiry }}</i></p>
+    {% else %}
+    <a href="{% url 'assignment-lobby' assignment.uuid %}" style="color:green;">{{ assignment }}</a>
+    {% endif %}
 
     {% endfor %}
-
-
-
-
-
+{% endif %}
 
 
 

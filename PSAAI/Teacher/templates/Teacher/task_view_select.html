@@ -4,28 +4,61 @@
 
 
 
-    <div>
 
-        <h6>StudentList</h6>
-        {% for student in students %}
-            <p></p>
-        <a href="{% url 'students-list' tests.0.class_id %}">{{ student }}</a>
-
-
-        {% endfor %}
-    </div>
 
 
 
     <div>
-        <a href="{% url 'teacher-tests-view' tests.0.class_id %}"><h6>Class Tests</h6></a>
         {% for test in tests %}
             <p>{{ test }}</p>
         {% endfor %}
     </div>
 
 
+<div class="">
+    <div class="subject-select-view">
+        <a href="{% url 'students-list' class %}">
+            <div class="subject-select-card">
+            <h6>StudentList</h6>
+            {{ class }}
+            <br>
+            <br>
+            <div class="subject-select-in-card">
+                {% for student in students %}
+                    <small><i class="bi bi-person-circle"></i>  {{ student }} </small><br>
+                {% endfor %}
+            </div>
+            <br>
+            </div>
+        </a>
 
+
+        <a href="{% url 'teacher-tests-view' class %}">
+            <div class="subject-select-card">
+            <h6>Tests</h6>
+         {{ class }}
+                <br>
+                <br>
+
+            <div class="subject-select-in-card">
+                {% if not test %}
+                    <center>
+                        <p>You do not have any tests</p>
+                    </center>
+                {% else %}
+                    {% for test in tests %}
+                        <p>{{ test }}</p>
+                    {% endfor %}
+                {% endif %}
+
+            </div>
+        <br>
+        </div>
+            </a>
+
+
+    </div>
+</div>
 
 
 

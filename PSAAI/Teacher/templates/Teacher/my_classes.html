@@ -3,16 +3,32 @@
 
 
 
-
+<div class="">
+    <div class="subject-select-view">
     {% for class in classes %}
+        <div class="subject-select-card">
+            <a href="{% url 'class-task-view-select' class.class_id %}"><h6><i class="bi bi-bookmark"></i> {{ class.class_id }}</h6></a>
+            <small><i class="bi bi-gear"> </i> Grade {{ class.class_id.grade }}</small>
+            <br>
 
-    <a href="{% url 'class-task-view-select' class.class_id %}"><h6>{{ class.class_id }}</h6></a>
-    <p> {{ class.subject }} </p>
+            <br>
 
+            <div class="subject-select-in-card">
+
+
+             <small ><i class="bi bi-bookmark"></i>
+                        {{ class.subject }}
+             </small>
+            <br>
+            <small><i class="bi bi-person-circle"></i>  {{ class.class_id.class_size }} Students</small>
+        </div>
+        <br>
+    </div>
 
 {% endfor %}
 
-
+    </div>
+</div>
 
 
 

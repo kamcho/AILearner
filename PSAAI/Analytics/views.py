@@ -1,7 +1,6 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count
-from django.shortcuts import render
 from django.views.generic import TemplateView
-
 from Exams.models import *
 from Teacher.models import *
 
@@ -9,7 +8,7 @@ from Teacher.models import *
 # Create your views here.
 
 
-class OverallAnalytics(TemplateView):
+class OverallAnalytics(LoginRequiredMixin, TemplateView):
     template_name = 'Analytics/overall_analytics.html'
 
     def get_context_data(self, **kwargs):
@@ -22,7 +21,7 @@ class OverallAnalytics(TemplateView):
         return context
 
 
-class SubjectAnalytics(TemplateView):
+class SubjectAnalytics(LoginRequiredMixin, TemplateView):
     template_name = 'Analytics/subject_analytics.html'
 
     def get_context_data(self, **kwargs):

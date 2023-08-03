@@ -5,6 +5,9 @@
 
 
 <table class="table">
+    {% if not tests %}
+        <h6>You do not have any tests</h6>
+    {% else %}
         <thead>
           <tr>
             <th>Subject</th>
@@ -16,6 +19,7 @@
           </tr>
         </thead>
         <tbody>
+
         {% for test in tests %}
         <tr>
 
@@ -44,7 +48,7 @@
         </tbody>
       </table>
 
-
+{% endif %}
 
 
 

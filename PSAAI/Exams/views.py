@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import DatabaseError, IntegrityError
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
@@ -9,7 +10,7 @@ from itertools import groupby
 from SubjectList.models import TopicalExamResults
 
 
-class Exams(TemplateView):
+class Exams(LoginRequiredMixin, TemplateView):
     template_name = 'Exams/exams.html'
 
     def get_context_data(self, **kwargs):
@@ -34,7 +35,7 @@ class Exams(TemplateView):
             pass
 
 
-class ExamSubjectDetail(TemplateView):
+class ExamSubjectDetail(LoginRequiredMixin, TemplateView):
     template_name = 'Exams/subject_detail.html'
 
     def get_context_data(self, **kwargs):
@@ -51,7 +52,7 @@ class ExamSubjectDetail(TemplateView):
             pass
 
 
-class ExamTopicView(TemplateView):
+class ExamTopicView(LoginRequiredMixin, TemplateView):
     template_name = 'Exams/exam_topic_detail.html'
 
     def get_context_data(self, **kwargs):
@@ -70,7 +71,7 @@ class ExamTopicView(TemplateView):
 
 
 
-class TestDetail(TemplateView):
+class TestDetail(LoginRequiredMixin, TemplateView):
     template_name = 'Exams/test_detail.html'
 
     def get_context_data(self, **kwargs):
@@ -112,7 +113,7 @@ class TestDetail(TemplateView):
             pass
 
 
-class Start(TemplateView):
+class Start(LoginRequiredMixin, TemplateView):
     template_name = 'Exams/start.html'
 
     def get_context_data(self, **kwargs):
@@ -129,12 +130,12 @@ class Start(TemplateView):
     def post(self, *args, **kwargs):
         if self.request.method == 'POST':
             user = self.request.user
+            topic_name = self.kwargs['pk']
+            test_uuid = self.kwargs['uuid']
             try:
-
-                topic = Topic.objects.filter(name=self.kwargs['pk']).first()
+                topic = Topic.objects.filter(name=topic_name).first()
                 try:
-
-                    test = StudentTest.objects.create(user=user,subject=topic.subject, uuid=str(self.kwargs['uuid']), topic=topic)
+                    test = StudentTest.objects.create(user=user, subject=topic.subject, uuid=str(test_uuid), topic=topic)
                     return redirect('tests', topic.name)
                 except IntegrityError:
                     pass
@@ -150,7 +151,7 @@ class Start(TemplateView):
                 pass
 
 
-class Tests(TemplateView):
+class Tests(LoginRequiredMixin, TemplateView):
     template_name = 'Exams/tests.html'
 
     def get_context_data(self, **kwargs):
@@ -216,7 +217,7 @@ class Tests(TemplateView):
                 pass
 
 
-class Finish(TemplateView):
+class Finish(LoginRequiredMixin, TemplateView):
     template_name = 'Exams/finish.html'
 
     def get_context_data(self, **kwargs):
