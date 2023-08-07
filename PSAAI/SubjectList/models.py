@@ -98,7 +98,7 @@ class Notifications(models.Model):
 
 class TopicExamNotifications(Notifications):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+    topic = models.ForeignKey(Topic, null=True, on_delete=models.CASCADE)
 
     def __str__(self):
         return str(self.user)
@@ -106,7 +106,7 @@ class TopicExamNotifications(Notifications):
 
 class TopicalExamResults(Notifications):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+    topic = models.ForeignKey(Topic, null=True, blank=True, on_delete=models.CASCADE)
     test = models.UUIDField()
 
     def __str__(self):

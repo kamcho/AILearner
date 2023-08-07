@@ -262,11 +262,12 @@ class FinishAssessment(LoginRequiredMixin, TemplateView):
         user = self.request.user
         class_test = ClassTest.objects.filter(uuid=test).first()
         context['test_size']= class_test.test_size
-
-
         try:
             test = ClassTestStudentTest.objects.filter(user=user, test=test).order_by('date').last()
-            print(test.uuid, '\n\n\n\n\n')
+            # subject = test.test.subject
+            # subject = Subject.objects.filter(name=subject).first()
+            # print(subject,'\n\n\n\n')
+            # print(test.uuid, '\n\n\n\n\n')
             if test:
                 answers = classTestStudentAnswers.objects.filter(user=user, test=class_test).values('selection__uuid')
                 correct_answers = TopicalQuizAnswers.objects.filter(uuid__in=answers, is_correct='True')
@@ -277,19 +278,18 @@ class FinishAssessment(LoginRequiredMixin, TemplateView):
                 for item in mark:
                     item.is_correct = True
                     item.save()
-                # about = f'The results for {test.topic} on are out.'
+                # about = f'The results for {subject} class test  are out.'
                 # message = f'Congratulations on completing your test. The results' \
                 #           ' are out, click the button below to view the results. '
                 #
-                # topic = Topic.objects.filter(name=topic).first()
-                # subject = topic.subject
+                #
                 # try:
-                #     notifications = TopicalExamResults.objects.create(user=user, test=test.uuid, about=about, message=message, topic=topic, subject=subject)
+                #     notifications = TopicalExamResults.objects.create(user=user, test=test.uuid, about=about, message=message,  subject=subject)
                 #
                 # except IntegrityError as error:
                 #     pass
                 context['score'] = correct_answers.count()
-                context['test'] = test
+                context['test'] = class_test
             else:
                 pass
 
@@ -409,9 +409,9 @@ class BookedClasses(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(BookedClasses, self).get_context_data(**kwargs)
-
+        user = self.request.user
         try:
-            bookings = ClassBooking.objects.filter(user=self.request.user)
+            bookings = ClassBooking.objects.filter(user=user)
             context['bookings'] = bookings
 
             return context

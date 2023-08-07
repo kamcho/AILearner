@@ -1,6 +1,6 @@
 {% extends 'Users/base.html' %}
 {% load crispy_forms_tags %}
-{% load static %}
+{% load custom_filters %}
 
 {% block content %}
 
@@ -14,7 +14,7 @@
 <h5>Weakness</h5>
 {% for topic in weakness %}
     <h6>{{ topic.quiz__topic__name }}</h6>
-    <p>Failed {{ topic.quiz__topic__name__count  }} of 216 questions.</p>
+    <p>Passed {{ user|topic_analytics_weakness:topic.quiz__topic__name  }} of {{ user|topic_analytics_count:topic.quiz__topic__name  }} questions.</p>
 
 {% endfor %}
 
@@ -22,7 +22,7 @@
 <h5>Strengths</h5>
 {% for topic in strength %}
     <h6>{{ topic.quiz__topic__name }}</h6>
-    <p>Passed {{ topic.quiz__topic__name__count  }} of 216 questions.</p>
+    <p>Passed {{ user|topic_analytics_strength:topic.quiz__topic__name  }} of {{ user|topic_analytics_count:topic.quiz__topic__name  }} questions.</p>
 
 
 {% endfor %}
@@ -36,6 +36,9 @@
 
 
 
+
+<a class="btn btn-warning">Get Insights</a>
+<a class="btn btn-warning" href="{% url 'set-test' subject %}">Request a Test</a>
 
 
 

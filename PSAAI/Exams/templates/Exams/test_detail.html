@@ -3,33 +3,39 @@
 {% load static %}
 
 {% block content %}
-<h5>{{ marks }}</h5>
 
-    <h6>Scores {{ marks.marks }} / {{ marks.test.test_size }}</h6>
-
-    {% for quiz in quizzes %}
-<br>
-
-    <div>
-        {% if quiz.is_correct == False %}
-            <div style="color:crimson;">
-                <h6>{{ quiz.quiz.quiz }}</h6>
-
-                 <small>{{ quiz.selection.choice }}</small><i style="font-size:30px;color:crimson;" class="bi bi-x"></i>
-                <small>{{ quiz.is_correct }}</small>
-            </div>
-
+    <div class="container">
+        {% if user.role != 'Student' %}
+            <h5>{{ marks }}</h5>
         {% else %}
-            <div >
-                <h6 style="color:purple;">{{ quiz.quiz.quiz }}</h6>
-
-                 <small style="color:green;">{{ quiz.selection.choice }}</small><i style="font-size:30px;color:green;" class="bi bi-check-all"></i>
-            </div>
+            <h5></h5>
         {% endif %}
+        <h6>Scores {{ marks.marks }} / {{ marks.test_size }}</h6>
+    </div>
+    <br>
+
+    <div class="container">
+        {% for quiz in quizzes %}
+            {% if quiz.is_correct == False %}
+                <div style="color:crimson;">
+                    <h6>{{ forloop.counter }}) {{ quiz.quiz.quiz }}</h6>
+
+                     <small style="padding-left:15px;">{{ quiz.selection.choice }}</small><i style="font-size:30px;color:crimson;" class="bi bi-x"></i>
+                    <small>{{ quiz.is_correct }}</small>
+                </div>
+
+            {% else %}
+                <div >
+                    <h6 style="color:purple;">{{ forloop.counter }}) {{ quiz.quiz.quiz }}</h6>
+
+                     <small style="color:green;padding-left:15px;">{{ quiz.selection.choice }}</small><i style="font-size:30px;color:green;" class="bi bi-check-all"></i>
+                </div>
+            {% endif %}
+        {% endfor %}
     </div>
 
 
-    {% endfor %}
+
 
 
 

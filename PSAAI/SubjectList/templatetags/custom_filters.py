@@ -3,9 +3,9 @@ from django.db.models import Sum
 from django.shortcuts import redirect
 import datetime
 
-from Exams.models import StudentTest
+from Exams.models import StudentTest, StudentsAnswers
 from SubjectList.models import *
-from Teacher.models import ClassTestStudentTest, ClassTest
+from Teacher.models import ClassTestStudentTest, ClassTest, classTestStudentAnswers
 from Users.models import MyUser
 
 register = template.Library()
@@ -175,16 +175,61 @@ def class_test_active(date):
 def split_value(value, delimiter):
     return value.split(delimiter)[0]
 
+
 @register.filter
 def topical_average(user, topic):
     tests = StudentTest.objects.filter(user=user, topic__name=topic)
-
 
     total_marks = tests.aggregate(total_marks=Sum('marks'))['total_marks']
     average = (int(total_marks) / int(tests.count()))
     return average
 
+
 @register.filter
 def topical_average_count(user, topic):
     tests = StudentTest.objects.filter(user=user, topic__name=topic)
     return tests.count()
+
+
+@register.filter
+def subject_analytics_marks(user, subject):
+    student_test = StudentTest.objects.filter(subject__name=subject, user=user)
+    sum_marks_and_test_sizes = student_test.aggregate(total_marks=Sum('marks'))
+    total_marks = sum_marks_and_test_sizes['total_marks']
+
+    return int(total_marks)
+
+
+@register.filter
+def subject_analytics_size(user, subject):
+    student_test = StudentTest.objects.filter(subject__name=subject, user=user)
+    sum_marks_and_test_sizes = student_test.aggregate(total_test_size=Sum('test_size'))
+    total_test_size = sum_marks_and_test_sizes['total_test_size']
+    return int(total_test_size)
+
+
+@register.filter
+def topic_analytics_strength(user, topic):
+    topical_answers = StudentsAnswers.objects.filter(user=user, quiz__topic__name=topic, is_correct=True).count()
+    class_test_answers = classTestStudentAnswers.objects.filter(user=user, quiz__topic__name=topic,
+                                                                is_correct=True).count()
+    passed = int(topical_answers) + int(class_test_answers)
+    return passed
+
+
+@register.filter
+def topic_analytics_weakness(user, topic):
+    topical_answers = StudentsAnswers.objects.filter(user=user, quiz__topic__name=topic, is_correct=False).count()
+    class_test_answers = classTestStudentAnswers.objects.filter(user=user, quiz__topic__name=topic,
+                                                                is_correct=False).count()
+    failed = int(topical_answers) + int(class_test_answers)
+    return failed
+
+
+@register.filter
+def topic_analytics_count(user, topic):
+    passed = topic_analytics_strength(user, topic)
+    failed = topic_analytics_weakness(user, topic)
+    total = passed+failed
+
+    return total

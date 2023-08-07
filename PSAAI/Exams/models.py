@@ -34,9 +34,12 @@ class StudentTest(models.Model):
     user = models.ForeignKey(MyUser, on_delete=models.CASCADE)
     uuid = models.CharField(max_length=100, default=uuid.uuid4, unique=True)
     date = models.DateTimeField(auto_now=True)
-    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+    topic = models.ForeignKey(Topic, blank=True, null=True, on_delete=models.CASCADE)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    quiz = models.ManyToManyField(TopicalQuizes)
     marks = models.CharField(max_length=100, default='0')
+    test_size = models.PositiveIntegerField(default=15)
+    duration = models.PositiveIntegerField(default=15)
 
     def __str__(self):
         return str(self.user)

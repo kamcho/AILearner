@@ -23,6 +23,8 @@
                 {% endif %}
             {% elif message.notification_type == 'results' %}
                 <a href="{% url 'test-detail' message.test %}"><button class="btn btn-warning">View Results</button></a>
+          {% elif message.notification_type == 'retake' %}
+                <a href="{% url 'retake' message.subject message.uuid %}"><button class="btn btn-info">View Test</button></a>
             {% elif message.notification_type == 'class-test' %}
               {% if user|test_is_done:message.test.uuid %}
                 <a href="{% url 'test-detail' message.test.uuid %}"><button class="btn btn-warning">View Result</button></a>
