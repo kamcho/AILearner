@@ -1,19 +1,20 @@
 from django.urls import path
-from django.contrib.auth import views as auth_views
-from .views import *
+from .views import Exams, ExamTopicView, KNECExamView, ExamSubjectDetail, TestDetail,\
+    Start, StartRepeat, Tests, Finish, SetTest, KNECExamList, StartKnec
 
 urlpatterns = [
 
-    path('', Exams.as_view(),name='exams'),
-    path('<str:pk>/<str:uuid>/Instructions', Start.as_view(), name='start'),
-    path('<str:uuid>/quizes/', Tests.as_view(), name='tests'),
-    path('<str:uuid>/Finish', Finish.as_view(), name='finish'),
-
-    path('<str:subject>/<str:topic>/Info', ExamSubjectDetail.as_view(), name='exam-subject-id'),
+    path('', Exams.as_view(), name='exams'),
     path('<str:subject>/TopicInfo', ExamTopicView.as_view(), name='exam-topic-id'),
-    path('<str:subject>/set-test/', SetTest.as_view(), name='set-test'),
-    path('<str:subject>/<str:uuid>/', StartRepeat.as_view(), name='retake'),
+    path('<str:subject>/<str:topic>/Info', ExamSubjectDetail.as_view(), name='exam-subject-id'),
     path('Test/<str:uuid>/Revision/', TestDetail.as_view(), name='test-detail'),
+    path('<str:pk>/<str:uuid>/Instructions', Start.as_view(), name='start'),
+    path('<str:subject>/<str:uuid>/Retake/', StartRepeat.as_view(), name='retake'),
+    path('<str:uuid>/Quiz/', Tests.as_view(), name='tests'),
+    path('<str:uuid>/Finish', Finish.as_view(), name='finish'),
+    path('<str:mail>/<str:subject>/set-test/', SetTest.as_view(), name='set-test'),
+    path('KNEC/<str:grade>/', KNECExamView.as_view(), name='knec-exams'),
+    path('KNEC/<str:subject>/<str:grade>/', KNECExamList.as_view(), name='knec-exams-list'),
+    path('Knec/<str:grade>/<str:uuid>/Exam-lobby/', StartKnec.as_view(), name='knec-start')
 
-
-    ]
+]

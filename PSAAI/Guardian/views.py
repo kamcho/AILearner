@@ -9,9 +9,9 @@ from django.shortcuts import render
 from django.views.generic import ListView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
-from Exams.models import StudentTest, StudentsAnswers
+from Exams.models import StudentTest, StudentsAnswers, ClassTestStudentTest
 from SubjectList.models import Progress, Topic
-from Teacher.models import ClassTestStudentTest, classTestStudentAnswers
+
 from Users.models import MyUser, PersonalProfile
 
 
@@ -92,7 +92,7 @@ class KidExamTopicView(LoginRequiredMixin, TemplateView):
 
         try:
             subject = StudentTest.objects.filter(user__email=user, subject__name=self.kwargs['subject'])\
-                .values('topic__name').order_by('topic')
+                .values('topic__name').order_by('topic').distinct()
             context['subject'] = subject
             context['subject_name'] = self.kwargs['subject']
             if self.request.user.role == 'Guardian':
@@ -164,7 +164,7 @@ class KidTestRevision(LoginRequiredMixin, TemplateView):
         user = MyUser.objects.filter(email=user).first()
 
         try:
-            answers = StudentsAnswers.objects.filter(user=user, test=test)
+            answers = StudentsAnswers.objects.filter(user=user, test_object_id=test)
             topical_test = StudentTest.objects.filter(user=user, uuid=test).last()
             if self.request.user.role == 'Guardian':
                 context['base_html'] = 'Guardian/baseg.html'
@@ -174,7 +174,7 @@ class KidTestRevision(LoginRequiredMixin, TemplateView):
                 context['base_html'] = 'Users/base.html'
             if not answers and test:
                 class_test = ClassTestStudentTest.objects.filter(user=user, test=test).last()
-                class_test_answers = classTestStudentAnswers.objects.filter(user=user, test=test)
+                class_test_answers = StudentsAnswers.objects.filter(user=user, test_object_id=test)
                 print(class_test_answers, class_test)
                 context['quizzes'] = class_test_answers
                 context['marks'] = class_test

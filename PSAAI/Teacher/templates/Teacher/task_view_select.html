@@ -8,11 +8,7 @@
 
 
 
-    <div>
-        {% for test in tests %}
-            <p>{{ test }}</p>
-        {% endfor %}
-    </div>
+
 
 
 <div class="">
@@ -41,13 +37,14 @@
                 <br>
 
             <div class="subject-select-in-card">
-                {% if not test %}
+                {% if not tests %}
                     <center>
                         <p>You do not have any tests</p>
                     </center>
                 {% else %}
                     {% for test in tests %}
-                        <p>{{ test }}</p>
+                        <small style="padding:0px;margin:0px;">{{ test.subject }}</small>
+                        <br>
                     {% endfor %}
                 {% endif %}
 

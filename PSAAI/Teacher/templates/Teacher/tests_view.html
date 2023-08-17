@@ -12,8 +12,9 @@
           <tr>
             <th>Subject</th>
             <th>Progress</th>
+              <th>Average</th>
             <th>Expiry</th>
-            <th>Average</th>
+
 
 
           </tr>
@@ -21,29 +22,22 @@
         <tbody>
 
         {% for test in tests %}
-        <tr>
+            <tr>
+                <td><a href="{% url 'class-test-analytics' test.uuid %}">{{ test.subject.name }}</a></td>
+                <td>{{ test.uuid|class_test_progress }}</td>
+                <td>{{ test.uuid|class_test_average }}</td>
 
-            <td><a href="{% url 'class-test-analytics' test.uuid %}">{{ test.subject.name }}</a></td>
+                {% if  test.expiry|class_test_active %}
+                    <td style="color:crimson;">
+                      {{ test.expiry|date:'Y-m-d' }}
+                      <br>
+                      <small>expired</small>
+                    </td>
+                {% else %}
+                  <td style="color:green;">{{ test.expiry|date:'Y-m-d' }}</td>
+                {% endif %}
 
-            <td>{{ test.uuid|class_test_progress }}</td>
-
-            {% if  test.expiry|class_test_active %}
-            <td style="color:crimson;">
-                {{ test.expiry|date:'Y-m-d' }}
-                <br>
-                <small>expired</small>
-
-            </td>
-            {% else %}
-            <td style="color:green;">{{ test.expiry|date:'Y-m-d' }}</td>
-
-            {% endif %}
-            <td>{{ test.uuid|class_test_average }}</td>
-
-
-
-
-          </tr>
+            </tr>
          {% endfor %}
         </tbody>
       </table>

@@ -3,7 +3,7 @@
 
 {% block content %}
 
-    <h6>Scores {{ marks.marks }} / 15</h6>
+    <h6>Scores {{ marks.marks }} / {{ marks.test_size }}</h6>
 
     {% for quiz in quizzes %}
 <br>

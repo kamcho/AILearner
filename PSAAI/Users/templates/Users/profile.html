@@ -1,4 +1,4 @@
-{% extends 'Users/base.html' %}
+{% extends base_html %}
 {% load crispy_forms_tags %}
 
 {% block content %}
@@ -73,7 +73,7 @@
               <input  name="area" class="form-control" value="{{ user.personalprofile.area }}">
             </div>
               <br>
-            <button type="submit" class="btn btn-primary">Update Profile Info</button>
+            <button type="submit" class="btn btn-primary" name="profile">Update Profile Info</button>
           </form>
         </div>
       </div>
@@ -81,51 +81,62 @@
   </div>
 
 
-
-
-
-
-
-
-
-
             <br>
             <br>
         </div>
   
   
+        {% if not user.role == "Guardian" %}
+            {% if user.mysubscription.status %}
+                <p style="color:green;">Active</p>
+            {% else %}
+                <p style="color:crimson;">Renew Subscription</p>
+            {% endif %}
+                <div >
+                    <h6 style="font-size:15px;">Laikipia University</h6>
+                    <h6 style="font-size:13px;">Grade 4</h6>
 
-    <div class="car">
-      <div class="">
-        <h6 style="font-size:15px;">Laikipia University</h6>
-        <h6 style="font-size:13px;">Grade 4</h6>
+                    <h6 style="font-size:13px;">Subjects</h6>
+                    <div class="subject-list">
 
+                        {% for subject in subjects %}
+                          {% for entry in subject.name.all %}
 
-      </div>
+                          <p ><i class="bi bi-prescription2"> </i>{{ entry }}</p>
+                          {% endfor %}
+                        {% endfor %}
 
+                        </div>
 
-      <div >
-        <h6 style="font-size:13px;">Subjects</h6>
-      </div>
-
-      <div class="subject-list">
-
-        {% for subject in subjects %}
-          {% for entry in subject.name.all %}
-
-          <p ><i class="bi bi-prescription2"> </i>{{ entry }}</p>
-          {% endfor %}
-        {% endfor %}
-
-
-
-
-      </div>
-
-      <a href="{% url 'academia' %}"><button style="width:100px;" class="btn btn-warning">Edit</button></a>
+                        <a href="{% url 'academia' %}"><button style="width:100px;" class="btn btn-warning">Edit</button></a>
 
 
-    </div>
+                </div>
+        {% else %}
+        <h6>Add Student</h6>
+        <br>
+        <p>Add a student to your view list to track the childs progress. You should be the
+        guardian of the said child.</p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="exampleFormControlInput1" class="form-label">Email address</label>
+              <input type="email" class="form-control" id="exampleFormControlInput1" name="mail" placeholder="name@example.com">
+            </div>
+
+            <div class="mb-3">
+              <label for="exampleFormControlInput2" class="form-label">First Name</label>
+              <input type="text" class="form-control" id="exampleFormControlInput2" name="name" placeholder="First Name">
+            </div>
+
+            <button class="btn btn-warning" name="attachment">Add</button>
+        </form>
+
+
+
+
+        {% endif %}
+
 
     
     
@@ -133,9 +144,4 @@
 
 
 </div>
-
-
-<script>
-  feather.replace()
-</script>
 {% endblock %}

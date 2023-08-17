@@ -13,9 +13,11 @@ class OverallAnalytics(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(OverallAnalytics, self).get_context_data(**kwargs)
-        user = self.request.user
+        user = self.kwargs['mail']
+        user = MyUser.objects.get(email=user)
         tests = StudentTest.objects.filter(user=user).values('subject__name').annotate(subject_count=Count('subject__name')).order_by('subject__name').distinct()
         context['tests'] = tests
+        context['child'] = user
 
         return context
 
@@ -25,7 +27,8 @@ class SubjectAnalytics(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(SubjectAnalytics, self).get_context_data(**kwargs)
-        user = self.request.user
+        user = self.kwargs['mail']
+        user = MyUser.objects.get(email=user)
         subject = self.kwargs['subject']
         subject = Subject.objects.filter(name=subject).first()
         context['subject'] = subject
@@ -37,17 +40,15 @@ class SubjectAnalytics(LoginRequiredMixin, TemplateView):
         weakness = StudentsAnswers.objects.filter(user=user, quiz__subject__name=subject, is_correct=False). \
             values('quiz__topic__name').annotate(
             Count('quiz__topic__name')).order_by('quiz__topic__name')
-        class_weakness = classTestStudentAnswers.objects.filter(user=user, quiz__subject__name=subject, is_correct=False). \
-            values('quiz__topic__name').annotate(
-            Count('quiz__topic__name')).order_by('quiz__topic__name')
+
         strength = StudentsAnswers.objects.filter(user=user, quiz__subject__name=subject, is_correct=True). \
             values('quiz__topic__name').annotate(
             Count('quiz__topic__name')).order_by('quiz__topic__name')
-        class_strength = classTestStudentAnswers.objects.filter(user=user, quiz__subject__name=subject, is_correct=True). \
-            values('quiz__topic__name').annotate(
-            Count('quiz__topic__name')).order_by('quiz__topic__name')
+
 
         context['strength'] = strength
         context['weakness'] = weakness
+        context['child'] = user
+
 
         return context

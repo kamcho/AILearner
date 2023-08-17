@@ -1,18 +1,43 @@
-{% extends 'Teacher/teachers_base.html' %}
+{% extends base_html %}
 {% block content %}
 
 
 
 
   <div class="container">
+
+      <div class="container">
+          <form class="d-flex">
+            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+            <button class="btn btn-outline-success" type="submit">Search</button>
+          </form>
+      </div>
+      <br>
+      <br>
+
       <form method="post">
           {% csrf_token %}
+          {% if user.role == 'Supervisor' %}
+          <select class="form-select"  name="type" aria-label="Default select example">
+                <option value="knec">KNEC</option>
+                <option value="knec">School Test</option>
 
+          </select>
+          <br>
+          <select class="form-select"  name="subject" id="subjectSelect" aria-label="Default select example">
+              {% for subject in subjects %}
+                <option value="{{ subject.id }}">{{ subject }}</option>
+              {% endfor %}
+          </select>
+          {% else %}
           <select class="form-select" id="subjectSelect" name="subject" aria-label="Default select example">
               {% for subject in user.teacherprofile.subject.all %}
                 <option value="{{ subject.id }}">{{ subject }}</option>
               {% endfor %}
           </select>
+          {% endif %}
+
+
 
           <br>
           <select class="form-select" id="topicSelect" name="topic" aria-label="Default select example">

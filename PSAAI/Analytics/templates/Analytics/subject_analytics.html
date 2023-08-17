@@ -1,4 +1,4 @@
-{% extends 'Users/base.html' %}
+{% extends 'Guardian/baseg.html' %}
 {% load crispy_forms_tags %}
 {% load custom_filters %}
 
@@ -14,7 +14,7 @@
 <h5>Weakness</h5>
 {% for topic in weakness %}
     <h6>{{ topic.quiz__topic__name }}</h6>
-    <p>Passed {{ user|topic_analytics_weakness:topic.quiz__topic__name  }} of {{ user|topic_analytics_count:topic.quiz__topic__name  }} questions.</p>
+    <p>Passed {{ child|topic_analytics_weakness:topic.quiz__topic__name  }} of {{ child|topic_analytics_count:topic.quiz__topic__name  }} questions.</p>
 
 {% endfor %}
 
@@ -22,7 +22,7 @@
 <h5>Strengths</h5>
 {% for topic in strength %}
     <h6>{{ topic.quiz__topic__name }}</h6>
-    <p>Passed {{ user|topic_analytics_strength:topic.quiz__topic__name  }} of {{ user|topic_analytics_count:topic.quiz__topic__name  }} questions.</p>
+    <p>Passed {{ child|topic_analytics_strength:topic.quiz__topic__name  }} of {{ child|topic_analytics_count:topic.quiz__topic__name  }} questions.</p>
 
 
 {% endfor %}
@@ -38,7 +38,7 @@
 
 
 <a class="btn btn-warning">Get Insights</a>
-<a class="btn btn-warning" href="{% url 'set-test' subject %}">Request a Test</a>
+<a class="btn btn-warning" href="{% url 'set-test' child subject %}">Request a Test</a>
 
 
 

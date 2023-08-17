@@ -15,7 +15,7 @@
     <a href="{% url 'assignment-lobby' assignment.uuid %}">{{ assignment }}</a><br>
         <p style="padding-left:10px;color:crimson;"><i class="bi bi-arrow-return-right">{{ assignment.expiry }}</i></p>
     {% else %}
-    <a href="{% url 'assignment-lobby' assignment.uuid %}" style="color:green;">{{ assignment }}</a>
+    <a href="{% url 'tests' assignment.uuid %}" style="color:green;">{{ assignment }}</a>
     {% endif %}
 
     {% endfor %}

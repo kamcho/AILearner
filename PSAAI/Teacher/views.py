@@ -4,7 +4,7 @@ from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse
 
-from Exams.models import TopicalQuizes, TopicalQuizAnswers
+from Exams.models import TopicalQuizes, TopicalQuizAnswers, StudentsAnswers, ClassTestStudentTest
 from SubjectList.models import Topic, Subtopic
 from Users.models import AcademicProfile
 from .models import *
@@ -37,6 +37,7 @@ class TaskViewSelect(TemplateView):
         user = self.request.user
         class_id = self.kwargs['class']
         # subject = self.kwargs['class']
+        # class_id = SchoolClass.objects.get(class_name=class_id)
 
         students = AcademicProfile.objects.filter(current_class__class_name=class_id)
         tests = ClassTest.objects.filter(teacher=user, class_id__class_name=class_id)[:5]
@@ -116,9 +117,9 @@ class ClassTestAnalytics(TemplateView):
         for quiz in class_test.quiz.all():
             test_dict[index] = quiz
             index += 1
-        passed_count = classTestStudentAnswers.objects.filter(test=test_uuid, is_correct=True).values('quiz').annotate(failed=Count('quiz')).order_by('quiz')
+        passed_count = StudentsAnswers.objects.filter(test_object_id=test_uuid, is_correct=True).values('quiz').annotate(failed=Count('quiz')).order_by('quiz')
 
-        passed = classTestStudentAnswers.objects.filter(test=test_uuid, is_correct=True).values('quiz').distinct()
+        passed = StudentsAnswers.objects.filter(test_object_id=test_uuid, is_correct=True).values('quiz').distinct()
         passed_list = [item['quiz'] for item in passed]
         p_index=1
         for choice in passed_list:
@@ -130,13 +131,15 @@ class ClassTestAnalytics(TemplateView):
                     perfomance_data[int(key)] = relative
                     p_index += 1
 
-        failed_test = classTestStudentAnswers.objects.filter(test=test_uuid, is_correct=False).values('quiz').order_by('selection')
-        most_failed = min(perfomance_data, key=perfomance_data.get)
-        most_passed = max(perfomance_data, key=perfomance_data.get)
+
+        failed_test = StudentsAnswers.objects.filter(test_object_id=test_uuid, is_correct=False).values('quiz').order_by('selection')
+        if perfomance_data:
+            most_failed = min(perfomance_data, key=perfomance_data.get)
+            most_passed = max(perfomance_data, key=perfomance_data.get)
         # print(failed_test)
-        context['passed'] = most_passed
+        # context['passed'] = most_passed
         context['quizzes'] = class_test.quiz.all()
-        context['failed'] = most_failed
+        # context['failed'] = most_failed
         context['performance_data'] = perfomance_data
         return context
 
@@ -358,17 +361,25 @@ class CreateQuestion(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(CreateQuestion, self).get_context_data(**kwargs)
+
         user = self.request.user
-        try:
-            subjects = TeacherProfile.objects.get(user=user)
-            context['subjects'] = subjects
+        if user.role == 'Teacher':
+            try:
+                subjects = TeacherProfile.objects.get(user=user)
+                context['subjects'] = subjects
+                context['base_html'] = 'Teacher/teachers_base.html'
 
-            return context
 
-        except TeacherProfile.MultipleObjectsReturned:
-            pass
-        except TeacherProfile.DoesNotExist:
-            pass
+
+            except TeacherProfile.MultipleObjectsReturned:
+                pass
+            except TeacherProfile.DoesNotExist:
+                pass
+        elif user.role == 'Supervisor':
+            context['subjects'] = Subject.objects.all()
+            context['base_html'] = 'Supervisor/base.html'
+
+        return context
 
     def post(self, request, **kwargs):
         if self.request.method == "POST":
@@ -376,11 +387,15 @@ class CreateQuestion(TemplateView):
             topic = request.POST.get('topic')
             sub_topic = request.POST.get('subtopic')
             quiz = request.POST.get('quiz')
+            exam_type = request.POST.get('exam_type')
+            user = self.request.user
+
+
 
             if subject and topic and sub_topic:
-                quiz_info = {'subject': subject, 'topic': topic, 'subtopic': sub_topic, 'quiz': quiz}
+                quiz_info = {'subject': subject, 'topic': topic, 'subtopic': sub_topic,
+                             'quiz': quiz, 'exam_type': exam_type}
                 request.session['quiz_info'] = quiz_info
-                # quiz = TopicalQuizes.objects.create(subject=db_subject, topic=db_topic, subtopic=db_sub_topic, quiz=quiz)
 
                 return redirect('add-answer')
             else:
@@ -398,6 +413,7 @@ class AddAnswerSelection(TemplateView):
 
     def post(self, request, **kwargs):
         if self.request.method == 'POST':
+            user = request.user
             selection1 = self.request.POST.get('selection1')
             selection2 = self.request.POST.get('selection2')
             selection3 = self.request.POST.get('selection3')
@@ -408,7 +424,10 @@ class AddAnswerSelection(TemplateView):
                                                           'selection3': selection3,
                                                           'selection4': selection4
                                                           }
-                return redirect('save-quiz')
+                if user.role == 'Teacher':
+                    return redirect('save-quiz')
+                elif user.role == 'Supervisor':
+                    return redirect('knec-add-quiz')
 
             else:
                 return redirect(self.request.get_full_path())
@@ -433,6 +452,7 @@ class SaveQuiz(TemplateView):
             topic = session_quiz_data['topic']
             sub_topic = session_quiz_data['subtopic']
             quiz = session_quiz_data['quiz']
+            exam_type = session_quiz_data['exam_type']
             session_selection_data = self.request.session.get('selection_info')
             selection1 = session_selection_data['selection1']
             selection2 = session_selection_data['selection2']

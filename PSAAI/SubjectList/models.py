@@ -3,11 +3,10 @@ import datetime
 from django.db import models
 import uuid
 
-from Users.models import MyUser, SchoolClass
+from Users.models import MyUser
 
 
 class Course(models.Model):
-
     name = models.CharField(max_length=100)
     discipline = models.CharField(max_length=20, default="science")
 
@@ -16,7 +15,6 @@ class Course(models.Model):
 
 
 class Subject(models.Model):
-
     name = models.CharField(max_length=100)
     order = models.IntegerField(default=1)
     grade = models.CharField(max_length=2, default="1")
@@ -28,7 +26,6 @@ class Subject(models.Model):
 
 
 class MySubjects(models.Model):
-
     name = models.ManyToManyField(Course, blank=True, related_name='my_subjects')
     user = models.OneToOneField(MyUser, on_delete=models.CASCADE)
 
@@ -42,12 +39,10 @@ class MySubjects(models.Model):
             return 'False'
 
 
-
 class Topic(models.Model):
-
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     order = models.IntegerField(default=1)
-    subject = models.ForeignKey(Subject,related_name='subject_id', on_delete=models.CASCADE)
+    subject = models.ForeignKey(Subject, related_name='subject_id', on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     topics_count = models.CharField(max_length=5, default='4')
 
@@ -56,9 +51,8 @@ class Topic(models.Model):
 
 
 class Subtopic(models.Model):
-
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    subject = models.ForeignKey(Subject,default='9', on_delete=models.CASCADE)
+    subject = models.ForeignKey(Subject, default='9', on_delete=models.CASCADE)
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name='topic')
     name = models.CharField(max_length=100)
     file = models.FileField(upload_to='studyFiles', default='file.pdf')
@@ -69,7 +63,6 @@ class Subtopic(models.Model):
 
 
 class Progress(models.Model):
-
     user = models.ForeignKey(MyUser, on_delete=models.CASCADE)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     subtopic = models.ForeignKey(Subtopic, on_delete=models.CASCADE)
@@ -80,20 +73,16 @@ class Progress(models.Model):
 
 
 class Notifications(models.Model):
-    uuid = models.UUIDField(default=uuid.uuid4,  unique=True)
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True)
     user = models.ForeignKey(MyUser, default='1', on_delete=models.CASCADE)
     notification_type = models.CharField(max_length=100, default='payment')
     message = models.TextField(max_length=500)
     about = models.CharField(max_length=100)
     is_read = models.BooleanField(default=False)
+    date = models.DateTimeField(auto_created=True)
 
     class Meta:
         abstract = True
-
-
-
-
-
 
 
 class TopicExamNotifications(Notifications):
@@ -124,15 +113,16 @@ class OnlineClass(models.Model):
 
     def __str__(self):
         return self.name
-    def end_time(self):
-        endtime = self.date + datetime.timedelta(minutes=self.duration)
 
-        return endtime
+    # noinspection PyTypeChecker
+    def end_time(self):
+        end_time = self.date + datetime.timedelta(minutes=self.duration)
+
+        return end_time
 
 
 class ClassBookingNotifications(Notifications):
     class_id = models.ForeignKey(OnlineClass, on_delete=models.CASCADE)
-
 
     def __str__(self):
         return str(self.user)
@@ -148,12 +138,10 @@ class SubscriptionNotifications(Notifications):
 class PaymentNotifications(Notifications):
     amount = models.PositiveIntegerField(default='1')
     subscription_type = models.CharField(max_length=200)
-    beneficiaries = models.CharField(max_length=100,default='njokevin9@gmail.com')
+    beneficiaries = models.CharField(max_length=100, default='njokevin9@gmail.com')
 
     def __str__(self):
         return str(self.user)
-
-
 
 
 class ClassBooking(models.Model):
@@ -176,7 +164,7 @@ class VideoChannel(models.Model):
 
 class AgoraLearners(models.Model):
     user = models.ForeignKey(MyUser, on_delete=models.CASCADE)
-    channel = models.ForeignKey(VideoChannel, unique=True,to_field='channel_name', on_delete=models.CASCADE)
+    channel = models.ForeignKey(VideoChannel, unique=True, to_field='channel_name', on_delete=models.CASCADE)
     token = models.CharField(max_length=100)
     attended = models.BooleanField(default=False)
 

@@ -1,4 +1,4 @@
-{% extends 'Users/base.html' %}
+{% extends 'Guardian/baseg.html' %}
 {% load crispy_forms_tags %}
 {% load custom_filters %}
 
@@ -8,11 +8,11 @@
             {% for test in tests %}
             <div class="upcoming-classes-card">
 
-                <a href="{% url 'subject-analysis' test.subject__name %}">{{ test.subject__name }}</a>
+                <a href="{% url 'subject-analysis' child test.subject__name %}">{{ test.subject__name }}</a>
                 <br>
                 <small>Tests : {{ test.subject_count }}</small>
-                <p>Total marks - {{ user|subject_analytics_marks:test.subject__name }}</p>
-                <p>Overall marks - {{ user|subject_analytics_size:test.subject__name }}</p>
+                <p>Total marks - {{ child|subject_analytics_marks:test.subject__name }}</p>
+                <p>Overall marks - {{ child|subject_analytics_size:test.subject__name }}</p>
 
 
 

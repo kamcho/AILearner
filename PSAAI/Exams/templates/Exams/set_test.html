@@ -1,4 +1,4 @@
-{% extends 'Users/base.html' %}
+{% extends 'Guardian/baseg.html' %}
 {% load crispy_forms_tags %}
 {% load static %}
 
@@ -10,6 +10,14 @@
 to do so.</p></h6>
 <form method="post">
 {% csrf_token %}
+    <select class="form-select" name="exam-type" aria-label="Default select example" id="exam-type">
+      <option></option>
+      <option >Topical</option>
+      <option >General</option>
+    </select>
+
+    <br>
+    <br>
 {% for topic in topics %}
 
     <div class="form-check">
@@ -18,9 +26,6 @@ to do so.</p></h6>
         {{ topic }}
       </label>
     </div>
-
-
-
 
 {% endfor %}
 
@@ -47,7 +52,42 @@ to do so.</p></h6>
 
 
 
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const examTypeSelect = document.getElementById('exam-type');
+  const topicCheckboxes = document.querySelectorAll('input[name="topics"]');
 
+  examTypeSelect.addEventListener('change', function() {
+    const selectedExamType = examTypeSelect.value;
+    if (selectedExamType === 'Topical') {
+      for (const checkbox of topicCheckboxes) {
+        checkbox.disabled = false;
+      }
+    } else if (selectedExamType === 'General') {
+      for (const checkbox of topicCheckboxes) {
+        checkbox.disabled = false;
+      }
+    }
+
+    for (const checkbox of topicCheckboxes) {
+      checkbox.checked = false;
+    }
+  });
+
+  for (const checkbox of topicCheckboxes) {
+    checkbox.addEventListener('click', function() {
+      const selectedExamType = examTypeSelect.value;
+      if (selectedExamType === 'Topical') {
+        const checkedCheckboxes = document.querySelectorAll('input[name="topics"]:checked');
+        if (checkedCheckboxes.length > 1) {
+          alert('Only one topic can be selected for a topical exam.');
+          this.checked = false;
+        }
+      }
+    });
+  }
+});
+</script>
 
 
 {% endblock %}

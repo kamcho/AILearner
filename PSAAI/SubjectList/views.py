@@ -1,15 +1,16 @@
+import datetime
 from datetime import date, timedelta
 
 import requests
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import IntegrityError, DatabaseError
 from django.db.models import Count
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from itsdangerous import json
 
-from Exams.models import StudentTest, TopicalQuizAnswers, StudentsAnswers, TopicalQuizes
-from Teacher.models import ClassTest, ClassTestStudentTest, classTestStudentAnswers, ClassTestNotifications
+from Exams.models import StudentTest, TopicalQuizAnswers, StudentsAnswers, TopicalQuizes, ClassTest, ClassTestStudentTest
+from Teacher.models import ClassTestNotifications
 from .models import *
 # Create your views here.
 from django.views.generic import TemplateView
@@ -111,9 +112,10 @@ class Finish(LoginRequiredMixin, TemplateView):
                             notification = TopicExamNotifications.objects.create(user=user, about=about,
                                                                                  notification_type='quiz',
                                                                                  subject=subject, message=message,
-                                                                                 topic=topic)
-                        except IntegrityError as error:
-                            return HttpResponse(f'{error},We could not create a test for you . Please contact Admin.')
+                                                                                 topic=topic,
+                                                                                 date = datetime.datetime.now())
+                        except :
+                            return HttpResponse(f'We could not create a test for you . Please contact Admin.')
                     else:
                         pass
 
@@ -200,7 +202,7 @@ class AssignmentDetail(LoginRequiredMixin, TemplateView):
             class_test = ClassTest.objects.filter(uuid=test).first()
             save_test = ClassTestStudentTest.objects.create(user=user, test=class_test, finished=False)
 
-            return redirect('take-assessment', test)
+            return redirect('tests', test)
 
 
 class TakeAssessment(LoginRequiredMixin, TemplateView):
@@ -238,7 +240,7 @@ class TakeAssessment(LoginRequiredMixin, TemplateView):
         selection = TopicalQuizAnswers.objects.get(uuid=selection)
         test = ClassTest.objects.filter(uuid=test).first()
 
-        answer = classTestStudentAnswers.objects.create(user=user, quiz=quiz, selection=selection, test=test)
+        answer = StudentsAnswers.objects.create(user=user, quiz=quiz, selection=selection, test=test)
 
         if int(index) >= int(test_size - 1):
             del self.request.session['class_test_quiz_index']
@@ -269,12 +271,12 @@ class FinishAssessment(LoginRequiredMixin, TemplateView):
             # print(subject,'\n\n\n\n')
             # print(test.uuid, '\n\n\n\n\n')
             if test:
-                answers = classTestStudentAnswers.objects.filter(user=user, test=class_test).values('selection__uuid')
+                answers = StudentsAnswers.objects.filter(user=user, test=class_test).values('selection__uuid')
                 correct_answers = TopicalQuizAnswers.objects.filter(uuid__in=answers, is_correct='True')
                 print(correct_answers, '\n\n\n')
                 test.marks = correct_answers.count()
                 test.save()
-                mark = classTestStudentAnswers.objects.filter(selection__in=correct_answers)
+                mark = StudentsAnswers.objects.filter(selection__in=correct_answers)
                 for item in mark:
                     item.is_correct = True
                     item.save()
@@ -305,21 +307,36 @@ class Messages(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super(Messages, self).get_context_data(**kwargs)
         user = self.request.user
-        class_id = user.academicprofile.current_class
-        try:
-            topical_exam_results = TopicalExamResults.objects.filter(user=user)
-            topical_exam = TopicExamNotifications.objects.filter(user=user)
-            class_bookings = ClassBookingNotifications.objects.filter(user=user)
-            subscription_notifications = SubscriptionNotifications.objects.filter(user=user)
+        if self.request.user.role == 'Guardian':
+            context['base_html'] = 'Guardian/baseg.html'
+        elif self.request.user.role == 'Teacher':
+            context['base_html'] = 'Teacher/teachers_base.html'
+        else:
+            context['base_html'] = 'Users/base.html'
+        if user.role == "Student":
+            class_id = user.academicprofile.current_class
+            try:
+                topical_exam_results = TopicalExamResults.objects.filter(user=user)
+                topical_exam = TopicExamNotifications.objects.filter(user=user)
+                class_bookings = ClassBookingNotifications.objects.filter(user=user)
+                class_test_notifications = ClassTestNotifications.objects.filter(class_id=class_id)
+                messages = list(topical_exam) + list(topical_exam_results) + list(class_bookings) + list(class_test_notifications)
+                context['messages'] = messages
+
+
+                return context
+
+
+            except DatabaseError as error:
+                pass
+
+        else:
             payment_notification = PaymentNotifications.objects.filter(user=user)
-            class_test_notifications = ClassTestNotifications.objects.filter(class_id=class_id)
-            messages = list(topical_exam) + list(topical_exam_results) + list(class_bookings) + list(
-                subscription_notifications) + list(payment_notification) + list(class_test_notifications)
+            subscription_notifications = SubscriptionNotifications.objects.filter(user=user)
+            messages = list(subscription_notifications) + list(payment_notification)
+
             context['messages'] = messages
             return context
-
-        except DatabaseError as error:
-            pass
 
 
 class MyProgress(LoginRequiredMixin, TemplateView):

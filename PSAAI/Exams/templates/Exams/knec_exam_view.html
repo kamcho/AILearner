@@ -1,0 +1,38 @@
+{% extends 'Users/base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block content %}
+
+
+
+
+
+
+ <div class="">
+        <div class="subject-select-view">
+        {% for subject in subjects %}
+        <div class="subject-select-card">
+            <div class="booked-class-ody">
+                <a href="{% url 'syllabus' subject.name  %}"><h6>{{ subject }} </h6></a>
+                <small><i class="bi bi-gear"> </i> Grade 4</small>
+            </div>
+            <br>
+
+            <div>
+                <a href="{% url 'knec-exams-list' subject grade %}"><button class="btn btn-info">View</button></a>
+            </div>
+        </div>
+
+    {% endfor %}
+
+
+
+
+
+
+
+
+
+
+{% endblock %}

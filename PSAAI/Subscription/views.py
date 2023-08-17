@@ -19,12 +19,14 @@ from stripe.error import StripeError
 from SubjectList.models import PaymentNotifications
 from Users.models import MyUser, PersonalProfile
 from .models import MySubscription, Subscriptions, StripeCardPayments
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 
 # Create your views here.
 
 
-class Subscribe(TemplateView):
+
+class Subscribe(LoginRequiredMixin, TemplateView):
     template_name = 'Subscription/subscription.html'
 
     def get_context_data(self, **kwargs):
@@ -38,7 +40,6 @@ class Subscribe(TemplateView):
 
         except DatabaseError:
             pass
-
 
 
 def generate_access_token():
@@ -55,12 +56,10 @@ def generate_access_token():
     else:
         return JsonResponse({'error': 'Token generation failed'}, status=response.status_code)
 
-
     return HttpResponse(status=405)
 
 
 def generate_mpesa_password(paybill_number):
-
     timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     consumer_key = 'bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919'
     concatenated_string = f"{paybill_number}{consumer_key}{timestamp}"
@@ -70,12 +69,8 @@ def generate_mpesa_password(paybill_number):
 
 
 def initiate_payment(request):
-    # Use your API credentials here
-    consumer_key = 'uBAiPdLXOGEmOqjBYlh2Wt57ecTaRlyz'
-    consumer_secret = 'rR5Ftd45gurgBaP2'
     paybill = "174379"
     timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-
 
     access_token_url = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials'
 
@@ -106,12 +101,9 @@ def initiate_payment(request):
     return HttpResponse(response)
 
 
-
 @csrf_exempt
 def payment_callback(request):
-
     data = request.body.decode('utf-8')
     data = json.loads(data)
-    print(data)
 
-    return JsonResponse({'response':data})
+    return JsonResponse({'response': data})
