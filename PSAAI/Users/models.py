@@ -159,16 +159,14 @@ class SchoolClass(models.Model):
 
 class PersonalProfile(models.Model):
     user = models.OneToOneField(MyUser, on_delete=models.CASCADE)
-    f_name = models.CharField(max_length=30, default='F_NAME')
+    f_name = models.CharField(max_length=30)
     ref_id = models.CharField(max_length=100, blank=True)
-    l_name = models.CharField(max_length=30, default='M_NAME')
-    surname = models.CharField(max_length=30, default='SURNAME',blank=True)
-    gender = models.CharField(max_length=10,default="FEMALE",blank=True)
-    phone1 = models.CharField(max_length=15)
-    phone2 = models.CharField(max_length=15)
+    l_name = models.CharField(max_length=30)
+    surname = models.CharField(max_length=30, blank=True)
+    gender = models.CharField(max_length=10, blank=True)
+    phone = models.CharField(max_length=15)
     country = models.CharField(max_length=10, default="Kenya", blank=True)
-    city = models.CharField(max_length=10, default="Nairobi", blank=True)
-    area = models.CharField(max_length=10, default="Karen", blank=True)
+    city = models.CharField(max_length=10, blank=True)
 
 
 
@@ -180,7 +178,7 @@ class AcademicProfile(models.Model):
     user = models.OneToOneField(MyUser, on_delete=models.CASCADE)
     school = models.CharField(max_length=100)
     county = models.CharField(max_length=20)
-    current_class = models.ForeignKey(SchoolClass, default='1', on_delete=models.CASCADE)
+    current_class = models.ForeignKey(SchoolClass, null=True, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.user.email

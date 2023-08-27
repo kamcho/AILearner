@@ -4,7 +4,13 @@
 
 {% block content %}
 
+    {% if not subjects %}
+    <br>
+    <div style="margin:0 auto;width:90%;">
+            <h6 class="text-center alert alert-dark">You have no test history</h6>
 
+    </div>
+    {% else %}
     <div >
             <div>
                <a href="{% url 'overall-analytics' user %}"><button class="btn btn-warning">Analytics</button></a>
@@ -38,4 +44,6 @@
             </a>
         {% endfor %}
       </div>
+
+{% endif %}
 {% endblock %}

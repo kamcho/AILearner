@@ -1,0 +1,58 @@
+{% extends 'Teacher/teachers_base.html' %}
+{% block content %}
+
+
+
+<div class="container">
+      <form method="POST">
+          {% csrf_token %}
+           <br>
+          <h6>Add The subjects You Teach.</h6>
+
+            <p>Grade 4</p>
+              {% for subject in grade4 %}
+                <div class="form-check">
+                  <input class="form-check-input" name="subjects" type="checkbox" value="{{ subject.id }}" id="{{ subject.id }}">
+                  <label class="form-check-label" for="{{ subject.id }}">
+                      {{ subject }}
+                  </label>
+                </div>
+              {% endfor %}
+              <br>
+          <p>Grade 5</p>
+              {% for subject in grade5 %}
+                <div class="form-check">
+                  <input class="form-check-input" name="subjects" type="checkbox" value="{{ subject.id }}" id="{{ subject.id }}">
+                  <label class="form-check-label" for="{{ subject.id }}">
+                      {{ subject }}
+                  </label>
+                </div>
+              {% endfor %}
+              <br>
+          <p>Grade 6</p>
+              {% for subject in grade6 %}
+                <div class="form-check">
+                  <input class="form-check-input" name="subjects" type="checkbox" value="{{ subject.id }}" id="{{ subject.id }}">
+                  <label class="form-check-label" for="{{ subject.id }}">
+                      {{ subject }}
+                  </label>
+                </div>
+              {% endfor %}
+              <br>
+          <p>Grade 7</p>
+              {% for subject in grade7 %}
+                <div class="form-check">
+                  <input class="form-check-input" name="subjects" type="checkbox" value="{{ subject.id }}" id="{{ subject.id }}">
+                  <label class="form-check-label" for="{{ subject.id }}">
+                      {{ subject }}
+                  </label>
+                </div>
+              {% endfor %}
+              <br>
+          <button type="submit" class="btn btn-warning" name="profile">Add</button>
+
+      </form>
+
+</div>
+
+{% endblock %}

@@ -77,7 +77,7 @@ class BaseGroupTest(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     test_size = models.PositiveIntegerField()
     duration = models.PositiveIntegerField(default='15')
-    date = models.DateTimeField(auto_now_add=True)
+    date = models.DateTimeField()
     teacher = models.ForeignKey(MyUser, on_delete=models.CASCADE)
     expiry = models.DateField(null=True)
 

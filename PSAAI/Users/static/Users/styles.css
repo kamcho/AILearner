@@ -80,9 +80,10 @@ border-radius:10px ;
 }
 .main-body{
 
-    padding-top:80px;
-    margin:0 auto;
-    padding-left:3%;
+    padding-top:50px;
+    margin:40px auto;
+
+
 }
 
 
@@ -94,15 +95,18 @@ border-radius:10px ;
 
 .event-view{
     display: grid;
-    grid-template-columns: repeat(3,1fr);
-    margin:0 auto;
+    grid-template-columns: repeat(3,.7fr);
+    margin:30px auto;
+    grid-gap: 20px;
+    max-width: 1500px;
+   
 
 
 }
 .event-view .event-card{
     border-radius: 5px;
-    width: 250px;
-    height: 200px;
+    width: 95%;
+    height: 230px;
     padding: 30px;
     margin-left: 10px;
     box-shadow: 0 1px 10px 1px rgba(0, 0, 0, 0.1);
@@ -127,6 +131,7 @@ border-radius:10px ;
 table th{
     font-weight: lighter;
     padding-left: 20px;
+    margin-top:10px;
 }
 tr:nth-child(even) {
     background-color: #f2f2f2;
@@ -142,31 +147,41 @@ tr:nth-child(even) {
     border-top: 1px solid black;
     margin-top:10%;
 }
-@media (min-width: 1030px) {
 
 
-
-
-    .event-card{
-        margin-top:30px;
-        width:85% !important;
-        height:250px;
-    }
-    }
-@media (max-width: 1030px) {
+.subject-list{
+    display:grid;
+    grid-template-columns:auto auto auto;
+}
+@media (min-width: 1300px){
     .event-view{
-        grid-template-columns:repeat(2,1fr)
+        width: 90%;
     }
-    .event-card{
-        margin-top:30px;
-        width:85% !important;
-        height:250px;
-
-    }
-
 
 }
-@media (max-width: 670px) {
+@media (max-width: 1299px) {
+
+    .event-view{
+        width: 95%;
+    }
+
+    
+    .event-card{
+        width:98% !important;
+        height:300px;
+    }
+    } 
+
+    
+@media (max-width: 850px) {
+    .event-view{
+        grid-template-columns: repeat(2,.7fr);
+    }
+    
+
+}
+
+@media (max-width: 640px) {
 
     .vertical-bar{
         display:none;
@@ -176,17 +191,18 @@ tr:nth-child(even) {
         margin:60px auto;
     }
     .event-view{
-        padding-top:40px;
-
-        margin:0 auto;
+        display: inline;
+        margin: 0 auto;
     }
 
 
     .event-card{
-        width:91% !important;
+        width:80% !important;
+        margin: 30px auto !important;
+
     }
 
-
+/*
 
 }
 @media (max-width: 500px) {
@@ -207,4 +223,4 @@ tr:nth-child(even) {
         }
 
 
-}
+} */

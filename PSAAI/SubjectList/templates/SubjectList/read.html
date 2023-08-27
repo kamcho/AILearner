@@ -4,23 +4,13 @@
 
 {% block content %}
 
-<div>
+<div class="container">
     <div style="display:flex;position:fixed;">
-        <div class="dropdown">
-      <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-        Grade
-      </button>
-      <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-        <li><a class="dropdown-item" href="#">1</a></li>
-        <li><a class="dropdown-item" href="#">2</a></li>
-        <li><a class="dropdown-item" href="#">3</a></li>
-        <li><a class="dropdown-item" href="#">4</a></li>
-      </ul>
-    </div>
+
 
         {% if user.role == 'Student' %}
     <div style="margin-left:100px;">
-        <a href="{% url 'finish' subject.topic subject %}"><button class="btn btn-info">Finish</button></a>
+        <a href="{% url 'save-progress' subject.topic subject %}"><button class="btn btn-info">Finish</button></a>
     </div>
         {% else %}
         {% endif %}
@@ -30,6 +20,7 @@
 <br><br><br>
 
     <div><h6 style="text-decoration:underline;">{{ subject.topic }} : {{ subject }}</h6></div>
+    <br>
 
 
     <div>

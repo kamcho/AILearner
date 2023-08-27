@@ -4,27 +4,37 @@
 {% block content %}
 
 
+<br>
+<div class="guardian-home-view">
 
-<div class="guardian-home-view align-items-center justify-content-center">
 
+   <a href="{% url 'my-kids'  %}">
     <div class="guardian-home-card">
       <h6 class="card-title">View Kids Progress</h6>
       <p class="card-text">View your kids progress and results.</p>
 
       <div class="guardian-card-body">
+          {% if not kids %}
+          <h6>You do not have any Learner on your watch list.</h6>
+          <button class="btn btn-warning">Add</button>
+
+          {% else %}
         
           {% for kid in kids %}
             <div class="mb-3">
               <input type="email" class="form-control" id="exampleFormControlInput1" placeholder="{{ kid }}">
             </div>
           {% endfor %}
+          {% endif %}
       </div>
       <br>
-      <a href="{% url 'my-kids'  %}" class="btn" style="background-color:purple;color:white;">View</a>
+
 
     </div>
+   </a>
 
 
+    <a href="" style="">
     <div class="guardian-home-card">
         <h6 class="card-title">View Upcoming Events</h6>
         <p class="card-text">View all upcoming events.</p>
@@ -37,10 +47,10 @@
           
         </ul>
       </div>
-      <a href="" class="btn" style="background-color:purple;color:white;">Learning Progress</a>
+
 
     </div>
-
+</a>
 
 
 </div>

@@ -6,16 +6,48 @@
 
 
 {% if not assignments %}
-<h6>You do not have any assignment history </h6>
+<div style="margin:0 auto;width:90%;">
+            <h6 class="text-center alert alert-dark">You do not have any assignments </h6>
+
+    </div>
+
 
 {% else %}
    {% for assignment in assignments %}
     <br><br>
     {% if not user|test_is_done:assignment.uuid %}
-    <a href="{% url 'assignment-lobby' assignment.uuid %}">{{ assignment }}</a><br>
-        <p style="padding-left:10px;color:crimson;"><i class="bi bi-arrow-return-right">{{ assignment.expiry }}</i></p>
+        <a href="{% url 'assignment-lobby' assignment.uuid %}">
+            <div class="assignment-card red-border">
+                <h6>
+                    <i class="bi bi-person-circle"></i>
+                    {{ assignment.teacher }}
+                </h6>
+                <div class="btn btn-danger right-aligned">
+                     <small class="rigt-aligned">{{ assignment.date|timesince }} ago.</small>
+
+
+                </div>
+                <small class="bottom-aligned">{{ assignment.expiry|timesince:assignment.date }} to go</small>
+
+                <p style="padding:10px;">You have a new {{ assignment.subject }} assignment to be completed before <small style="color:red;font-size:15px;">{{ assignment.expiry }}</small>.</p>
+            </div>
+        </a>
+
     {% else %}
-    <a href="{% url 'tests' assignment.uuid %}" style="color:green;">{{ assignment }}</a>
+        <a href="{% url 'test-detail' 'ClassTests' assignment.uuid %}" style="color:green;">
+            <div class="assignment-card green-border">
+                <h6>
+                    <i class="bi bi-person-circle"></i>
+                    {{ assignment.teacher }}
+                </h6>
+                <div class="btn btn-success right-aligned">
+                     <small class="riht-aligned">{{ assignment.date|timesince }} ago.</small>
+
+                </div>
+
+                <p style="padding:10px;">You have already taken this {{ assignment.subject }} test, view results.</p>
+            </div>
+        </a>
     {% endif %}
 
     {% endfor %}

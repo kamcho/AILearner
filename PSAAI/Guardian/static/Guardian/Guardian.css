@@ -1,18 +1,19 @@
-.main-body{
 
-    background-color: rgba(250, 247, 247,.3);
-}
 
 /* FOR GUARDIAN HOME */
 .guardian-home-view{
     display:grid;
     grid-template-columns:repeat(2,.9fr);
+
     grid-gap:25px;
+    width:90%;
     position:relative;
+    margin:0 auto;
+    padding-top:50px;
 }
 .guardian-home-card{
-    width:97%;
-    height:350px;
+    width:80%;
+    height:300px;
     border-radius:2px;
     box-shadow: 2px 4px 40px 5px rgba(0, 0, 0, 0.2);
     background-color: white;
@@ -65,7 +66,7 @@
 }
 .task-select{
     display:grid;
-    grid-template-columns:repeat(2,1fr);
+    grid-template-columns:repeat(2,.3fr);
     margin:0 auto;
 }
 .task-select-card{
@@ -91,6 +92,7 @@
     display: grid;
     grid-template-columns: repeat(3,1fr);
     margin:0 auto;
+    width:90%;
 }
 .kid-card{
     width: 95%;
@@ -170,6 +172,13 @@
 
 
 
+@media (min-width:1030px){
+
+    .teacher-task-view{
+        width:80%;
+    }
+
+}
 
 
 @media (max-width:1030px){
@@ -182,13 +191,12 @@
     .kids-view{
         grid-template-columns: repeat(2,.9fr);
     }
+
+
 }
 @media (max-width:800px){
 
-    .guardian-home-view{
-        display:inline;
-       
-    }
+
     .guardian-home-card a{
         
         position:relative;
@@ -196,6 +204,9 @@
     }
     .guardian-home-card{
         margin-top: 30px;
+        width:95%;
+        margin:auto auto 50px auto;
+
 
     }
     .kids-view{
@@ -205,19 +216,18 @@
     
 }
 @media (max-width:650px){
-    .task-select{
-        margin-top:60px;
 
-    }
     .guardian-home-view{
-  
-        margin-top:30px;
+        display:inline;
+
+        padding-top:130px !important;
     }
     
     .guardian-home-card{
+    width:85%;
 
-        margin:auto auto 50px auto;
-        width:80%;
+        margin:auto auto 30px auto;
+
 
     }
     .kids-view{
@@ -240,9 +250,6 @@
             margin-top:30px;
 
 
-    }
-    .main-body{
-        padding-top:40px;
     }
     .kids-view{
         display: inline;

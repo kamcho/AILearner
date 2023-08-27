@@ -24,8 +24,8 @@ SECRET_KEY = 'django-insecure-*1r4hwdyal=y_j%*m&+-_4!@j)33!9a(z*k_%71c($@&71fbue
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['b033-105-163-1-6.ngrok-free.app', '127.0.0.1']
-CSRF_TRUSTED_ORIGINS = ["https://b033-105-163-1-6.ngrok-free.app"]
+ALLOWED_HOSTS = ['c927-105-163-2-45.ngrok-free.app', '127.0.0.1']
+CSRF_TRUSTED_ORIGINS = ["https://c927-105-163-2-45.ngrok-free.app"]
 
 # Application definition
 
@@ -133,3 +133,4 @@ AUTH_USER_MODEL = 'Users.MyUser'
 LOGIN_REDIRECT_URL = 'redirect'
 CRISPY_TEMPLATE_TAG = 'bootstrap4'
 LOGIN_URL = 'login/'
+

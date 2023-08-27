@@ -15,5 +15,5 @@ def create_profile(sender,instance,created,**kwargs):
 
             subjects = MySubjects.objects.create(user=instance)
             subjects.name.add(*selected_courses)
-        elif instance.role == 'Teacher':
+        else:
             pass

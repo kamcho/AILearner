@@ -12,6 +12,9 @@
 {% if not subject %}
         <h6>This student has no learning history</h6>
     {% else %}
+<br>
+<h6>Topical Tests</h6>
+
      <table class="table">
         <thead>
           <tr>
@@ -23,13 +26,60 @@
         <tbody>
         {% for topic in subject %}
           <tr>
-              <td><a href="{% url 'kid-exam-subject-id' email subject_name topic.topic__name %}">{{ topic.topic__name}}</a></td>
-<td>{{ email|topical_average:topic.topic__name }} / 15</td>
-            <td>{{ email|topical_average_count:topic.topic__name }} </td>
+              <td><a href="{% url 'kid-exam-subject-id'  email subject_name topic.topic__name %}">{{ topic.topic__name}}</a></td>
+<td ><span  class="badge bg-info text-light">{{ email|topical_average:topic.topic__name }}</span> / {{ topic.test_size }}</td>
+              <td><span class="badge bg-dark text-light">{{ email|topical_average_count:topic.topic__name }} </span></td>
           </tr>
         {% endfor %}
         </tbody>
      </table>
+
+
+<br><br>
+
+
+<h6>KNEC Tests</h6>
+<table class="table">
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Test Size</th>
+            <th>Marks</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for test in tests %}
+          <tr>
+              <td><a href="{% url 'kid-test-revision' 'KNECExams' email test.test %}">{{ test.subject }}</a></td>
+              <td><span class="badge bg-info text-light">{{ test.test_size }}</span></td>
+              <td><span class="badge bg-info text-light">{{ test.marks }}</span></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+ </table>
+
+<br><br>
+
+<h6>Class Tests</h6>
+<table class="table">
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Test Size</th>
+            <th>Marks</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for test in class_tests %}
+          <tr>
+              <td><a href="{% url 'kid-test-revision' 'ClassTests' email test.test %}">{{ test.test.subject }}</a></td>
+              <td><span class="badge bg-info text-light">{{ test.test.test_size }}</span></td>
+              <td><span class="badge bg-info text-light">{{ test.marks }}</span> </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+     </table>
+
 
 {% endif %}
 {% endblock %}

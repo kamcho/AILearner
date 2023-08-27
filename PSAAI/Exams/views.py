@@ -77,7 +77,8 @@ class ExamTopicView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             context['subject'] = subject
             knec_test = StudentKNECExams.objects.filter(user=user)
             context['tests'] = knec_test
-            class_test = ClassTestStudentTest.objects.filter(user=user).exclude(uuid='c2f49d23-41eb-457a-a147-8e132751774c')
+            class_test = ClassTestStudentTest.objects.filter(user=user).exclude(
+                uuid='c2f49d23-41eb-457a-a147-8e132751774c')
             context['class_tests'] = class_test
             context['subject_name'] = self.kwargs['subject']
 
@@ -131,27 +132,32 @@ class TestDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         context = super(TestDetail, self).get_context_data(**kwargs)
         user = self.request.user
         test = self.kwargs['uuid']
+        instance = self.kwargs['instance']
 
         try:
 
-            answers = StudentsAnswers.objects.filter(user=user, test_object_id=test)
-            topical_test = StudentTest.objects.filter(user=user, uuid=test).last()
-            if topical_test and answers:
-                context['quizzes'] = answers
-                context['marks'] = topical_test
-            else :
-                answers = StudentsKnecAnswers.objects.filter(user=user, test__test=test)
-                topical_test = StudentKNECExams.objects.filter(user=user, test=test).last()
+            if instance == 'Topical':
+                answers = StudentsAnswers.objects.filter(user=user, test_object_id=test)
+                test = StudentTest.objects.filter(user=user, uuid=test).last()
+            elif instance == 'KNECExams':
+                test = StudentKNECExams.objects.filter(user=user, test=test).last()
+                answers = StudentsKnecAnswers.objects.filter(user=user, test=test)
+            elif instance == 'ClassTests':
+                answers = StudentsAnswers.objects.filter(user=user, test_object_id=test)
+                test = ClassTestStudentTest.objects.filter(user=user, test=test).last()
+            else:
+                pass
 
-                context['quizzes'] = answers
-                context['marks'] = topical_test
-            print(topical_test)
             if self.request.user.role == 'Guardian':
                 context['base_html'] = 'Guardian/baseg.html'
             elif self.request.user.role == 'Teacher':
                 context['base_html'] = 'Teacher/teachers_base.html'
             else:
                 context['base_html'] = 'Users/base.html'
+
+            context['quizzes'] = answers
+            context['marks'] = test
+            context['instance'] = instance
 
             return context
 
@@ -219,12 +225,12 @@ class Start(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             try:
                 topic = Topic.objects.filter(name=topic_name).first()
                 try:
-                    test = StudentTest.objects.create(user=user, subject=topic.subject, uuid=str(test_uuid),
+                    test = StudentTest.objects.create(user=user, subject=topic.subject, uuid=test_uuid,
                                                       topic=topic)
 
-                    quizzes = TopicalQuizes.objects.filter(topic=topic)
+                    quizzes = TopicalQuizes.objects.filter(topic=topic).order_by('?')[:5]
                     test.quiz.add(*quizzes)
-                    return redirect('tests', test.uuid)
+                    return redirect('tests','Topical', test.uuid)
                 except:
                     return HttpResponse({'error': 'couldnt create'})
 
@@ -240,21 +246,27 @@ class Start(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         else:
             return False
 
-def get_test_instance(user, test_id):
-    questions = StudentTest.objects.filter(user=user, uuid=test_id).first()
-    instance_type = 'StudentTest'
 
-    if not questions:
-        questions = ClassTest.objects.filter(uuid=test_id).first()
-        instance_type = 'ClassTest'
+def get_test_instance(user, instance, test_id):
+    try:
+        if instance == 'Topical':
+            questions = StudentTest.objects.filter(user=user, uuid=test_id).first()
+            instance_type = 'StudentTest'
 
-    if not questions:
-        questions = GeneralTest.objects.filter(user=user, uuid=test_id).first()
-        instance_type = 'GeneralTest'
+        elif instance == 'ClassTests':
+            questions = ClassTest.objects.filter(uuid=test_id).first()
+            instance_type = 'ClassTests'
 
-    if not questions:
-        questions = KNECGradeExams.objects.filter(uuid=test_id).first()
-        instance_type = 'KNECGradeExams'
+        elif instance == 'General':
+            questions = GeneralTest.objects.filter(user=user, uuid=test_id).first()
+            instance_type = 'GeneralTest'
+
+        elif instance == 'KNECExams':
+            questions = KNECGradeExams.objects.filter(uuid=test_id).first()
+            instance_type = 'KNECGradeExams'
+    except DatabaseError:
+        return HttpResponse({'Error': 'We encountered an error when fetching your test, please try again later while '                               
+                                      'we fix the issue.'})
 
     return questions, instance_type
 
@@ -265,45 +277,48 @@ class Tests(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super(Tests, self).get_context_data(**kwargs)
         test_id = kwargs['uuid']
+        instance = self.kwargs['instance']
         user = self.request.user
         question_index = self.request.session.get('index', 0)
-        questions, instance_type = get_test_instance(user=user, test_id=test_id)
-        self.request.session['test_size'] = questions.test_size
-        self.request.session['instance_type'] = instance_type
+        questions, instance_type = get_test_instance(user=user, instance=instance, test_id=test_id)
 
-        if question_index >= len(questions.quiz.all()):
-            return {}
+        if questions:
+            self.request.session['test_size'] = questions.test_size
+            self.request.session['instance_type'] = instance_type
 
+            if question_index >= len(questions.quiz.all()):
+                context['message'] = "Test is completed."
+            else:
+                current_question = questions.quiz.all()[question_index]
+                self.request.session['quiz'] = str(current_question)
+                try:
+                    if instance_type == 'KNECGradeExams':
+                        choices = KnecQuizAnswers.objects.filter(quiz=current_question)
+                    else:
+                        choices = TopicalQuizAnswers.objects.filter(quiz=current_question).order_by('?')
+                    context['choices'] = choices
+                    context['quiz'] = current_question
+                    context['index'] = question_index + 1
+                    numbers = [i + 1 for i in range(len(questions.quiz.all()))]
+                    context['list'] = numbers
+
+                except DatabaseError as error:
+                    pass
         else:
-            current_question = questions.quiz.all()[question_index]
-            self.request.session['quiz'] = str(current_question)
-            try:
-                if instance_type == 'KNECGradeExams':
-                    choices = KnecQuizAnswers.objects.filter(quiz=current_question)
-                else:
-                    choices = TopicalQuizAnswers.objects.filter(quiz=current_question).order_by('?')
-                context['choices'] = choices
-                context['quiz'] = current_question
-                context['index'] = question_index + 1
-                numbers = [i + 1 for i in range(len(questions.quiz.all()))]
-                context['list'] = numbers
+            context['error_message'] = 'We could not find this test, try again or contact us'
 
-                return context
-
-            except DatabaseError as error:
-                pass
-
-    def post(self, request, *args, **kwargs):
+        return context
+    def post(self, request, **kwargs):
 
         if request.method == 'POST':
             test_size = request.session.get('test_size')
             user = request.user
-            # topic = kwargs['pk']
+            instance = self.kwargs['instance']
             test_id = kwargs['uuid']
             selection = request.POST.get('choice')  # Get the selected choice ID from the POST data
-
             question_index = request.session.get('index', 0)
-            test, instance_type = get_test_instance(user, test_id)
+
+            test, instance_type = get_test_instance(user, instance, test_id)
 
             if instance_type == 'KNECGradeExams':
                 quiz = KnecQuizzes.objects.filter(id=request.session['quiz']).first()
@@ -313,10 +328,11 @@ class Tests(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
                 quiz = TopicalQuizes.objects.filter(id=request.session['quiz']).first()
                 selection = TopicalQuizAnswers.objects.filter(uuid=selection).first()
-                correct = TopicalQuizAnswers.objects.filter(uuid=selection.uuid, is_correct=True).first()
+                correct = selection if selection.is_correct else None
+                # correct = TopicalQuizAnswers.objects.filter(uuid=selection.uuid, is_correct=True).first()
 
             if correct:
-                if instance_type == 'ClassTest':
+                if instance_type == 'ClassTests':
                     student_test = ClassTestStudentTest.objects.get(user=user, test=test)
                     student_test.marks = int(student_test.marks) + 1
                     student_test.save()
@@ -341,21 +357,21 @@ class Tests(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 if instance_type == 'KNECGradeExams':
                     test_uuid = StudentKNECExams.objects.get(user=user, test=test_id)
                     answer = StudentsKnecAnswers.objects.create(user=user, quiz=quiz,
-                                                            selection=selection,
-                                                            is_correct=is_correct, test=test_uuid)
+                                                                selection=selection,
+                                                                is_correct=is_correct, test=test_uuid)
                 else:
 
                     answer = StudentsAnswers.objects.create(user=user, quiz=quiz, test_object_id=test.uuid,
                                                             selection=selection,
                                                             is_correct=is_correct)
                 print(question_index, test_size, '\n\n\n\n\n\n\n')
-                if question_index >= int(test_size)-1 :
+                if question_index >= int(test_size) - 1:
                     # The exam is completed, redirect to a summary page
                     if 'index' in request.session:
                         print('\n\n\n\n\n\n\n, deleting session key')
                         del request.session['index']
 
-                        return redirect('finish', test_id)
+                        return redirect('finish', instance, test_id)
 
                 else:
 
@@ -379,9 +395,11 @@ class Finish(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         context = super(Finish, self).get_context_data(**kwargs)
         test_id = self.kwargs['uuid']
         # topic = self.kwargs['pk']
+        instance = self.kwargs['instance']
+        context['instance'] = instance
         user = self.request.user
         try:
-            test, instance_type = get_test_instance(user, test_id)
+            test, instance_type = get_test_instance(user, instance, test_id)
             print(test.uuid, '\n\n\n\n\n')
             about = f'The results for {test.topic} on are out.'
             message = f'Congratulations on completing your test. The results' \
@@ -403,12 +421,12 @@ class Finish(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             pass
 
         finally:
-            if instance_type == 'ClassTest':
+            if instance_type == 'ClassTests':
                 marks = ClassTestStudentTest.objects.get(user=user, test=test_id)
                 context['score'] = marks.marks
                 context['test'] = marks
                 context['size'] = test.test_size
-                context['instance'] = instance_type
+                context['instance'] = instance
             elif instance_type == 'KNECGradeExams':
                 marks = StudentKNECExams.objects.get(user=user, test=test_id)
                 context['score'] = marks.marks
@@ -416,12 +434,11 @@ class Finish(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
                 print(marks)
                 context['size'] = test.test_size
-                context['instance'] = instance_type
+                context['instance'] = instance
 
 
             else:
                 context['score'] = test.marks
-
 
                 context['test'] = test
 
@@ -529,9 +546,11 @@ class KNECExamView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(KNECExamView, self).get_context_data(**kwargs)
         grade = self.kwargs['grade']
-        subjects = Subject.objects.filter(grade=grade)
+        subjects = KNECGradeExams.objects.filter(grade=grade)
+
 
         context['subjects'] = subjects
+        context['grade'] = grade
         return context
 
 
@@ -542,6 +561,7 @@ class KNECExamList(TemplateView):
         context = super(KNECExamList, self).get_context_data(**kwargs)
         grade = self.kwargs['grade']
         subject = self.kwargs['subject']
+        print(subject, 'se,a')
         exams = KNECGradeExams.objects.filter(grade=grade, subject__name=subject)
 
         context['exams'] = exams
@@ -571,9 +591,4 @@ class StartKnec(TemplateView):
 
             student_test = StudentKNECExams.objects.create(user=user, subject=subject, test=knec_test)
 
-            return redirect('tests', test_uuid)
-
-
-
-
-
+            return redirect('tests', 'KNECExams', test_uuid)

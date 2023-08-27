@@ -6,14 +6,21 @@
 
 <table class="table">
     {% if not tests %}
-        <h6>You do not have any tests</h6>
+        <div style="margin:0 auto;width:90%;">
+                    <h6 class="text-center alert alert-dark">You do not have any tests</h6>
+
+        </div>
+        <div class="container">
+            <a href="{% url 'initialise-test' %}"><button class="btn btn-warning">Create Test</button></a>
+
+        </div>
     {% else %}
         <thead>
           <tr>
-            <th>Subject</th>
-            <th>Progress</th>
-              <th>Average</th>
-            <th>Expiry</th>
+            <th><h6>Subject</h6></th>
+            <th><h6>Progress</h6></th>
+              <th><h6>Average</h6></th>
+            <th><h6>Expiry</h6></th>
 
 
 
@@ -27,15 +34,14 @@
                 <td>{{ test.uuid|class_test_progress }}</td>
                 <td>{{ test.uuid|class_test_average }}</td>
 
-                {% if  test.expiry|class_test_active %}
+<!--                if  tes}-->
                     <td style="color:crimson;">
                       {{ test.expiry|date:'Y-m-d' }}
                       <br>
-                      <small>expired</small>
                     </td>
-                {% else %}
-                  <td style="color:green;">{{ test.expiry|date:'Y-m-d' }}</td>
-                {% endif %}
+<!--                {% }-->
+<!--                  <td style="color:green;">{{ test.expiry|date:'Y-m-d' }}</td>-->
+<!--              %}-->
 
             </tr>
          {% endfor %}

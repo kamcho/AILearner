@@ -2,9 +2,18 @@
 
 
 {% block content %}
+{% if user.role != 'Student' %}
+            <h6>{{ marks }}</h6>
+        {% else %}
 
-    <h6>Scores {{ marks.marks }} / {{ marks.test_size }}</h6>
+        {% endif %}
+<br>
 
+{% if instance == 'ClassTests' %}
+        <h6>Scores {{ marks.marks }} / {{ marks.test.test_size }}</h6>
+        {% else %}
+                <h6>Scores {{ marks.marks }} / {{ marks.test_size }}</h6>
+        {% endif %}
     {% for quiz in quizzes %}
 <br>
 

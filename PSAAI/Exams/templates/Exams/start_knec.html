@@ -14,7 +14,7 @@
     {% if user|test_is_done:test.uuid %}
     <p>test.</p>
     <p>You have already taken this test. Press the button below to review.</p>
-        <a href="{% url 'test-detail' test.uuid %}"><button class="btn btn-info">Review</button></a>
+        <a href="{% url 'test-detail' 'KNECExams' test.uuid %}"><button class="btn btn-info">Review</button></a>
     {% else %}
     <p>This is a multiple choice examination from KNEC, you will have {{ test.duration }} minutes to complete. If you fail to submit within {{ test.duration }} min
     the exam will submit itself and all un-attempted questions will be marked as incorrect. The exam will only

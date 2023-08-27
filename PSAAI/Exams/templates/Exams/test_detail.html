@@ -5,12 +5,12 @@
 {% block content %}
 
     <div class="container">
-        {% if user.role != 'Student' %}
-            <h5>{{ marks }}</h5>
+        <br>
+        {% if instance == 'ClassTests' %}
+        <h6>Scores {{ marks.marks }} / {{ marks.test.test_size }}</h6>
         {% else %}
-            <h5></h5>
+                <h6>Scores {{ marks.marks }} / {{ marks.test_size }}</h6>
         {% endif %}
-        <h6>Scores {{ marks.marks }} / {{ marks.test_size }}</h6>
     </div>
     <br>
 

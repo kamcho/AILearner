@@ -2,13 +2,13 @@
 
 {% block content %}
 
-
-<table class="table" >
+<br>
+<table class="container table" >
         <thead>
           <tr>
-            <th>Type</th>
-            <th>Amount</th>
-            <th>Validity</th>
+            <th><h6>Type</h6></th>
+            <th><h6>Amount</h6></th>
+            <th><h6>Validity</h6></th>
           </tr>
         </thead>
         <tbody>
@@ -25,31 +25,21 @@
 
     <br><br>
 
-<div class="payment-option" style="justify-content:center;">
-   <div class="payment-card">
-       <div class="payment-img">
-             <img src="https://www.shutterstock.com/image-vector/vector-illustration-detailed-glossy-black-260nw-613618706.jpg">
+<div class="container payment-option" style="">
+   <div class="paymnt-card">
+       <p>Subscribe to your preferred subscription choice through <img width="100" src="https://sokodirectory.com/wp-content/uploads/2015/11/m-pesa.png"> lipa na mpesa. If you pay through
+            the guardian interface you will get 90% discount on the second and third child.</p>
+       <div class="payent-img">
+
+           </div>
             <div class="payment-body">
-                <h6>Card</h6>
-                <a href="{% url 'process-payment' %}"><button class="btn btn-warning">Card Payment</button></a>
+
+                <a href="{% url 'process-payment' %}"><button class="btn btn-warning">Pay</button></a>
 
             </div>
-       </div>
+
 
    </div>
-<!--    <div class="payment-card">-->
-<!--       <div class="payment-img">-->
-<!--  <img width="200" src="https://sokodirectory.com/wp-content/uploads/2015/11/m-pesa.png">-->
-<!--            <div class="payment-body">-->
-<!--                <h6>M-Pesa</h6>-->
-
-<!--                <button   class="btn btn-info">Card Payment</button>-->
-
-<!--            </div>-->
-<!--       </div>-->
-
-<!--   </div>-->
-
 
 
 </div>

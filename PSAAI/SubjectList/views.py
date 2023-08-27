@@ -5,7 +5,7 @@ import requests
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import IntegrityError, DatabaseError
 from django.db.models import Count
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from itsdangerous import json
 
@@ -93,8 +93,8 @@ class Finish(LoginRequiredMixin, TemplateView):
                 about = f'{subject}: {topic} quiz is ready.'
                 message = 'The quiz for this topic is now ready. Once started the quiz will finish in 15 minutes. Good luck.'
                 is_progress = Progress.objects.filter(user=self.request.user, topic=topic, subtopic=subtopic)
-
-                if is_progress.exists():
+                print(subtopic, topic, subject, is_progress)
+                if is_progress:
                     pass
                 else:
                     try:
@@ -136,35 +136,7 @@ class Syllabus(LoginRequiredMixin, TemplateView):
         subject = self.kwargs['name']
         try:
             context['syllabus'] = Topic.objects.filter(subject__name=subject).order_by('order')
-            url = "https://graph.facebook.com/v17.0/105011719329269/messages"
 
-            # Request payload
-            data = {
-                "messaging_product": "whatsapp",
-                "to": "254742134431",
-                "type": "template",
-                "template": {
-                    "name": "hello_world",
-                    "language": {
-                        "code": "en_US"
-                    }
-                }
-            }
-
-            # Headers containing the required authentication token
-            headers = {
-                'Authorization': 'Bearer EAAPX1RhRW7IBAM8AeYnZAjYYyVjXFaiqM6ULeHGWYVy0oL9z0SmGGsnLUhZBPDEJXZB7P7rMKAx7kmohBgMqcczMjKFeC6ZCWLYTvyz0813DvcC5dDUAnr8GfbopNK8OIaRL62ZA2dp1OZCuinsi2aYqWWwTtA2xVLOXHZAq5bzg3p4hRfbBwn9Fb7bXZAUKP9ptEn92fMx9G4b5Xu6qimQQzMSj0ix3h4kZD',
-                'Content-Type': 'application/json'
-            }
-
-            # Send the POST request to the API endpoint
-            response = requests.post(url, json=data, headers=headers)
-
-            # Check the response status
-            if response.status_code == 200:
-                print('Message sent successfully.')
-            else:
-                print('Failed to send the message. Error:', response.text)
 
         except DatabaseError as error:
             pass
@@ -202,7 +174,7 @@ class AssignmentDetail(LoginRequiredMixin, TemplateView):
             class_test = ClassTest.objects.filter(uuid=test).first()
             save_test = ClassTestStudentTest.objects.create(user=user, test=class_test, finished=False)
 
-            return redirect('tests', test)
+            return redirect('tests', 'ClassTests', test)
 
 
 class TakeAssessment(LoginRequiredMixin, TemplateView):
@@ -513,3 +485,8 @@ class ContactUs(LoginRequiredMixin, TemplateView):
                     pass
             else:
                 return HttpResponse('could not send your inquiry. Please try again')
+
+
+
+
+

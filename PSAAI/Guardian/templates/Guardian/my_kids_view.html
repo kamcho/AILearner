@@ -6,6 +6,14 @@
 {% block content %}
 <div class="with-cards">
 <div class="kids-view  align-items-center justify-content-center">
+    {% if not kids %}
+    <div class="container">
+        <p>Your account is not linked to any learner. Add a learner to your watchlist.</p>
+        <br>
+        <a href="{% url 'profile' user.id %}" ><button class="btn btn-warning">Add</button></a>
+    </div>
+
+    {% else %}
 
     {% for kid in kids %}
     <a href="{% url 'task-view-select' kid %}">
@@ -42,6 +50,7 @@
 
     </a>
     {% endfor %}
+    {% endif %}
 
 </div>
 </div>

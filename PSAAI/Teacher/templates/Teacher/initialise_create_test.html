@@ -2,23 +2,22 @@
 {% block content %}
 
 <div class="container">
+{% if not user.teacherprofile.subject.all %}
+                <p>You have not selected any subjects that you teach at
+                    this institution. To add subjects click the button below.
+                </p>
+                <a href="{% url 'subjects-selection' %}"><button class="btn btn-warning">Add Subjects</button></a>
+            {% else %}
 
     <form method="post">
         {% csrf_token %}
-        <div>
-               <select class="form-select" id="subject" name="subject" aria-label="Default select example">
-                     {% for subject in user.teacherprofile.subject.all %}
-                       <option value="{{ subject.id }}">{{ subject }}</option>
-                     {% endfor %}
-               </select>
-           </div>
+
         <br>
         <div>
                <select class="form-select" id="class-id" name="class-id" aria-label="Default select example">
-
-                       <option ></option>
-
-
+                       {% for class in classes %}
+                       <option value="{{ class.class_id }}">{{ class.class_id.class_name }} <small style="color:green;">( {{ class.subject }} )</small> </option>
+                     {% endfor %}
                </select>
            </div>
 
@@ -57,7 +56,7 @@
     </form>
 
 
-
+{% endif %}
 
 
 

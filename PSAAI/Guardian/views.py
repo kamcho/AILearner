@@ -1,3 +1,4 @@
+from abc import ABC
 from itertools import groupby
 from datetime import datetime
 
@@ -9,41 +10,48 @@ from django.shortcuts import render
 from django.views.generic import ListView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
-from Exams.models import StudentTest, StudentsAnswers, ClassTestStudentTest
+from Exams.models import StudentTest, StudentsAnswers, ClassTestStudentTest, StudentKNECExams, StudentsKnecAnswers
 from SubjectList.models import Progress, Topic
 
 from Users.models import MyUser, PersonalProfile
 
 
-class GuardianHome(LoginRequiredMixin, TemplateView):
+
+class GuardianHome(LoginRequiredMixin,UserPassesTestMixin, TemplateView):
     template_name = 'Guardian/guardian_home.html'
 
     def get_context_data(self, **kwargs):
         context = super(GuardianHome, self).get_context_data(**kwargs)
-        user = self.request.user
-        my_uuid = MyUser.objects.get(email=user).uuid
-        my_kids = PersonalProfile.objects.filter(ref_id=my_uuid)
+        user = self.request.user.uuid
+
+        # Get learners linked to logged in guardian
+        my_kids = PersonalProfile.objects.filter(ref_id=user)
         context['kids'] = my_kids
-        print(my_kids)
 
         return context
 
+    def test_func(self):
+        return self.request.user.role == 'Guardian'
 
-class MyKidsView(LoginRequiredMixin, TemplateView):
+
+class MyKidsView(LoginRequiredMixin,UserPassesTestMixin, TemplateView):
     template_name = 'Guardian/my_kids_view.html'
 
     def get_context_data(self, **kwargs):
         context = super(MyKidsView, self).get_context_data(**kwargs)
-        user = self.request.user
-        my_uuid = MyUser.objects.get(email=user).uuid
-        my_kids = PersonalProfile.objects.filter(ref_id=my_uuid)
+        user = self.request.user.uuid
+
+        my_kids = PersonalProfile.objects.filter(ref_id=user)
         context['kids'] = my_kids
         context['current_time'] = datetime.now()
 
         return context
 
+    def test_func(self):
+        return self.request.user.role in ['Guardian', 'Teacher']
 
-class TaskSelection(LoginRequiredMixin, TemplateView):
+
+class TaskSelection(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = 'Guardian/task_select.html'
 
     def get_context_data(self, **kwargs):
@@ -57,8 +65,11 @@ class TaskSelection(LoginRequiredMixin, TemplateView):
 
         return context
 
+    def test_func(self):
+        return self.request.user.role in ['Guardian', 'Teacher']
 
-class KidTests(LoginRequiredMixin, TemplateView):
+
+class KidTests(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = 'Guardian/kid_tests.html'
 
     def get_context_data(self, **kwargs):
@@ -82,8 +93,11 @@ class KidTests(LoginRequiredMixin, TemplateView):
             context['base_html'] = 'Teacher/teachers_base.html'
         return context
 
+    def test_func(self):
+        return self.request.user.role in ['Guardian', 'Teacher']
 
-class KidExamTopicView(LoginRequiredMixin, TemplateView):
+
+class KidExamTopicView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = 'Guardian/kid_exam_topic_detail.html'
 
     def get_context_data(self, **kwargs):
@@ -94,6 +108,11 @@ class KidExamTopicView(LoginRequiredMixin, TemplateView):
             subject = StudentTest.objects.filter(user__email=user, subject__name=self.kwargs['subject'])\
                 .values('topic__name').order_by('topic').distinct()
             context['subject'] = subject
+            knec_test = StudentKNECExams.objects.filter(user__email=user)
+            context['tests'] = knec_test
+            class_test = ClassTestStudentTest.objects.filter(user__email=user).exclude(
+                uuid='c2f49d23-41eb-457a-a147-8e132751774c')
+            context['class_tests'] = class_test
             context['subject_name'] = self.kwargs['subject']
             if self.request.user.role == 'Guardian':
                 context['base_html'] = 'Guardian/baseg.html'
@@ -106,8 +125,11 @@ class KidExamTopicView(LoginRequiredMixin, TemplateView):
         except DatabaseError as error:
             pass
 
+    def test_func(self):
+        return self.request.user.role in ['Guardian', 'Teacher']
 
-class KidExamSubjectDetail(LoginRequiredMixin, TemplateView):
+
+class KidExamSubjectDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = 'Guardian/kid_subject_detail.html'
 
     def get_context_data(self, **kwargs):
@@ -131,8 +153,11 @@ class KidExamSubjectDetail(LoginRequiredMixin, TemplateView):
         except DatabaseError as error:
             pass
 
+    def test_func(self):
+        return self.request.user.role in ['Guardian', 'Teacher']
 
-class KidTestDetail(LoginRequiredMixin, TemplateView):
+
+class KidTestDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = 'Guardian/kid_test_detail.html'
 
     def get_context_data(self, **kwargs):
@@ -149,53 +174,56 @@ class KidTestDetail(LoginRequiredMixin, TemplateView):
 
         return context
 
+    def test_func(self):
+        return self.request.user.role in ['Guardian', 'Teacher']
 
 
-
-
-
-class KidTestRevision(LoginRequiredMixin, TemplateView):
+class KidTestRevision(LoginRequiredMixin, UserPassesTestMixin, TemplateView, ABC):
     template_name = 'Guardian/kid_quiz_detail.html'
 
     def get_context_data(self, **kwargs):
         context = super(KidTestRevision, self).get_context_data(**kwargs)
         user = self.kwargs['email']
         test = str(self.kwargs['uuid'])
+        instance = self.kwargs['instance']
         user = MyUser.objects.filter(email=user).first()
 
         try:
-            answers = StudentsAnswers.objects.filter(user=user, test_object_id=test)
-            topical_test = StudentTest.objects.filter(user=user, uuid=test).last()
+            if instance == 'Topical':
+                answers = StudentsAnswers.objects.filter(user=user, test_object_id=test)
+                test = StudentTest.objects.filter(user=user, uuid=test).last()
+            elif instance == 'KNECExams':
+                test = StudentKNECExams.objects.filter(user=user, test=test).last()
+                answers = StudentsKnecAnswers.objects.filter(user=user, test=test)
+            elif instance == 'ClassTests':
+                answers = StudentsAnswers.objects.filter(user=user, test_object_id=test)
+                test = ClassTestStudentTest.objects.filter(user=user, test=test).last()
+            else:
+                pass
+
             if self.request.user.role == 'Guardian':
                 context['base_html'] = 'Guardian/baseg.html'
             elif self.request.user.role == 'Teacher':
                 context['base_html'] = 'Teacher/teachers_base.html'
             else:
                 context['base_html'] = 'Users/base.html'
-            if not answers and test:
-                class_test = ClassTestStudentTest.objects.filter(user=user, test=test).last()
-                class_test_answers = StudentsAnswers.objects.filter(user=user, test_object_id=test)
-                print(class_test_answers, class_test)
-                context['quizzes'] = class_test_answers
-                context['marks'] = class_test
 
-                return context
-
-            else:
-
-                context['quizzes'] = answers
-                context['marks'] = topical_test
+            context['quizzes'] = answers
+            context['marks'] = test
 
 
 
 
-                return context
+            return context
 
         except DatabaseError as error:
             pass
 
+    def test_func(self):
+        return self.request.user.role in ['Guardian', 'Teacher']
 
-class LearnerProgress(LoginRequiredMixin, TemplateView):
+
+class LearnerProgress(LoginRequiredMixin, UserPassesTestMixin, TemplateView, ABC):
     template_name = 'Guardian/learner_progress.html'
 
     def get_context_data(self, **kwargs):
@@ -212,6 +240,9 @@ class LearnerProgress(LoginRequiredMixin, TemplateView):
         elif self.request.user.role == 'Teacher':
             context['base_html'] = 'Teacher/teachers_base.html'
         return context
+
+    def test_func(self):
+        return self.request.user.role in ['Guardian', 'Teacher']
 
 
 class LearnerSyllabus(LoginRequiredMixin, UserPassesTestMixin, TemplateView):

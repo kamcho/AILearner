@@ -2,6 +2,14 @@
 {% load custom_filters %}
 {% block content %}
   <div>
+    <br><br>
+    {% if not messages %}
+   <div style="margin:0 auto;width:90%;">
+            <h6 class="text-center alert alert-dark">You have 0 Notifications</h6>
+
+    </div>
+
+    {% else %}
     {% for message in messages %}
   <div class="accordion" id="accordionExample">
     <div class="accordion-item">
@@ -17,7 +25,7 @@
           <br>
           {% if message.notification_type == 'quiz' %}
             {% if user|test_is_done:message.uuid %}
-                <a href="{% url 'test-detail' message.uuid %}"><button class="btn btn-warning">View Results</button></a>
+                <a href="{% url 'test-detail' 'Topical' message.uuid %}"><button class="btn btn-warning">View Results</button></a>
                 {% else %}
                 <a href="{% url 'start' message.topic message.uuid %}"><button class="btn btn-info">Take Test</button></a>
 
@@ -45,7 +53,7 @@
 {% endfor %}
 
   </div>
-
+{% endif %}
 
 
 

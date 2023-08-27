@@ -6,9 +6,13 @@
   <h6>{{ test.subject.name }}</h6>
   <br>
   <h6>Insights</h6>
-  <p>-> {{ test_count }} of {{ class_size }} students have taken this test.</p>
-  <p>-> Most passed question - {{ passed }}.</p>
-  <p>-> Most failed question - {{ failed }}.</p>
+{% if test_count == 0 %}
+  <h6>No insights available since no student has taken this test</h6>
+
+{% else %}
+<p> {{ test_count }} of {{ class_size }} students have taken this test.</p>
+  <p> Most passed question - {{ passed }}.</p>
+  <p> Most failed question - {{ failed }}.</p>
 
 <br>
   <p>The graph below shows students performance in this test. The x-axis represents
@@ -21,10 +25,13 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <canvas id="lineChart"  height="200" style="width:70%;"></canvas>
 
+
+{% endif %}
+
 <br>
 <br>
 <h6>Questions.</h6>
-<div class="container">
+<div class="continer">
   {% for quiz in quizzes %}
   <small>{{ quiz.topic }}</small><br>
     <p>{{ forloop.counter }}). {{ quiz.quiz }}</p>

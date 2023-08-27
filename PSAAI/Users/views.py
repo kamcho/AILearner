@@ -7,6 +7,7 @@ from django.shortcuts import render, redirect
 
 # Create your views here.
 from django.urls import reverse
+from django.utils import timezone
 from django.views.generic import CreateView, DetailView, TemplateView
 
 from SubjectList.models import MySubjects, Progress, TopicExamNotifications, Topic
@@ -54,21 +55,17 @@ class MyProfile(LoginRequiredMixin, DetailView):
                     new_phone_number = request.POST.get('phone_number')
                     lname = request.POST.get('last-name')
                     surname = request.POST.get('surname')
-                    country = request.POST.get('country')
                     city = request.POST.get('city')
-                    area = request.POST.get('area')
 
                     # Check if the password is correct
-                    profile.phone1 = new_phone_number
+                    profile.phone = new_phone_number
                     profile.f_name = fname
                     profile.l_name = lname
-                    profile.country = country
                     profile.surname = surname
                     profile.city = city
-                    profile.area = area
                     profile.save()
 
-                    messages.success(request, 'Phone number updated successfully')
+                    # messages.success(request, 'Phone number updated successfully')
                 except PersonalProfile.DoesNotExist:
                     pass
 
@@ -96,6 +93,64 @@ class MyProfile(LoginRequiredMixin, DetailView):
                 except MyUser.ObjectDoesNotExist:
                     return None
             return redirect(request.get_full_path())
+
+
+class LoginRedirect(TemplateView):
+    template_name = 'Users/login_redirect.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        response = super().dispatch(request, *args, **kwargs)
+
+        if self.request.user.personalprofile.f_name == '':
+            return redirect('edit-profile')
+        else:
+            if self.request.user.role == 'Student':
+                return redirect('student-home')
+            elif self.request.user.role == 'Guardian':
+                return redirect('guardian-home')
+            elif self.request.user.role == 'Teacher':
+                return redirect('teachers-home')
+            elif self.request.user.role == 'Supervisor':
+                return redirect('supervisor-home')
+
+
+
+
+
+
+
+
+class FinishSetup(TemplateView):
+    template_name = 'Users/edit_profile.html'
+
+    def post(self, request, **kwargs):
+        if request.method == 'POST':
+            profile = PersonalProfile.objects.get(user=self.request.user)
+            f_name = request.POST.get('f_name')
+            l_name = request.POST.get('l_name')
+            surname = request.POST.get('surname')
+            phone = request.POST.get('phone')
+
+            profile.f_name = f_name
+            profile.l_name = l_name
+            if phone:
+                profile.phone = phone
+
+            profile.surname = surname
+            profile.save()
+
+            if request.user.role == 'Student':
+                return redirect('student-home')
+            elif request.user.role == 'Guardian':
+                return redirect('guardian-home')
+            elif request.user.role == 'Teacher':
+                return redirect('teachers-home')
+            elif request.user.role == 'Supervisor':
+                return redirect('supervisor-home')
+
+        else:
+            return redirect(request.get_full_path())
+
 
 
 def loginRedirect(request):
@@ -145,7 +200,11 @@ class Home(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 context['next'] = next_topic
                 context['last_subject'] = last_subject
                 context['subjects'] = subject
-                context['grade']= user.academicprofile.current_class.grade
+            try:
+                context['grade'] = user.academicprofile.current_class.grade
+            except:
+                context['grade'] = '4'
+
 
             return context
 

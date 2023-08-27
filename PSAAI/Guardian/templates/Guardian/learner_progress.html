@@ -6,14 +6,31 @@
 
 
 
+{% if not subject %}
+<div style="margin:0 auto;width:90%;">
+            <h6 class="text-center alert alert-dark">This student has no learning history</h6>
 
-<div class="event-view">
-    {% if not subject %}
-        <h6>This student has no learning history</h6>
+    </div>
     {% else %}
+<div class="container dropdown">
+      <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+        Grade
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+        <li><a class="dropdown-item" href="#">1</a></li>
+        <li><a class="dropdown-item" href="#">2</a></li>
+        <li><a class="dropdown-item" href="#">3</a></li>
+        <li><a class="dropdown-item" href="#">4</a></li>
+      </ul>
+    </div>
+
+  <div>
+<div class="event-view">
+
+
 
         {% for prog in subject %}
-        <div class="upcoming-classes-card">
+        <div class="subject-progress-card">
 
             <a href="{% url 'learners-syllabus' prog.subject__name email %}"><h6 class="p-txt"><i class="bi bi-bookmark-plus"></i> {{ prog.subject__name }}</h6></a>
            

@@ -5,32 +5,52 @@
 
 {% block content %}
 
+
 {% if not subject %}
-<h6>You do not have any progress history</h6>
-{% else %}
-<div class="container">
-    <a href="{% url 'overall-analytics' user %}" class="btn btn-warning">Analytics</a>
-<div class="upcoming-classes-view">
+<div style="margin:0 auto;width:90%;">
+<h6 class="alert alert-dark text-center" >This student has no learning history</h6>
+</div>
+    {% else %}
+<div class="container dropdown" >
+      <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+        Grade
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+        <li><a class="dropdown-item" href="#">1</a></li>
+        <li><a class="dropdown-item" href="#">2</a></li>
+        <li><a class="dropdown-item" href="#">3</a></li>
+        <li><a class="dropdown-item" href="#">4</a></li>
+      </ul>
+    </div>
+<div class="subject-progress-view">
+
+
+
 
         {% for prog in subject %}
-        <div class="upcoming-classes-card">
+        <div class="subject-progress-card">
 
-            <a href="{% url 'syllabus' prog.subject__name %}"><h6 class="p-txt">{{ prog.subject__name }}</h6></a>
-            <hr class="centered-hr">
-            <br>
-            <small class="p-txt">Topics covered : {{ prog.topic_count }}</small>
-            <br>
-            <small class="p-txt">Total topics : {{ prog.subject__topics  }}</small>
-            <br><br>
-            <div class="progress" style="width: 80%; margin-left: 30px;">
-                <div class="progress-bar" role="progressbar" style="width: {{ prog.topic_count|divide:prog.subject__topics }}%; background-color: purple;" aria-valuenow="{{ prog.topic_count }}" aria-valuemin="0" aria-valuemax="{{ prog.subject__topics }}">{{ prog.topic_count|divide:prog.subject__topics }}%</div>
+            <a href="{% url 'syllabus' prog.subject__name %}"><h6 class="p-txt"><i class="bi bi-bookmark-plus"></i> {{ prog.subject__name }}</h6></a>
+
+    <br>
+            <div class="kid-in-card">
+                <small class="text-muted">progress</small><br>
+                <small >Topics covered  <span class="badge bg-info" style="margin-left: 30px;">{{ prog.topic_count }}</span></small>
+                <br>
+                <small >Total topics  <span class="badge bg-secondary" style="margin-left:50px;">{{ prog.subject__topics  }}</span></small>
+                <br><br>
+               <div class="progress" style="width: 80%;">
+                    <div class="progress-bar" role="progressbar" style="width: {{ prog.topic_count|divide:prog.subject__topics }}%; background-color: purple;" aria-valuenow="{{ prog.topic_count }}" aria-valuemin="0" aria-valuemax="{{ prog.subject__topics }}">{{ prog.topic_count|divide:prog.subject__topics }}%</div>
+                </div>
             </div>
+
 
         </div>
 
         {% endfor %}
     </div>
 
+{% endif %}
 </div>
 
 
@@ -43,7 +63,6 @@
 
 
 
-{% endif %}
 
 
 {% endblock %}

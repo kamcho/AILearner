@@ -3,22 +3,40 @@
 {% load custom_filters %}
 
 {% block content %}
-    <div class="container">
-        <div class="upcoming-classes-view">
+    <div class="contaner">
+        <div class="subject-progress-view">
             {% for test in tests %}
-            <div class="upcoming-classes-card">
+            <div class="subject-progress-card">
 
-                <a href="{% url 'subject-analysis' child test.subject__name %}">{{ test.subject__name }}</a>
+            <a href="{% url 'subject-analysis' child test.subject__name %}"><h6 class="p-tx"><i class="bi bi-bookmark-plus"></i> {{ test.subject__name }}</h6></a>
+                <small style="padding:10px;" >Tests Done  <span class="badge bg-info" style="margin-left: 30px;">{{ test.subject_count }}</span></small>
                 <br>
-                <small>Tests : {{ test.subject_count }}</small>
-                <p>Total marks - {{ child|subject_analytics_marks:test.subject__name }}</p>
-                <p>Overall marks - {{ child|subject_analytics_size:test.subject__name }}</p>
 
 
+    <br>
+            <div class="kid-in-card">
+                <small class="text-muted">progress</small><br>
 
+                <small >Total Marks  <span class="badge bg-secondary" style="margin-left:27px;">{{ child|subject_analytics_marks:test.subject__name }}</span></small>
+                <br>
+                <small >Overall Marks  <span class="badge bg-secondary" style="margin-left:14px;">{{ child|subject_analytics_size:test.subject__name }}</span></small>
 
+                <br>
+
+                {% with marks=child|subject_analytics_marks:test.subject__name  %}
+                    {% with size=child|subject_analytics_size:test.subject__name  %}
+
+                <div class="progress" style="width: 80%;">
+                    <div class="progress-bar" role="progressbar" style="background-color: purple;" aria-valuemin="0" >{{ marks|divide:size }}%</div>
+                </div>
+                    {% endwith %}
+                {% endwith %}
 
             </div>
+
+
+        </div>
+
             {% endfor %}
 
 
@@ -26,6 +44,8 @@
 
 
     </div>
+
+
 
 
 

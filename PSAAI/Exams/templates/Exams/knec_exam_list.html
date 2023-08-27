@@ -10,14 +10,17 @@
 <table class="table">
         <thead>
           <tr>
-            <th>Subject</th>
-            <th>Term</th>
-            <th>Date</th>
+            <th><h6>Subject</h6></th>
+            <th><h6>Term</h6></th>
+            <th><h6>Date</h6></th>
           </tr>
         </thead>
+    <br>
+    <br>
         <tbody>
         {% for test in exams %}
           <tr>
+
             <td><a href="{% url 'knec-start' grade test.uuid  %}">{{ test.subject }}</a> </td>
             <td>{{ test.grade }}</td>
               <td>{{ test.date }}</td>

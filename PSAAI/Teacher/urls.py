@@ -10,10 +10,10 @@ urlpatterns = [
     path('class/<str:class>/Tests/', TestsView.as_view(), name='teacher-tests-view'),
     path('class/<str:uuid>/Analytics/', ClassTestAnalytics.as_view(), name='class-test-analytics'),
     path('<str:class>/Student-List/', StudentsView.as_view(), name='students-list'),
-    path('Create-Test/', InitialiseCreateTest.as_view(), name='initialise-test'),
+    path('<str:subject>/Create-Test/', InitialiseCreateTest.as_view(), name='initialise-test'),
     path('load_class/', views.load_class, name='load-class'),
-    path('<str:subject>/topic-select/', ClassTestSelectTopic.as_view(), name='test-topic-select'),
-    path('User-Select-Questions/<str:subject>/', UserQuestionsSelect.as_view(), name='user-question-selection'),
+    path('topic-select/', ClassTestSelectTopic.as_view(), name='test-topic-select'),
+    path('User-Select-Questions/', UserQuestionsSelect.as_view(), name='user-question-selection'),
     path('System/Select-Questions/', views.SystemQuestionsSelect, name='system-question-selection'),
     path('get-questions/', views.get_topical_quizzes, name='get_topical_quizzes'),
     path('add-quiz-to-session/', views.add_question_to_session, name='add-quiz-to-session'),
@@ -24,5 +24,8 @@ urlpatterns = [
     path('load_subtopics/', views.load_subtopics, name='load-subtopics'),
     path('Add-Answer/', AddAnswerSelection.as_view(), name='add-answer'),
     path('Save-Question/', SaveQuiz.as_view(), name='save-quiz'),
+    path('Dashboard/', DashBoard.as_view(), name='dashboard'),
+    path('get_subjects/', views.get_subjects, name='get_subjects'),
+    path('DashBoard/AcademicProfile', SubjectSelect.as_view(), name='subjects-selection'),
 
 ]

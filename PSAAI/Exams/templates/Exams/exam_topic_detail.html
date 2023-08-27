@@ -30,6 +30,11 @@
      </table>
 
 
+
+
+
+
+
 <h6>KNEC Tests</h6>
 <table class="table">
         <thead>
@@ -42,7 +47,7 @@
         <tbody>
         {% for test in tests %}
           <tr>
-              <td><a href="{% url 'test-detail' test.test %}">{{ test.subject }}</a></td>
+              <td><a href="{% url 'test-detail' 'KNECExams'  test.test %}">{{ test.subject }}</a></td>
               <td>{{ test.test_size }} / 15</td>
               <td>{{ test.marks}} </td>
           </tr>
@@ -64,22 +69,13 @@
         <tbody>
         {% for test in class_tests %}
           <tr>
-              <td><a href="{% url 'test-detail' test.test %}">{{ test.test.subject }}</a></td>
+              <td><a href="{% url 'test-detail' 'ClassTests'  test.test %}">{{ test.test.subject }}</a></td>
               <td>{{ test.test.test_size }}</td>
             <td>{{ test.marks }} </td>
           </tr>
         {% endfor %}
         </tbody>
      </table>
-
-
-
-
-
-
-
-
-
 
 
 

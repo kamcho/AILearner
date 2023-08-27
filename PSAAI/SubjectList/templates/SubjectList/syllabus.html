@@ -4,7 +4,7 @@
 
 {% block content %}
 
-  <div class="dropdown">
+  <div class="container dropdown">
       <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
         Grade
       </button>
@@ -18,12 +18,12 @@
 <br>
   <div>
 
-<div class="syllabus" style="text-decoration:none !important;">
+<div class="container syllabus" style="text-decoration:none !important;">
 {% for coverage in syllabus %}
 
 
     {% if  user|topic_in_progress:coverage %}
-      <div style="display:flex;width:60%;">
+      <div style="display:flex;width:80%;">
           <p style="color:purple;flex: 1;">{{ coverage.order }}.) {{ coverage }}</p>
           <input type="checkbox" style="margin-left: 0 auto;" checked>
       </div>
@@ -31,13 +31,13 @@
            {% for subtopic in coverage.topic.all %}
                 {% if  user|subtopic_in_progress:subtopic %}
 
-                    <div style="display:flex;width:60%;padding-left:30px;">
+                    <div style="display:flex;width:80%;padding-left:30px;">
                         <small style="color:purple ;flex: 1;"><a href="{% url 'read' coverage subtopic %}">{{ subtopic }}</a></small>
                         <i class="bi bi-check-all" style="margin-left: 0 auto;color:purple;font-size:20px;"></i>
                     </div>
 
                 {% else %}
-                      <div style="display:flex;width:60%;padding-left:30px;">
+                      <div style="display:flex;width:80%;padding-left:30px;">
                         <small style="color:purple;flex: 1;"><a href="{% url 'read' coverage subtopic %}">{{ subtopic }}</a></small>
                           <input type="checkbox" style="margin-left: 0 auto;" disabled>
                       </div>
@@ -47,13 +47,13 @@
         </div>
 
     {% else %}
-      <div style="display:flex;width:60%;">
+      <div style="display:flex;width:80%;">
           <p style="flex: 1;">{{ coverage.order }}.) {{ coverage }}</p>
           <input type="checkbox" style="margin-left: 0 auto;" disabled >
       </div>
         <div>
            {% for subtopic in coverage.topic.all %}
-                        <div style="display:flex;width:60%;padding-left:30px;">
+                        <div style="display:flex;width:80%;padding-left:30px;">
                         <small style="color:purple;flex: 1;"><a href="{% url 'read' coverage subtopic %}">{{ subtopic }}</a></small>
                           <input type="checkbox" style="margin-left: 0 auto;" disabled>
                       </div>
