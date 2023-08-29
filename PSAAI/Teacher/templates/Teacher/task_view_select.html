@@ -7,7 +7,7 @@
 
 
 <div class="container">
-        <a href="{% url 'initialise-test' subject.id %}"><button class="btn btn-warning">Create Test</button></a>
+        <a href="{% url 'initialise-test' class subject %}"><button class="btn btn-warning">Create Test</button></a>
 
 </div>
 
@@ -32,7 +32,7 @@
         </a>
 
 
-        <a href="{% url 'teacher-tests-view' class %}">
+        <a href="{% url 'teacher-tests-view' class subject %}">
             <div class="teacher-home-card">
             <h6>Tests</h6>
             <h6><span class="badge bg-info text-light">{{ class }}</span></h6>

@@ -1,7 +1,12 @@
 {% extends 'Users/base.html' %}
 
 {% block content %}
-    <br><br>
+
+<div class="container">
+    <div style="position:absolute;top;3px;right:5px;">Test Ends in
+        <br><span style="font-size:60px;" class="badge bg-info text-light" id="time">01:00</span>
+    </div>
+
     <div style="display:flex">
         {% for li in list %}
             {% with index as current_index %}
@@ -32,8 +37,79 @@
         </form>
     </div>
 
-
+</div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+<script>
+    function startTimer(duration, display) {
+
+        var timer = duration;
+        var minutes, seconds;
+
+        var intervalId = setInterval(function () {
+            minutes = parseInt(timer / 60, 10);
+            seconds = parseInt(timer % 60, 10);
+
+            minutes = minutes < 10 ? "0" + minutes : minutes;
+            seconds = seconds < 10 ? "0" + seconds : seconds;
+
+            display.textContent = minutes + ":" + seconds;
+
+            if (--timer < 0) {
+                clearInterval(intervalId);
+                display.textContent = 'Expired';  // Change text when timer expires
+
+                // Call the Django function using AJAX when timer expires
+                callDjangoFunction();
+            }
+        }, 1000);
+    }
+
+    function callDjangoFunction() {
+        // Make an AJAX request to trigger the Django function
+        $.ajax({
+            url: '/Exams/{{instance}}/{{ test_id }}/Finish/',  // Replace with the actual URL
+            type: 'GET',
+            success: function(response) {
+                window.location.href = '/Exams/{{instance}}/{{ test_id }}/Finish/';
+                      localStorage.removeItem('{{ test_id }}');
+
+
+            },
+            error: function() {
+                console.error('Error calling Django function');
+            }
+        });
+    }
+
+    window.onload = function () {
+    if ('{{ instance }}' === 'Topical' || '{{ instance }}' === 'General') {
+            var test_duration = parseInt('{{ test.duration }}');
+        }
+        else{
+            var test_duration = parseInt('{{ test.test.duration }}');
+        }
+        var fiveMinutes = 60 * test_duration;
+        var display = document.querySelector('#time');
+
+        // Check if timer start time is stored in localStorage
+        var startTime = localStorage.getItem('{{ test_id }}');
+        if (!startTime) {
+            startTime = new Date().getTime();
+            localStorage.setItem('{{ test_id }}', startTime);
+        } else {
+            startTime = parseInt(startTime);
+        }
+
+        var currentTime = new Date().getTime();
+        var elapsed = currentTime - startTime;
+        var remainingTime = fiveMinutes - Math.floor(elapsed / 1000);
+
+        // Start the timer with remaining time
+        startTimer(remainingTime, display);
+    };
+</script>
 <script>
     $(document).ready(function() {
         $('input[type="radio"]').change(function() {
@@ -53,6 +129,7 @@
         });
     });
 </script>
+
 
 
 {% endblock %}

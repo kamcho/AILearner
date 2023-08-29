@@ -15,9 +15,9 @@
         <br>
         <div>
                <select class="form-select" id="class-id" name="class-id" aria-label="Default select example">
-                       {% for class in classes %}
+
                        <option value="{{ class.class_id }}">{{ class.class_id.class_name }} <small style="color:green;">( {{ class.subject }} )</small> </option>
-                     {% endfor %}
+
                </select>
            </div>
 

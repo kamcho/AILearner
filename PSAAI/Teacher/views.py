@@ -46,7 +46,7 @@ class TaskViewSelect(TemplateView):
         user = self.request.user
         class_id = self.kwargs['class']
         my_class = StudentList.objects.filter(user=self.request.user, class_id__class_name=class_id).first()
-        context['subject'] = my_class.subject
+        context['subject'] = my_class.subject.id
         # subject = self.kwargs['class']
         # class_id = SchoolClass.objects.get(class_name=class_id)
 
@@ -78,12 +78,13 @@ class TestsView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(TestsView, self).get_context_data(**kwargs)
         user = self.request.user
+        subject = self.kwargs['subject']
         class_id = self.kwargs['class']
         tests = ClassTest.objects.filter(teacher=user, class_id__class_name=class_id)
         print(tests, '\n\n\n\n')
 
         context['tests'] = tests
-
+        context['subject'] = subject
         return context
 
 
@@ -144,9 +145,9 @@ class ClassTestAnalytics(TemplateView):
             most_failed = min(perfomance_data, key=perfomance_data.get)
             most_passed = max(perfomance_data, key=perfomance_data.get)
         # print(failed_test)
-        # context['passed'] = most_passed
+        context['passed'] = most_passed
         context['quizzes'] = class_test.quiz.all()
-        # context['failed'] = most_failed
+        context['failed'] = most_failed
         context['performance_data'] = perfomance_data
         return context
 
@@ -156,9 +157,10 @@ class InitialiseCreateTest(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(InitialiseCreateTest, self).get_context_data(**kwargs)
+        class_id = self.kwargs['class']
 
 
-        context['classes'] = StudentList.objects.filter(user=self.request.user)
+        context['class'] = StudentList.objects.filter(user=self.request.user, class_id__class_name=class_id).first()
         return context
 
     def post(self, request, **kwargs):
@@ -551,11 +553,17 @@ class SubjectSelect(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(SubjectSelect, self).get_context_data(**kwargs)
+        user = self.request.user
+
         subjects = Subject.objects.all()
-        grade4 = subjects.filter(grade=4)
-        grade5 = subjects.filter(grade=5)
-        grade6 = subjects.filter(grade=6)
-        grade7 = subjects.filter(grade=7)
+        teaching_profile = TeacherProfile.objects.get(user=user)
+        subject_ids = teaching_profile.subject.all()
+        grade4 = subjects.filter(grade=4).exclude(id__in=subject_ids)
+        grade5 = subjects.filter(grade=5).exclude(id__in=subject_ids)
+        grade6 = subjects.filter(grade=6).exclude(id__in=subject_ids)
+        grade7 = subjects.filter(grade=7).exclude(id__in=subject_ids)
+
+        context['subjects'] = subject_ids
         context['grade4'] = grade4
         context['grade5'] = grade5
         context['grade6'] = grade6
@@ -566,15 +574,27 @@ class SubjectSelect(TemplateView):
     def post(self, args, **kwargs):
         if self.request.method == "POST":
             user = self.request.user
-            subject = self.request.POST.getlist('subjects')
-            print(subject, '\n\n\n')
-            subject_instance = Subject.objects.filter(id__in=subject)
-            try:
-                teaching_profile = TeacherProfile.objects.get(user=user)
-                teaching_profile.subject.add(*subject_instance)
-            except TeacherProfile.DoesNotExist:
-                teaching_profile = TeacherProfile.objects.create(user=user)
-                teaching_profile.subject.add(*subject_instance)
+            if 'profile' in self.request.POST:
+
+                subject = self.request.POST.getlist('subjects')
+
+                subject_instance = Subject.objects.filter(id__in=subject)
+                try:
+                    teaching_profile = TeacherProfile.objects.get(user=user)
+                    teaching_profile.subject.add(*subject_instance)
+                except TeacherProfile.DoesNotExist:
+                    teaching_profile = TeacherProfile.objects.create(user=user)
+                    teaching_profile.subject.add(*subject_instance)
+            elif 'purge' in self.request.POST:
+                button_id = self.request.POST.get('purge')
+
+
+                teacher_profile = TeacherProfile.objects.get(user=user)  # Replace with the appropriate query
+                subject_to_remove = Subject.objects.get(id=button_id)  # Replace with the appropriate query
+
+                # Remove the subject from the teacher's profile
+                teacher_profile.subject.remove(subject_to_remove)
+
 
 
             return redirect(self.request.get_full_path())

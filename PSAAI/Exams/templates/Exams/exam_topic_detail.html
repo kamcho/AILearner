@@ -8,76 +8,86 @@
 
 
 
+<div class="container">
 
-<h6>Topical Test</h6>
+    {% if not subject %}
+    {% else %}
+
+    <h5>Topical Test</h5>
      <table class="table">
         <thead>
           <tr>
-            <th>Topic</th>
-            <th>Average</th>
-            <th>Count</th>
+            <th><h6>Topic</h6></th>
+            <th><h6>Average</h6></th>
+            <th><h6>Count</h6></th>
           </tr>
         </thead>
         <tbody>
         {% for topic in subject %}
           <tr>
-              <td><a href="{% url 'exam-subject-id' subject_name topic.topic__name %}">{{ topic.topic__name}}</a></td>
-<td>{{ user|topical_average:topic.topic__name }} / 15</td>
-            <td>{{ user|topical_average_count:topic.topic__name }} </td>
+              <td><a href="{% url 'exam-subject-id' subject_name topic.topic__name %}"><h6>{{ topic.topic__name }}</h6></a></td>
+              <td><span class="badge bg-secondary">{{ user|topical_average:topic.topic__name }}</span> / <span class="badge bg-dark">{{ topic.test_size }}</span> </td>
+              <td><span class="badge bg-info">{{ user|topical_average_count:topic.topic__name }}</span> </td>
           </tr>
         {% endfor %}
         </tbody>
      </table>
+    {% endif %}
+
+    <br>
+<hr>
 
 
 
 
-
-
-
+    {% if not tests %}
+    {% else %}
 <h6>KNEC Tests</h6>
 <table class="table">
         <thead>
           <tr>
-            <th>Subject</th>
-            <th>Test Size</th>
-            <th>Marks</th>
+            <th><h6>Subject</h6></th>
+            <th><h6>Test Size</h6></th>
+            <th><h6>Marks</h6></th>
           </tr>
         </thead>
         <tbody>
         {% for test in tests %}
           <tr>
-              <td><a href="{% url 'test-detail' 'KNECExams'  test.test %}">{{ test.subject }}</a></td>
-              <td>{{ test.test_size }} / 15</td>
-              <td>{{ test.marks}} </td>
+              <td><a href="{% url 'test-detail' 'KNECExams'  test.test %}"><h6>{{ test.subject }}</h6></a></td>
+              <td><span class="badge bg-secondary">{{ test.test_size }}</span> </td>
+              <td><span class="badge bg-info">{{ test.marks}}</span> </td>
           </tr>
         {% endfor %}
         </tbody>
  </table>
+    <hr>
+{% endif %}
 
-
-
+    {% if not class_tests %}
+    {% else %}
 <h6>Class Tests</h6>
 <table class="table">
         <thead>
           <tr>
-            <th>Subject</th>
-            <th>Test Size</th>
-            <th>Marks</th>
+            <th><h6>Subject</h6></th>
+            <th><h6>Test Size</h6></th>
+            <th><h6>Marks</h6></th>
           </tr>
         </thead>
         <tbody>
         {% for test in class_tests %}
           <tr>
-              <td><a href="{% url 'test-detail' 'ClassTests'  test.test %}">{{ test.test.subject }}</a></td>
-              <td>{{ test.test.test_size }}</td>
-            <td>{{ test.marks }} </td>
+              <td><a href="{% url 'test-detail' 'ClassTests'  test.test %}"><h6>{{ test.test.subject }}</h6></a></td>
+              <td><span class="badge bg-secondary">{{ test.test.test_size }}</span></td>
+              <td><span class="badge bg-info">{{ test.marks }}</span> </td>
           </tr>
         {% endfor %}
         </tbody>
      </table>
 
 
+</div>
 
-
+{% endif %}
 {% endblock %}

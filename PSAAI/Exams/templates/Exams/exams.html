@@ -1,5 +1,5 @@
 {% extends 'Users/base.html' %}
-{% load crispy_forms_tags %}
+{% load custom_filters %}
 {% load static %}
 
 {% block content %}
@@ -20,23 +20,25 @@
     <div class="event-view">
 
         {% for subject in subjects %}
-            <a href="{% url  'exam-topic-id'  subject.subject %}">
+            <a href="{% url 'exam-topic-id' subject.id %}">
                 <div class="kid-exam-card">
                     <div class="">
-                        <h6><i class="bi bi-bookmark-plus"></i>{{ subject.subject }}.</h6>
-                        <small>Grade {{ subject.grade }}</small>
+                        <h6><i class="bi bi-bookmark-plus"></i>{{ subject }}.</h6>
+                        <small>Grade <span class="badge bg-secondary" > {{ subject.grade }}</span></small>
                     </div>
 
                     <div class="kid-exam-topics-card">
-                        <small class="text-muted">Subtopics</small><br>
-                        {% for topic in subject.topics %}
-                            <small>{{ topic }}</small><br>
+                        <small class="text-muted">Topics</small><br>
+                        {% for topic in user|get_topics:subject.id %}
+
+                            <small>{{ topic.topic__name }}</small><br>
                         {% endfor %}
+
                     </div>
                     <div class="kid-exam-progress-card">
-                        <small >Topics covered  <span class="badge bg-info" style="margin-left: 30px;">{{ subject.topics|length }}</span></small>
+                        <small >Tests Done  <span class="badge bg-info" style="margin-left: 38px;">{{ user|get_test_count:subject.id }}</span></small>
                 <br>
-                <small >Total topics  <span class="badge bg-secondary" style="margin-left:50px;">6</span></small>
+                <small >Topics Covered  <span class="badge bg-secondary" style="margin-left:12px;">{{ user|get_topic_count:subject.id }}</span></small>
                 <br>
                     </div>
 

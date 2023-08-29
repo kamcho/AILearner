@@ -24,26 +24,46 @@ class Exams(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        user = self.request.user
 
         try:
-            subject_tests = StudentTest.objects.filter(user=self.request.user).select_related(
-                'topic__subject'
-            ).values('topic__subject__name', 'topic__subject__grade', 'topic__name').distinct()
+            subject_lst = []
+            student_test = StudentTest.objects.filter(user=user)
+            topical_subject_count = student_test.values('subject__id')
+            topics = student_test.values('topic__name').order_by('topic__name')
+            topical_tests = topical_subject_count.order_by('subject__id')
 
-            grouped_subjects = []
-            for subject, tests in groupby(subject_tests,
-                                          key=lambda x: (x['topic__subject__name'], x['topic__subject__grade'])):
-                grade = subject[1]
-                topics = [test['topic__name'] for test in tests]
-                grouped_subjects.append({'subject': subject[0], 'grade': grade, 'topics': topics})
+            class_tests = ClassTestStudentTest.objects.filter(user=user)
+            class_subject_count = class_tests.values('test__subject__id')
+            my_class_tests = class_subject_count.order_by('test__subject__id')
 
-            # Retrieve additional information like topic count
-            subject_tests_with_counts = subject_tests.annotate(
-                topic_count=Count('topic')
-            )
+            knec_tests = StudentKNECExams.objects.filter(user=user)
+            knec_subject_count = knec_tests.values('test__subject__id')
+            my_knec_test = knec_subject_count.order_by('test__subject__id')
 
-            context['subjects'] = grouped_subjects
-            context['subject_tests'] = subject_tests_with_counts
+            general_tests = GeneralTest.objects.filter(user=user)
+            general_subject_count = general_tests.values('subject__id')
+            my_general_tests = general_subject_count.order_by('subject__id')
+
+            for subject_id in topical_tests:
+                subject_lst.append(subject_id['subject__id'])
+            for subject_id in my_general_tests:
+                subject_lst.append(subject_id['subject__id'])
+            for subject_id in my_class_tests:
+                subject_lst.append(subject_id['test__subject__id'])
+            for subject_id in my_knec_test:
+                subject_lst.append(subject_id['test__subject__id'])
+
+            # Convert the set of subject IDs to a list
+            context['test_count'] = topical_subject_count.count() + knec_subject_count.count() + \
+                                    class_subject_count.count() + general_subject_count.count()
+
+            # Retrieve the Subject objects with the common subject IDs
+            print(subject_lst)
+            subjects = Subject.objects.filter(id__in=subject_lst)
+
+            context['subjects'] = subjects
+
 
             return context
 
@@ -70,14 +90,15 @@ class ExamTopicView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ExamTopicView, self).get_context_data(**kwargs)
         user = self.request.user
+        subject_id = self.kwargs['subject']
 
         try:
-            subject = StudentTest.objects.filter(user=user, subject__name=self.kwargs['subject']) \
-                .values('topic__name').order_by('topic').distinct()
+            subject = StudentTest.objects.filter(user=user, subject=subject_id) \
+                .values('topic__name', 'test_size').order_by('topic').distinct()
             context['subject'] = subject
-            knec_test = StudentKNECExams.objects.filter(user=user)
+            knec_test = StudentKNECExams.objects.filter(user=user, subject=subject_id)
             context['tests'] = knec_test
-            class_test = ClassTestStudentTest.objects.filter(user=user).exclude(
+            class_test = ClassTestStudentTest.objects.filter(user=user, test__subject=subject_id).exclude(
                 uuid='c2f49d23-41eb-457a-a147-8e132751774c')
             context['class_tests'] = class_test
             context['subject_name'] = self.kwargs['subject']
@@ -230,7 +251,7 @@ class Start(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
                     quizzes = TopicalQuizes.objects.filter(topic=topic).order_by('?')[:5]
                     test.quiz.add(*quizzes)
-                    return redirect('tests','Topical', test.uuid)
+                    return redirect('tests', 'Topical', test.uuid)
                 except:
                     return HttpResponse({'error': 'couldnt create'})
 
@@ -265,7 +286,7 @@ def get_test_instance(user, instance, test_id):
             questions = KNECGradeExams.objects.filter(uuid=test_id).first()
             instance_type = 'KNECGradeExams'
     except DatabaseError:
-        return HttpResponse({'Error': 'We encountered an error when fetching your test, please try again later while '                               
+        return HttpResponse({'Error': 'We encountered an error when fetching your test, please try again later while '
                                       'we fix the issue.'})
 
     return questions, instance_type
@@ -278,9 +299,11 @@ class Tests(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         context = super(Tests, self).get_context_data(**kwargs)
         test_id = kwargs['uuid']
         instance = self.kwargs['instance']
+
         user = self.request.user
         question_index = self.request.session.get('index', 0)
         questions, instance_type = get_test_instance(user=user, instance=instance, test_id=test_id)
+        context['test'] = questions
 
         if questions:
             self.request.session['test_size'] = questions.test_size
@@ -288,6 +311,8 @@ class Tests(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
             if question_index >= len(questions.quiz.all()):
                 context['message'] = "Test is completed."
+                return redirect('finish', instance, test_id)
+
             else:
                 current_question = questions.quiz.all()[question_index]
                 self.request.session['quiz'] = str(current_question)
@@ -301,6 +326,8 @@ class Tests(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                     context['index'] = question_index + 1
                     numbers = [i + 1 for i in range(len(questions.quiz.all()))]
                     context['list'] = numbers
+                    context['instance'] = instance
+                    context['test_id'] = test_id
 
                 except DatabaseError as error:
                     pass
@@ -308,6 +335,7 @@ class Tests(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             context['error_message'] = 'We could not find this test, try again or contact us'
 
         return context
+
     def post(self, request, **kwargs):
 
         if request.method == 'POST':
@@ -547,7 +575,6 @@ class KNECExamView(TemplateView):
         context = super(KNECExamView, self).get_context_data(**kwargs)
         grade = self.kwargs['grade']
         subjects = KNECGradeExams.objects.filter(grade=grade)
-
 
         context['subjects'] = subjects
         context['grade'] = grade

@@ -3,7 +3,12 @@
     /* background-color:black; */
     
 }
-
+.zara {
+    font-weight:10000 !important;
+    font-size:25px !important;
+    color:white !important;
+    font-family:monospace;
+}
 #top-bar a{
     color:black;
 }

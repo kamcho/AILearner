@@ -3,11 +3,10 @@ from django.db.models import Sum
 from django.shortcuts import redirect
 import datetime
 
-from Exams.models import StudentTest, StudentsAnswers, ClassTestStudentTest, ClassTest, StudentKNECExams
+from Exams.models import StudentTest, StudentsAnswers, ClassTestStudentTest, ClassTest, StudentKNECExams, GeneralTest
 from SubjectList.models import *
 
 from Users.models import MyUser, SchoolClass
-
 
 register = template.Library()
 
@@ -165,7 +164,6 @@ def class_test_average(test_uuid):
     else:
         average = (int(total_marks) / int(tests.count()))
 
-
         return f'{average} / {test.test_size} '
 
 
@@ -218,7 +216,7 @@ def subject_analytics_size(user, subject):
 def topic_analytics_strength(user, topic):
     topical_answers = StudentsAnswers.objects.filter(user=user, quiz__topic__name=topic, is_correct=True).count()
     class_test_answers = StudentsAnswers.objects.filter(user=user, quiz__topic__name=topic,
-                                                                is_correct=True).count()
+                                                        is_correct=True).count()
     passed = int(topical_answers) + int(class_test_answers)
     return passed
 
@@ -227,7 +225,7 @@ def topic_analytics_strength(user, topic):
 def topic_analytics_weakness(user, topic):
     topical_answers = StudentsAnswers.objects.filter(user=user, quiz__topic__name=topic, is_correct=False).count()
     class_test_answers = StudentsAnswers.objects.filter(user=user, quiz__topic__name=topic,
-                                                                is_correct=False).count()
+                                                        is_correct=False).count()
     failed = int(topical_answers) + int(class_test_answers)
     return failed
 
@@ -236,6 +234,28 @@ def topic_analytics_weakness(user, topic):
 def topic_analytics_count(user, topic):
     passed = topic_analytics_strength(user, topic)
     failed = topic_analytics_weakness(user, topic)
-    total = passed+failed
+    total = passed + failed
 
     return total
+
+@register.filter
+def get_topics(user, subject):
+    topical_tests = StudentTest.objects.filter(user=user, subject__id=subject)
+    topical_topics = topical_tests.values('topic__name')
+    return topical_topics
+
+@register.filter
+def get_test_count(user, subject):
+    topical_tests = StudentTest.objects.filter(user=user, subject__id=subject).count()
+    class_test = ClassTestStudentTest.objects.filter(user=user, test__subject__id=subject).count()
+    knec_test = StudentKNECExams.objects.filter(user=user, test__subject__id=subject).count()
+    general_test = GeneralTest.objects.filter(user=user, subject__id=subject).count()
+    return topical_tests + class_test + knec_test
+
+@register.filter
+def get_topic_count(user, subject):
+    topical_tests = StudentTest.objects.filter(user=user, subject__id=subject).\
+        values('topic').order_by('topic').count()
+    return topical_tests
+
+
