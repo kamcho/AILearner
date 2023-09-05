@@ -11,8 +11,9 @@
 
     </div>
 
-
+{% elif assignments == 'error' %}
 {% else %}
+<div class="container">
    {% for assignment in assignments %}
     <br><br>
     {% if not user|test_is_done:assignment.uuid %}

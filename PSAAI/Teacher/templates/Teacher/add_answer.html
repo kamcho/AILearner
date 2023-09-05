@@ -5,6 +5,13 @@
 
   <div class="container">
 
+    {% if error %}
+    <a href="{% url 'create-questions' %}"><button class="btn btn-danger">Reset</button></a>
+
+
+    {% else %}
+
+
     <p>{{ quiz.quiz }}</p>
     <form method="post">
       {% csrf_token %}
@@ -44,6 +51,8 @@
 
 </form>
 
+
+    {% endif %}
   </div>
 
 

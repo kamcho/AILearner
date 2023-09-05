@@ -13,19 +13,19 @@
       <form method="post">
           {% csrf_token %}
           {% if user.role == 'Supervisor' %}
-          <select class="form-select"  name="type" aria-label="Default select example">
+          <select class="form-select"  name="type" aria-label="Default select example" required>
                 <option value="knec">KNEC</option>
                 <option value="knec">School Test</option>
 
           </select>
           <br>
-          <select class="form-select"  name="subject" id="subjectSelect" aria-label="Default select example">
+          <select class="form-select"  name="subject" id="subjectSelect" aria-label="Default select example" required>
               {% for subject in subjects %}
                 <option value="{{ subject.id }}">{{ subject }}</option>
               {% endfor %}
           </select>
           {% else %}
-          <select class="form-select" id="subjectSelect" name="subject" aria-label="Default select example">
+          <select class="form-select" id="subjectSelect" name="subject" aria-label="Default select example" required>
               {% for subject in user.teacherprofile.subject.all %}
                 <option value="{{ subject.id }}">{{ subject }}</option>
               {% endfor %}
@@ -35,12 +35,12 @@
 
 
           <br>
-          <select class="form-select" id="topicSelect" name="topic" aria-label="Default select example">
+          <select class="form-select" id="topicSelect" name="topic" aria-label="Default select example" required>
               <option >Topic</option>
           </select>
 
           <br>
-          <select class="form-select" aria-label="Default select example" id="subtopicSelect" name="subtopic">
+          <select class="form-select" aria-label="Default select example" id="subtopicSelect" name="subtopic" required>
               <option >Subtopic</option>
 
 
@@ -50,7 +50,7 @@
 
           <div class="mb-3">
               <label for="exampleFormControlTextarea1" class="form-label">Add question here</label>
-              <textarea class="form-control" id="exampleFormControlTextarea1" rows="3" name="quiz"></textarea>
+              <textarea class="form-control" id="exampleFormControlTextarea1" rows="3" name="quiz" required></textarea>
           </div>
 
 

@@ -2,9 +2,10 @@ from abc import ABC
 from itertools import groupby
 from datetime import datetime
 
+from django.contrib import messages
 from django.db import DatabaseError
 from django.db.models import Count
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 
 # Create your views here.
 from django.views.generic import ListView, TemplateView
@@ -16,17 +17,22 @@ from SubjectList.models import Progress, Topic
 from Users.models import MyUser, PersonalProfile
 
 
-
-class GuardianHome(LoginRequiredMixin,UserPassesTestMixin, TemplateView):
+class GuardianHome(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """
+        Guardians Home Page
+    """
     template_name = 'Guardian/guardian_home.html'
 
     def get_context_data(self, **kwargs):
         context = super(GuardianHome, self).get_context_data(**kwargs)
-        user = self.request.user.uuid
-
-        # Get learners linked to logged in guardian
-        my_kids = PersonalProfile.objects.filter(ref_id=user)
-        context['kids'] = my_kids
+        user = self.request.user.uuid  # get user
+        try:
+            # Get learners linked to logged in guardian
+            my_kids = PersonalProfile.objects.filter(ref_id=user)  # get linked kids account
+            context['kids'] = my_kids
+        except (Exception,):
+            # Handle any exceptions
+            messages.error(self.request, 'An exception occurred were fixing it')
 
         return context
 
@@ -34,16 +40,22 @@ class GuardianHome(LoginRequiredMixin,UserPassesTestMixin, TemplateView):
         return self.request.user.role == 'Guardian'
 
 
-class MyKidsView(LoginRequiredMixin,UserPassesTestMixin, TemplateView):
+class MyKidsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """
+        Guardian view of linked accounts
+    """
     template_name = 'Guardian/my_kids_view.html'
 
     def get_context_data(self, **kwargs):
         context = super(MyKidsView, self).get_context_data(**kwargs)
         user = self.request.user.uuid
-
-        my_kids = PersonalProfile.objects.filter(ref_id=user)
-        context['kids'] = my_kids
-        context['current_time'] = datetime.now()
+        try:
+            # Get learners linked to logged in guardian
+            my_kids = PersonalProfile.objects.filter(ref_id=user)
+            context['kids'] = my_kids
+            context['current_time'] = datetime.now()  # Get current time
+        except Exception:
+            messages.error(self.request, 'DataBase Error were fixing it')
 
         return context
 
@@ -52,12 +64,17 @@ class MyKidsView(LoginRequiredMixin,UserPassesTestMixin, TemplateView):
 
 
 class TaskSelection(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """
+        Choose to view a learners tests or learning progress
+    """
     template_name = 'Guardian/task_select.html'
 
     def get_context_data(self, **kwargs):
         context = super(TaskSelection, self).get_context_data(**kwargs)
 
-        context['email'] = self.kwargs['email']
+        context['email'] = self.kwargs['email']  # Get a students email from url
+
+        # choose which base template to use based on roles
         if self.request.user.role == 'Guardian':
             context['base_html'] = 'Guardian/baseg.html'
         elif self.request.user.role == 'Teacher':
@@ -66,18 +83,38 @@ class TaskSelection(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         return context
 
     def test_func(self):
-        return self.request.user.role in ['Guardian', 'Teacher']
+        email = self.kwargs.get('email')
+        user = self.request.user
+
+        # Check if the user has a 'Guardian' or 'Teacher' role
+        if user.role in ['Guardian', 'Teacher']:
+
+            # Attempt to get the student's profile using the provided email
+            try:
+                student = PersonalProfile.objects.get(ref_id=user.uuid, user__email=email)
+            except Exception:
+                messages.error(self.request, 'You can"t view this student')
+                return False
+
+            # Ensure the student is associated with the logged-in user
+            if student.ref_id == user.uuid:
+                return True
+
+        return False
 
 
 class KidTests(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """
+        View linked students test
+    """
     template_name = 'Guardian/kid_tests.html'
 
     def get_context_data(self, **kwargs):
         context = super(KidTests, self).get_context_data(**kwargs)
         kid = self.kwargs['email']
         subject_tests = StudentTest.objects.filter(user__email=kid).values('topic__subject__name',
-                                                                            'topic__subject__grade',
-                                                                            'topic__name').distinct()
+                                                                           'topic__subject__grade',
+                                                                           'topic__name').distinct()
         grouped_subjects = []
         for subject, tests in groupby(subject_tests,
                                       key=lambda x: (x['topic__subject__name'], x['topic__subject__grade'])):
@@ -94,7 +131,24 @@ class KidTests(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         return context
 
     def test_func(self):
-        return self.request.user.role in ['Guardian', 'Teacher']
+        email = self.kwargs.get('email')
+        user = self.request.user
+
+        # Check if the user has a 'Guardian' or 'Teacher' role
+        if user.role in ['Guardian', 'Teacher']:
+
+            # Attempt to get the student's profile using the provided email
+            try:
+                student = PersonalProfile.objects.get(ref_id=user.uuid, user__email=email)
+            except Exception:
+                messages.error(self.request, 'You can"t view this student')
+                return False
+
+            # Ensure the student is associated with the logged-in user
+            if student.ref_id == user.uuid:
+                return True
+
+        return False
 
 
 class KidExamTopicView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
@@ -105,7 +159,7 @@ class KidExamTopicView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         user = self.kwargs['email']
 
         try:
-            subject = StudentTest.objects.filter(user__email=user, subject__name=self.kwargs['subject'])\
+            subject = StudentTest.objects.filter(user__email=user, subject__name=self.kwargs['subject']) \
                 .values('topic__name').order_by('topic').distinct()
             context['subject'] = subject
             knec_test = StudentKNECExams.objects.filter(user__email=user)
@@ -126,7 +180,24 @@ class KidExamTopicView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             pass
 
     def test_func(self):
-        return self.request.user.role in ['Guardian', 'Teacher']
+        email = self.kwargs.get('email')
+        user = self.request.user
+
+        # Check if the user has a 'Guardian' or 'Teacher' role
+        if user.role in ['Guardian', 'Teacher']:
+
+            # Attempt to get the student's profile using the provided email
+            try:
+                student = PersonalProfile.objects.get(ref_id=user.uuid, user__email=email)
+            except Exception:
+                messages.error(self.request, 'You can"t view this student')
+                return False
+
+            # Ensure the student is associated with the logged-in user
+            if student.ref_id == user.uuid:
+                return True
+
+        return False
 
 
 class KidExamSubjectDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
@@ -147,14 +218,30 @@ class KidExamSubjectDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView
                 context['base_html'] = 'Teacher/teachers_base.html'
             context['email'] = user
 
-
             return context
 
         except DatabaseError as error:
             pass
 
     def test_func(self):
-        return self.request.user.role in ['Guardian', 'Teacher']
+        email = self.kwargs.get('email')
+        user = self.request.user
+
+        # Check if the user has a 'Guardian' or 'Teacher' role
+        if user.role in ['Guardian', 'Teacher']:
+
+            # Attempt to get the student's profile using the provided email
+            try:
+                student = PersonalProfile.objects.get(ref_id=user.uuid, user__email=email)
+            except Exception:
+                messages.error(self.request, 'You can"t view this student')
+                return False
+
+            # Ensure the student is associated with the logged-in user
+            if student.ref_id == user.uuid:
+                return True
+
+        return False
 
 
 class KidTestDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
@@ -175,7 +262,24 @@ class KidTestDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         return context
 
     def test_func(self):
-        return self.request.user.role in ['Guardian', 'Teacher']
+        email = self.kwargs.get('email')
+        user = self.request.user
+
+        # Check if the user has a 'Guardian' or 'Teacher' role
+        if user.role in ['Guardian', 'Teacher']:
+
+            # Attempt to get the student's profile using the provided email
+            try:
+                student = PersonalProfile.objects.get(ref_id=user.uuid, user__email=email)
+            except Exception:
+                messages.error(self.request, 'You can"t view this student')
+                return False
+
+            # Ensure the student is associated with the logged-in user
+            if student.ref_id == user.uuid:
+                return True
+
+        return False
 
 
 class KidTestRevision(LoginRequiredMixin, UserPassesTestMixin, TemplateView, ABC):
@@ -211,63 +315,124 @@ class KidTestRevision(LoginRequiredMixin, UserPassesTestMixin, TemplateView, ABC
             context['quizzes'] = answers
             context['marks'] = test
 
-
-
-
             return context
 
         except DatabaseError as error:
             pass
 
     def test_func(self):
-        return self.request.user.role in ['Guardian', 'Teacher']
+        email = self.kwargs.get('email')
+        user = self.request.user
+
+        # Check if the user has a 'Guardian' or 'Teacher' role
+        if user.role in ['Guardian', 'Teacher']:
+
+            # Attempt to get the student's profile using the provided email
+            try:
+                student = PersonalProfile.objects.get(ref_id=user.uuid, user__email=email)
+            except Exception:
+                messages.error(self.request, 'You can"t view this student')
+                return False
+
+            # Ensure the student is associated with the logged-in user
+            if student.ref_id == user.uuid:
+                return True
+
+        return False
 
 
-class LearnerProgress(LoginRequiredMixin, UserPassesTestMixin, TemplateView, ABC):
+class LearnerProgress(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """
+        View linked students learning progress
+    """
     template_name = 'Guardian/learner_progress.html'
+
 
     def get_context_data(self, **kwargs):
         context = super(LearnerProgress, self).get_context_data(**kwargs)
-        email = self.kwargs['email']
-        user = MyUser.objects.get(email=email)
-        subject = Progress.objects.filter(user=user, subject__isnull=False).values('subject__name',
-                                                                                   'subject__topics').annotate(
-            topic_count=Count('topic', distinct=True))
+        email = self.kwargs['email']  # Get students email from url
+        try:
+            # Get students progress
+            subject = Progress.objects.filter(user__email=email, subject__isnull=False).values('subject__name',
+                                                                                               'subject__topics').annotate(
+                topic_count=Count('topic', distinct=True))
 
-        context['subject'] = subject
-        if self.request.user.role == 'Guardian':
-            context['base_html'] = 'Guardian/baseg.html'
-        elif self.request.user.role == 'Teacher':
-            context['base_html'] = 'Teacher/teachers_base.html'
+            # Choose base template based on role
+            if self.request.user.role == 'Guardian':
+                context['base_html'] = 'Guardian/baseg.html'
+            elif self.request.user.role == 'Teacher':
+                context['base_html'] = 'Teacher/teachers_base.html'
+            context['subject'] = subject
+
+        except (Exception,):
+            # Handle any exceptions
+            messages.error(self.request, 'An error occurred, were fixing it')
         return context
 
     def test_func(self):
-        return self.request.user.role in ['Guardian', 'Teacher']
+        email = self.kwargs.get('email')
+        user = self.request.user
+
+        # Check if the user has a 'Guardian' or 'Teacher' role
+        if user.role in ['Guardian', 'Teacher']:
+
+            # Attempt to get the student's profile using the provided email
+            try:
+                student = PersonalProfile.objects.get(ref_id=user.uuid, user__email=email)
+            except Exception:
+                messages.error(self.request, 'You can"t view this student')
+                return False
+
+            # Ensure the student is associated with the logged-in user
+            if student.ref_id == user.uuid:
+                return True
+
+        return False
 
 
 class LearnerSyllabus(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """
+        View students syllabus
+    """
     template_name = 'Guardian/learners_syllabus.html'
 
     def test_func(self):
+        email = self.kwargs.get('email')
         user = self.request.user
-        if user.role == 'Guardian' or user.role == 'Teacher':
-            # Allow access for users with 'Guardian' or 'Teacher' roles.
-            return True
-        else:
-            # For other roles, deny access.
-            return False
+
+        # Check if the user has a 'Guardian' or 'Teacher' role
+        if user.role in ['Guardian', 'Teacher']:
+
+            # Attempt to get the student's profile using the provided email
+            try:
+                student = PersonalProfile.objects.get(ref_id=user.uuid, user__email=email)
+            except Exception:
+                messages.error(self.request, 'You can"t view this student')
+                return False
+
+            # Ensure the student is associated with the logged-in user
+            if student.ref_id == user.uuid:
+                return True
+
+        return False
 
     def get_context_data(self, **kwargs):
         context = super(LearnerSyllabus, self).get_context_data(**kwargs)
-        print(self.kwargs['name'])
-        subject = self.kwargs['name']
-        coverage = Topic.objects.filter(subject__name=subject).order_by('order')
+      
+        subject = self.kwargs['name']  # Get subject from url
+        try:
+            # Get all topics by subject
+            coverage = Topic.objects.filter(subject__name=subject).order_by('order')
+
+            if self.request.user.role == 'Guardian':
+                context['base_html'] = 'Guardian/baseg.html'
+            elif self.request.user.role == 'Teacher':
+                context['base_html'] = 'Teacher/teachers_base.html'
+
+        except Exception:
+            # Handle any exceptions
+            messages.error(self.request, 'An error occurred we are fixing it')
         context['email'] = self.kwargs['email']
         context['syllabus'] = coverage
-        print(coverage)
-        if self.request.user.role == 'Guardian':
-            context['base_html'] = 'Guardian/baseg.html'
-        elif self.request.user.role == 'Teacher':
-            context['base_html'] = 'Teacher/teachers_base.html'
 
         return context

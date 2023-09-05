@@ -79,7 +79,7 @@ class Notifications(models.Model):
     message = models.TextField(max_length=500)
     about = models.CharField(max_length=100)
     is_read = models.BooleanField(default=False)
-    date = models.DateTimeField(auto_created=True)
+    date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         abstract = True

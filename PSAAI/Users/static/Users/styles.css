@@ -3,6 +3,11 @@
     /* background-color:black; */
     
 }
+.server-info{
+    margin:0 auto;
+    text-align:center;
+    width:80%;
+}
 .zara {
     font-weight:10000 !important;
     font-size:25px !important;

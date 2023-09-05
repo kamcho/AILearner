@@ -1,9 +1,11 @@
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count
 from django.forms import model_to_dict
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse
+from django.utils import timezone
 
 from Exams.models import TopicalQuizes, TopicalQuizAnswers, StudentsAnswers, ClassTestStudentTest
 from SubjectList.models import Topic, Subtopic
@@ -15,25 +17,33 @@ from django.db import IntegrityError, DatabaseError
 
 
 class TeacherView(TemplateView):
+    """
+        Teachers home page
+    """
     template_name = 'Teacher/teachers_home.html'
 
     def get_context_data(self, **kwargs):
         context = super(TeacherView, self).get_context_data(**kwargs)
-        my_class = StudentList.objects.filter(user=self.request.user)[:3]
-        context['classes'] = my_class
-        print(my_class, '\n\n\n\n\n')
 
         return context
 
 
-class ClassesView(TemplateView):
+class ClassesView(LoginRequiredMixin, TemplateView):
+    """
+        view teachers classes
+    """
     template_name = 'Teacher/my_classes.html'
 
     def get_context_data(self, **kwargs):
         context = super(ClassesView, self).get_context_data(**kwargs)
-        my_class = StudentList.objects.filter(user=self.request.user)
-        context['classes'] = my_class
-        print(my_class, '\n\n\n\n\n')
+        try:
+            # Get teachers classes
+            my_class = StudentList.objects.filter(user=self.request.user)
+            context['classes'] = my_class
+        except Exception:
+            # Handle any exceptions
+            messages.error(self.request, 'An error occurred')
+
 
         return context
 
@@ -43,31 +53,43 @@ class TaskViewSelect(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(TaskViewSelect, self).get_context_data(**kwargs)
-        user = self.request.user
-        class_id = self.kwargs['class']
-        my_class = StudentList.objects.filter(user=self.request.user, class_id__class_name=class_id).first()
-        context['subject'] = my_class.subject.id
-        # subject = self.kwargs['class']
-        # class_id = SchoolClass.objects.get(class_name=class_id)
+        user = self.request.user  # get logged in user
+        class_id = self.kwargs['class']  # get class name
+        try:
+            # Get class list
+            my_class = StudentList.objects.filter(user=self.request.user, class_id__class_name=class_id).first()
+            context['subject'] = my_class.subject.id
+            # Get a few students in a class to display
+            students = AcademicProfile.objects.filter(current_class__class_name=class_id)[:3]
+            # Get a few tests to display
+            tests = ClassTest.objects.filter(teacher=user, class_id__class_name=class_id)[:5]
+            context['tests'] = tests
+            context['class'] = class_id
+            context['students'] = students
+        except Exception:
+            messages.error(self.request, 'an error occurred')  # show error message
 
-        students = AcademicProfile.objects.filter(current_class__class_name=class_id)[:3]
-        tests = ClassTest.objects.filter(teacher=user, class_id__class_name=class_id)[:5]
-
-        context['tests'] = tests
-        context['class'] = class_id
-        context['students'] = students
 
         return context
 
 
 class StudentsView(TemplateView):
+    """
+        view students in a given class
+    """
     template_name = 'Teacher/students_list.html'
 
     def get_context_data(self, **kwargs):
         context = super(StudentsView, self).get_context_data(**kwargs)
         class_id = self.kwargs['class']
-        students = AcademicProfile.objects.filter(current_class__class_name=class_id)
-        context['students'] = students
+        try:
+            # Get students in a given class
+            students = AcademicProfile.objects.filter(current_class__class_name=class_id)
+            context['students'] = students
+
+        except Exception:
+            # Handle any exceptions
+            messages.error(self.request, 'an error occurred')  # show error message
 
         return context
 
@@ -80,19 +102,21 @@ class TestsView(TemplateView):
         user = self.request.user
         subject = self.kwargs['subject']
         class_id = self.kwargs['class']
-        tests = ClassTest.objects.filter(teacher=user, class_id__class_name=class_id)
-        print(tests, '\n\n\n\n')
+        try:
+            # Get class tests where author is the logged in user
+            tests = ClassTest.objects.filter(teacher=user, class_id__class_name=class_id)
 
-        context['tests'] = tests
-        context['subject'] = subject
+            context['tests'] = tests
+            context['class'] = class_id
+            context['subject'] = subject
+        except Exception:
+            messages.error(self.request, 'an error occurred')  # show error message
         return context
 
 
 def get_failed_value_by_uuid(queryset, uuid_str):
-    # print(queryset)
+
     result_dict = {str(item['quiz']): item['failed'] for item in queryset}
-    # print(result_dict)
-    # return result_dict
 
     for key, value in result_dict.items():
         # print(key)
@@ -103,52 +127,64 @@ def get_failed_value_by_uuid(queryset, uuid_str):
 
 
 class ClassTestAnalytics(TemplateView):
+    """
+        Get a class's performance on a given test
+    """
+
     template_name = 'Teacher/class_test_analytics.html'
 
     def get_context_data(self, **kwargs):
         context = super(ClassTestAnalytics, self).get_context_data(**kwargs)
-        test_uuid = self.kwargs['uuid']
-        test_count = ClassTestStudentTest.objects.filter(test=test_uuid).count()
-        test_count = int(test_count)
-        context['test_count'] = test_count
+        try:
+            test_uuid = self.kwargs['uuid']  # get test uuid from url
 
-        class_test = ClassTest.objects.filter(uuid=test_uuid).last()
-        context['test'] = class_test
-        class_id = class_test.class_id
-        student_count = SchoolClass.objects.filter(class_name=class_id).first()
-        context['class_size'] = student_count.class_size
-        test_dict = {}
-        index = 1
-        perfomance_data = {}
+            # Get students class tests
+            test_count = ClassTestStudentTest.objects.filter(test=test_uuid).count()
+            test_count = int(test_count)  # number of students who took the test
+            context['test_count'] = test_count
 
-        for quiz in class_test.quiz.all():
-            test_dict[index] = quiz
-            index += 1
-        passed_count = StudentsAnswers.objects.filter(test_object_id=test_uuid, is_correct=True).values(
-            'quiz').annotate(failed=Count('quiz')).order_by('quiz')
+            class_test = ClassTest.objects.filter(uuid=test_uuid).last()  # get a class test
+            context['test'] = class_test
+            class_id = class_test.class_id
+            student_count = SchoolClass.objects.filter(class_name=class_id).first()
+            context['class_size'] = student_count.class_size  # get the number of students in that class
+            test_dict = {}
+            index = 1
+            perfomance_data = {}
 
-        passed = StudentsAnswers.objects.filter(test_object_id=test_uuid, is_correct=True).values('quiz').distinct()
-        passed_list = [item['quiz'] for item in passed]
-        p_index = 1
-        for choice in passed_list:
+            for quiz in class_test.quiz.all():  # get all quizzes in a test
+                test_dict[index] = quiz
+                index += 1
 
-            for key, value in test_dict.items():
-                relative = get_failed_value_by_uuid(passed_count, str(value))
+            # Get all correct selections from students class test
+            passed_count = StudentsAnswers.objects.filter(test_object_id=test_uuid, is_correct=True).values(
+                'quiz').annotate(failed=Count('quiz')).order_by('quiz')
 
-                if str(choice) == str(value):
-                    perfomance_data[int(key)] = relative
-                    p_index += 1
+            passed = StudentsAnswers.objects.filter(test_object_id=test_uuid, is_correct=True).values('quiz').distinct()
+            passed_list = [item['quiz'] for item in passed]
+            p_index = 1
+            for choice in passed_list:
 
-        failed_test = StudentsAnswers.objects.filter(test_object_id=test_uuid, is_correct=False).values(
-            'quiz').order_by('selection')
-        if perfomance_data:
-            most_failed = min(perfomance_data, key=perfomance_data.get)
-            most_passed = max(perfomance_data, key=perfomance_data.get)
-        # print(failed_test)
-        context['passed'] = most_passed
-        context['quizzes'] = class_test.quiz.all()
-        context['failed'] = most_failed
-        context['performance_data'] = perfomance_data
+                for key, value in test_dict.items():
+                    relative = get_failed_value_by_uuid(passed_count, str(value))
+
+                    if str(choice) == str(value):
+                        perfomance_data[int(key)] = relative
+                        p_index += 1
+
+            failed_test = StudentsAnswers.objects.filter(test_object_id=test_uuid, is_correct=False).values(
+                'quiz').order_by('selection')
+            if perfomance_data:
+                most_failed = min(perfomance_data, key=perfomance_data.get)
+                most_passed = max(perfomance_data, key=perfomance_data.get)
+            # print(failed_test)
+            context['passed'] = most_passed
+            context['quizzes'] = class_test.quiz.all()
+            context['failed'] = most_failed
+            context['performance_data'] = perfomance_data
+        except Exception:
+            messages.error(self.request, 'an error occurred')  # show error message
+
         return context
 
 
@@ -158,7 +194,6 @@ class InitialiseCreateTest(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(InitialiseCreateTest, self).get_context_data(**kwargs)
         class_id = self.kwargs['class']
-
 
         context['class'] = StudentList.objects.filter(user=self.request.user, class_id__class_name=class_id).first()
         return context
@@ -318,7 +353,7 @@ class SaveTest(TemplateView):
 
             print(date)
             try:
-                test = ClassTest(teacher=teacher, subject=subject, test_size=size, expiry=date)
+                test = ClassTest(teacher=teacher, subject=subject, test_size=size, date=timezone.now(), expiry=timezone.now())
                 test.save()
                 print(ids)
                 test.quiz.add(*ids)
@@ -331,7 +366,7 @@ class SaveTest(TemplateView):
                 msg = ClassTestNotifications.objects.create(user=teacher, subject=subject,
                                                             class_id=class_instance.class_id, test=class_instance,
                                                             message=message,
-                                                            notification_type=notification_type, about=about)
+                                                            notification_type=notification_type, about=about, date=timezone.now())
                 del self.request.session['test_data']
                 del self.request.session['selected']
 
@@ -374,6 +409,9 @@ def load_subtopics(request):
 
 
 class CreateQuestion(TemplateView):
+    """
+        A view to create questions
+    """
     template_name = 'Teacher/create_question.html'
 
     def get_context_data(self, **kwargs):
@@ -381,18 +419,21 @@ class CreateQuestion(TemplateView):
 
         user = self.request.user
         if user.role == 'Teacher':
+            # Handle question creation request from teachers
             try:
+                # get teachers profile
                 subjects = TeacherProfile.objects.get(user=user)
-                context['subjects'] = subjects
-                context['base_html'] = 'Teacher/teachers_base.html'
-
-
 
             except TeacherProfile.MultipleObjectsReturned:
-                pass
+                # Handle multiple profiles returned
+                messages.error(self.request, 'An error occurred')
             except TeacherProfile.DoesNotExist:
-                pass
+                # create profile if none is found
+                TeacherProfile.objects.create(user=user)
+            context['subjects'] = subjects
+            context['base_html'] = 'Teacher/teachers_base.html'
         elif user.role == 'Supervisor':
+            # Handle question creation request from Supervisors
             context['subjects'] = Subject.objects.all()
             context['base_html'] = 'Supervisor/base.html'
 
@@ -400,45 +441,62 @@ class CreateQuestion(TemplateView):
 
     def post(self, request, **kwargs):
         if self.request.method == "POST":
+            # get data from form
             subject = request.POST.get('subject')
             topic = request.POST.get('topic')
             sub_topic = request.POST.get('subtopic')
             quiz = request.POST.get('quiz')
             exam_type = request.POST.get('exam_type')
-            user = self.request.user
 
+            user = self.request.user  # get user
+
+            # Ensure all required data was received and add it to session
             if subject and topic and sub_topic:
+
                 quiz_info = {'subject': subject, 'topic': topic, 'subtopic': sub_topic,
                              'quiz': quiz, 'exam_type': exam_type}
                 request.session['quiz_info'] = quiz_info
 
-                return redirect('add-answer')
-            else:
-                print('not values')
+                return redirect('add-answer')  # redirect to adding options
+
+            return redirect(request.get_full_path())
 
 
 class AddAnswerSelection(TemplateView):
+    """
+        A view to add choices to previous added question
+    """
     template_name = 'Teacher/add_answer.html'
 
     def get_context_data(self, **kwargs):
         context = super(AddAnswerSelection, self).get_context_data(**kwargs)
-        context['quiz'] = self.request.session.get('quiz_info')
+        quiz_info = self.request.session.get('quiz_inf')
+        context['quiz'] = quiz_info
+        if not quiz_info:
+            # Handle where key was not found
+            messages.error(self.request, 'A key error occurred please follow protocol')
+            context['error'] = 'error'
+
 
         return context
 
     def post(self, request, **kwargs):
         if self.request.method == 'POST':
             user = request.user
+            # get choices from form
             selection1 = self.request.POST.get('selection1')
             selection2 = self.request.POST.get('selection2')
             selection3 = self.request.POST.get('selection3')
             selection4 = self.request.POST.get('selection4')
+
+            # Ensure all required data was received and add them to session
             if selection1 and selection2 and selection3 and selection4:
                 self.request.session['selection_info'] = {'selection1': selection1,
                                                           'selection2': selection2,
                                                           'selection3': selection3,
                                                           'selection4': selection4
                                                           }
+                # redirect based on role
                 if user.role == 'Teacher':
                     return redirect('save-quiz')
                 elif user.role == 'Supervisor':
@@ -453,10 +511,14 @@ class SaveQuiz(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(SaveQuiz, self).get_context_data(**kwargs)
-        subtopic = self.request.session.get('quiz_info')['subtopic']
-        context['quiz'] = self.request.session.get('quiz_info')['quiz']
-        context['subtopic'] = Subtopic.objects.filter(id=subtopic).first()
-        context['selection'] = self.request.session.get('selection_info')
+        try:
+            subtopic = self.request.session.get('quiz_info')['subtopic']
+            context['quiz'] = self.request.session.get('quiz_info')['quiz']
+            context['subtopic'] = Subtopic.objects.filter(id=subtopic).first()
+            context['selection'] = self.request.session.get('selection_info')
+        except KeyError:
+            context['error'] = 'error'
+            messages.error(self.request, 'A key Error occurred. Please reset to fix')
 
         return context
 
@@ -496,13 +558,18 @@ class DashBoard(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(DashBoard, self).get_context_data(**kwargs)
-        my_class = StudentList.objects.filter(user=self.request.user)
-        subjects = Subject.objects.all()
-        context['subjects'] = subjects
-        context['classes'] = my_class
-        streams = SchoolClass.objects.all()
-        context['streams'] = streams
-        print(my_class)
+        try:
+            # get student list, subjects and all classes
+            my_class = StudentList.objects.filter(user=self.request.user)
+            subjects = Subject.objects.all()
+            streams = SchoolClass.objects.all()
+            context['subjects'] = subjects
+            context['classes'] = my_class
+            context['streams'] = streams
+
+        except Exception:
+            # Handle any exceptions
+            messages.error(self.request, 'An error occurred, were fixing it')
 
         return context
 
@@ -541,59 +608,85 @@ class DashBoard(TemplateView):
 
 def get_subjects(request):
     selected_grade = request.GET.get("grade")
-    grade = SchoolClass.objects.get(class_name=selected_grade).grade
+    try:
+        grade = SchoolClass.objects.get(class_name=selected_grade).grade
 
-    subjects = Subject.objects.filter(grade=grade).values_list("name", flat=True)
-    print(subjects, 'uui')
-    return JsonResponse({"subjects": list(subjects)})
+        subjects = Subject.objects.filter(grade=grade).values_list("name", flat=True)
+        print(subjects, 'uui')
+        return JsonResponse({"subjects": list(subjects)})
+    except (Exception, SchoolClass.DoesNotExist):
+        return JsonResponse({"subjects": None})
 
 
-class SubjectSelect(TemplateView):
+
+
+class SubjectSelect(LoginRequiredMixin, TemplateView):
+    """
+        Teacher subject manipulation
+    """
     template_name = 'Teacher/subjects_select.html'
 
     def get_context_data(self, **kwargs):
         context = super(SubjectSelect, self).get_context_data(**kwargs)
         user = self.request.user
+        try:
+            # get teacher profile
+            teaching_profile = TeacherProfile.objects.get(user=user)  # get users teaching profile
+        except TeacherProfile.DoesNotExist:
+            # create a TeacherProfile in case it doesnt exist
+            teaching_profile = TeacherProfile.objects.create(user=user)
+        try:
+            subject_ids = teaching_profile.subject.all()
+            subjects = Subject.objects.all()  # get all subjects
 
-        subjects = Subject.objects.all()
-        teaching_profile = TeacherProfile.objects.get(user=user)
-        subject_ids = teaching_profile.subject.all()
-        grade4 = subjects.filter(grade=4).exclude(id__in=subject_ids)
-        grade5 = subjects.filter(grade=5).exclude(id__in=subject_ids)
-        grade6 = subjects.filter(grade=6).exclude(id__in=subject_ids)
-        grade7 = subjects.filter(grade=7).exclude(id__in=subject_ids)
+            # group subjects by grade
+            grade4 = subjects.filter(grade=4).exclude(id__in=subject_ids)
+            grade5 = subjects.filter(grade=5).exclude(id__in=subject_ids)
+            grade6 = subjects.filter(grade=6).exclude(id__in=subject_ids)
+            grade7 = subjects.filter(grade=7).exclude(id__in=subject_ids)
 
-        context['subjects'] = subject_ids
-        context['grade4'] = grade4
-        context['grade5'] = grade5
-        context['grade6'] = grade6
-        context['grade7'] = grade7
+            # populate context data
+            context['subjects'] = subject_ids
+            context['grade4'] = grade4
+            context['grade5'] = grade5
+            context['grade6'] = grade6
+            context['grade7'] = grade7
+            context['teaching_profile'] = teaching_profile
+
+        except Exception:
+            messages.error(self.request, 'An error occurred')
 
         return context
 
     def post(self, args, **kwargs):
         if self.request.method == "POST":
             user = self.request.user
-            if 'profile' in self.request.POST:
+            try:
+                if 'profile' in self.request.POST:
+                    # Handles adding subjects to teaching profile
+                    # get selected subject(s)
+                    subject = self.request.POST.getlist('subjects')
+                    # get subject instance of selected subjects
+                    subject_instance = Subject.objects.filter(id__in=subject)
+                    # get teaching profile from cache
+                    teaching_profile = self.get_context_data().get('teaching_profile')
+                    teaching_profile.subject.add(*subject_instance)  # add selected subjects to profile
 
-                subject = self.request.POST.getlist('subjects')
+                elif 'purge' in self.request.POST:
+                    # Handles deletion of subjects from teaching profile
+                    button_id = self.request.POST.get('purge')
 
-                subject_instance = Subject.objects.filter(id__in=subject)
-                try:
-                    teaching_profile = TeacherProfile.objects.get(user=user)
-                    teaching_profile.subject.add(*subject_instance)
-                except TeacherProfile.DoesNotExist:
-                    teaching_profile = TeacherProfile.objects.create(user=user)
-                    teaching_profile.subject.add(*subject_instance)
-            elif 'purge' in self.request.POST:
-                button_id = self.request.POST.get('purge')
+                    teacher_profile = self.get_context_data().get('teaching_profile')  # get teaching profile from cache
+                    subject_to_remove = Subject.objects.get(id=button_id)  # get subject to be removed
 
+                    # Remove the subject from the teacher's profile
+                    teacher_profile.subject.remove(subject_to_remove)
 
-                teacher_profile = TeacherProfile.objects.get(user=user)  # Replace with the appropriate query
-                subject_to_remove = Subject.objects.get(id=button_id)  # Replace with the appropriate query
+            except Subject.DoesNotExist:
+                messages.error(self.request, 'Invalid subject id')
 
-                # Remove the subject from the teacher's profile
-                teacher_profile.subject.remove(subject_to_remove)
+            except Exception:
+                messages.error(self.request, 'An error occurred were fixing it')
 
 
 

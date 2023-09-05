@@ -6,18 +6,16 @@
 
 
 <div class="container">
+    {% if not subtopic %}
 
-    <div>
-        <button class="btn btn-dark"><i class="bi bi-arrow-left" style="color:white;"> </i> </button>
-    </div>
-    <br>
 
+    {% else %}
 
     <h6>Finish Up.</h6>
-    <p>{{ topic }}~{{ subtopic }}</p>
+    <p>{{ subtopic.topic }}~{{ subtopic }}</p>
 
     <p>Make sure you have read and understood every aspect of this subtopic, please note that
-        a test will be provided at the end of each subtopic.
+        a test will be provided at the end of each topic.
     </p>
 
     <div>
@@ -30,7 +28,7 @@
 
 
 
-
+{% endif %}
 
 
 

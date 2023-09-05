@@ -3,14 +3,17 @@
 {% block content %}
   <div>
     <br><br>
-    {% if not messages %}
+    {% if not notifications %}
    <div style="margin:0 auto;width:90%;">
             <h6 class="text-center alert alert-dark">You have 0 Notifications</h6>
 
     </div>
 
     {% else %}
-    {% for message in messages %}
+      <div class="container">
+
+
+    {% for message in notifications %}
   <div class="accordion" id="accordionExample">
     <div class="accordion-item">
       <h2 class="accordion-header" id="heading{{ forloop.counter }}">
@@ -53,6 +56,7 @@
 {% endfor %}
 
   </div>
+      </div>
 {% endif %}
 
 

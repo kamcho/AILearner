@@ -7,7 +7,7 @@ from . import views
 urlpatterns = [
     path('', TeacherView.as_view(), name='teachers-home'),
     path('class/<str:class>/', TaskViewSelect.as_view(), name='class-task-view-select'),
-    path('class/<str:class>/<str:subject>/Tests/', TestsView.as_view(), name='teacher-tests-view'),
+    path('<str:class>/<str:subject>/Tests/', TestsView.as_view(), name='teacher-tests-view'),
     path('class/<str:uuid>/Analytics/', ClassTestAnalytics.as_view(), name='class-test-analytics'),
     path('<str:class>/Student-List/', StudentsView.as_view(), name='students-list'),
     path('<str:class>/<str:subject>/Create-Test/', InitialiseCreateTest.as_view(), name='initialise-test'),

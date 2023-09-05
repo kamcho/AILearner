@@ -66,10 +66,10 @@
 
 
         <li>
-            <a class="nav-link" href="{% url 'profile' user.id %}"><i class="bi bi-person-circle" style="color:black;"> </i>Profile</a>
+            <a class="nav-link" href="{% url 'profile'  %}"><i class="bi bi-person-circle" style="color:black;"> </i>Profile</a>
           </li>
        <li>
-            <a class="nav-link" href="{% url 'profile' user.id %}"><i class="bi bi-headset" style="color:black;"> </i>Call Us</a>
+            <a class="nav-link" href="{% url 'profile'  %}"><i class="bi bi-headset" style="color:black;"> </i>Call Us</a>
           </li>
 
 
@@ -140,10 +140,10 @@
 
 
         <li>
-            <a class="nav-link" href="{% url 'profile' user.id %}"><i class="bi bi-person-circle" style="color:white;"> </i>Profile</a>
+            <a class="nav-link" href="{% url 'profile'  %}"><i class="bi bi-person-circle" style="color:white;"> </i>Profile</a>
           </li>
        <li>
-            <a class="nav-link" href="{% url 'profile' user.id %}"><i class="bi bi-headset" style="color:white;"> </i>Call Us</a>
+            <a class="nav-link" href="{% url 'profile'  %}"><i class="bi bi-headset" style="color:white;"> </i>Call Us</a>
           </li>
 
 
@@ -169,7 +169,20 @@
 
 </nav>
 
+{% if messages %}
+    <br>
+    <br>
+  <div class="text-center" >
+    {% for message in messages %}
+      {% if message.tags ==  'error' %}
+        <h6 class="alert alert-danger">{{ message }}</h6>
+      {% else %}
+          <h6 class="alert alert-success">{{ message }}</h6>
 
+      {% endif %}
+    {% endfor %}
+  </div>
+{% endif %}
 
 <div class="main-body">
         {% block content %}

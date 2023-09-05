@@ -5,21 +5,21 @@
 {% block content %}
 
 <div class="container">
-    <div style="display:flex;position:fixed;">
+    {% if not subject %}
 
-
-        {% if user.role == 'Student' %}
-    <div style="margin-left:100px;">
-        <a href="{% url 'save-progress' subject.topic subject %}"><button class="btn btn-info">Finish</button></a>
+    {% else %}
+    <div>
+        <h5>{{ subject.subject }} Grade - {{ subject.subject.grade }}</h5>
+        <h6 >Topic - {{ subject.topic }}</h6>
+        <h6>Sub Topic - {{ subject }}</h6>
     </div>
-        {% else %}
-        {% endif %}
+    {% if user.role == 'Student' %}
+      <div class="text-center" style="margin-top:30px;">
+         <a href="{% url 'save-progress' subject.topic subject %}"><button class="btn btn-info">Finish</button></a>
+      </div>
+    {% else %}
+    {% endif %}
 
-    </div>
-
-<br><br><br>
-
-    <div><h6 style="text-decoration:underline;">{{ subject.topic }} : {{ subject }}</h6></div>
     <br>
 
 
@@ -30,10 +30,9 @@
         </object>
     </div>
 
-    <br><br>
 
 
-
+{% endif %}
 </div>
 
 

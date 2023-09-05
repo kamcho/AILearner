@@ -8,6 +8,10 @@
 
 <br><br>
 <div class="container">
+    {% if not assignment %}
+
+
+    {% else %}
     <h5>{{ assignment.subject }} (<small>{{ assignment.teacher }}</small>)</h5>
     <h6>Deadline {{ assignment.expiry }}</h6>
     <p>Number of questions ~ {{ assignment.test_size }} </p>
@@ -33,7 +37,7 @@
 
 
 
-
+{% endif %}
 
 
 

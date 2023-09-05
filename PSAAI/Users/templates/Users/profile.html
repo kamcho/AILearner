@@ -43,25 +43,25 @@
           <form method="post">
             {% csrf_token %}
             <div class="form-group">
-              <label for="">First Name</label>
-              <input  name="first-name" class="form-control" value="{{ user.personalprofile.f_name }}">
+              <label for="first-name">First Name</label>
+              <input  name="first-name" id="first-name" class="form-control" value="{{ user.personalprofile.f_name }}" required>
             </div>
             <div class="form-group">
               <label for="last-name">Last Name</label>
-              <input  name="last-name" class="form-control" value="{{ user.personalprofile.l_name }}" >
+              <input  name="last-name" class="form-control" id="last-name" value="{{ user.personalprofile.l_name }}" required>
             </div>
             <div class="form-group">
               <label for="surname">Surname</label>
-              <input id="surname"  name="surname" class="form-control" value="{{ user.personalprofile.surname }}" >
+              <input id="surname"  name="surname" class="form-control" value="{{ user.personalprofile.surname }}" required>
             </div>
             <div class="form-group">
-              <label for="phone_number">Phone Number</label>
-              <input type="tel" name="phone_number" class="form-control" value="{{ user.personalprofile.phone }}" required>
+              <label for="phone-number">Phone Number</label>
+              <input type="tel" name="phone-number" class="form-control" id="phone-number" value="{{ user.personalprofile.phone }}" required>
             </div>
 
               <div class="form-group">
               <label for="city">City</label>
-              <input  name="city" class="form-control" value="{{ user.personalprofile.city }}" >
+              <input  name="city" class="form-control" value="{{ user.personalprofile.city }}" id="city" required>
             </div>
 
               <br>
@@ -89,12 +89,10 @@
 
                     <div class="subject-list">
                         {% for subject in subjects %}
-                          {% for entry in subject.name.all %}
-                          <p ><i class="bi bi-prescription2"> </i>{{ entry }}</p>
-                          {% endfor %}
+                          <p ><i class="bi bi-prescription2"> </i>{{ subject }}</p>
                         {% endfor %}
                     </div>
-                    <a href="{% url 'academia' %}"><button style="width:100px;" class="btn btn-warning">Edit</button></a>
+<!--                    <a href="{% url 'academia' %}"><button style="width:100px;" class="btn btn-warning">Edit</button></a>-->
                 </div>
         {% elif  user.role == "Guardian"%}
         <h6>Add Student</h6>

@@ -22,7 +22,7 @@ def divide(value, arg):
 
 @register.filter
 def get_user_progress_topic(user, subject):
-    subject = Subject.objects.filter(name=subject).first()
+    subject = Subject.objects.filter(id=subject).first()
     progress = Progress.objects.filter(user=user, subject=subject).last()
     if progress:
         try:
@@ -197,7 +197,7 @@ def topical_average_count(user, topic):
 
 @register.filter
 def subject_analytics_marks(user, subject):
-    student_test = StudentTest.objects.filter(subject__name=subject, user=user)
+    student_test = StudentTest.objects.filter(subject__id=subject, user=user)
     sum_marks_and_test_sizes = student_test.aggregate(total_marks=Sum('marks'))
     total_marks = sum_marks_and_test_sizes['total_marks']
 
@@ -206,11 +206,15 @@ def subject_analytics_marks(user, subject):
 
 @register.filter
 def subject_analytics_size(user, subject):
-    student_test = StudentTest.objects.filter(subject__name=subject, user=user)
+    student_test = StudentTest.objects.filter(subject__id=subject, user=user)
     sum_marks_and_test_sizes = student_test.aggregate(total_test_size=Sum('test_size'))
     total_test_size = sum_marks_and_test_sizes['total_test_size']
     return int(total_test_size)
 
+@register.filter
+def get_subject(subject):
+    subject = Subject.objects.get(id=subject)
+    return subject
 
 @register.filter
 def topic_analytics_strength(user, topic):

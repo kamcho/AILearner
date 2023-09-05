@@ -8,23 +8,25 @@
             {% for test in tests %}
             <div class="subject-progress-card">
 
-            <a href="{% url 'subject-analysis' child test.subject__name %}"><h6 class="p-tx"><i class="bi bi-bookmark-plus"></i> {{ test.subject__name }}</h6></a>
+            <a href="{% url 'subject-analysis' child test.subject__id %}"><h6 class="p-tx"><i class="bi bi-bookmark-plus"></i> {{ test.subject__id|get_subject }}</h6></a>
                 <small style="padding:10px;" >Tests Done  <span class="badge bg-info" style="margin-left: 30px;">{{ test.subject_count }}</span></small>
                 <br>
 
 
     <br>
             <div class="kid-in-card">
+                {% with marks=child|subject_analytics_marks:test.subject__id  %}
+                {% with size=child|subject_analytics_size:test.subject__id  %}
                 <small class="text-muted">progress</small><br>
 
-                <small >Total Marks  <span class="badge bg-secondary" style="margin-left:27px;">{{ child|subject_analytics_marks:test.subject__name }}</span></small>
+                <small >Total Marks  <span class="badge bg-secondary" style="margin-left:27px;">{{ marks }}</span></small>
                 <br>
-                <small >Overall Marks  <span class="badge bg-secondary" style="margin-left:14px;">{{ child|subject_analytics_size:test.subject__name }}</span></small>
+                <small >Overall Marks  <span class="badge bg-secondary" style="margin-left:14px;">{{ size }}</span></small>
 
                 <br>
 
-                {% with marks=child|subject_analytics_marks:test.subject__name  %}
-                    {% with size=child|subject_analytics_size:test.subject__name  %}
+
+
 
                 <div class="progress" style="width: 80%;">
                     <div class="progress-bar" role="progressbar" style="background-color: purple;" aria-valuemin="0" >{{ marks|divide:size }}%</div>

@@ -1,129 +1,298 @@
-import datetime
 from datetime import date, timedelta
-
-import requests
+from typing import Optional
+from ElasticEmail.model.email_content import EmailContent
+from ElasticEmail.model.body_part import BodyPart
+from ElasticEmail.model.body_content_type import BodyContentType
+import ElasticEmail
+from ElasticEmail.api import emails_api
+from ElasticEmail.model.email_message_data import EmailMessageData
+from ElasticEmail.model.email_recipient import EmailRecipient
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.db import IntegrityError, DatabaseError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
+from django.db import IntegrityError, DatabaseError, OperationalError
 from django.db.models import Count
-from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render, redirect
-from itsdangerous import json
+from django.http import HttpResponse
+from django.shortcuts import redirect
+from django.utils import timezone
 
-from Exams.models import StudentTest, TopicalQuizAnswers, StudentsAnswers, TopicalQuizes, ClassTest, ClassTestStudentTest
+from Exams.models import TopicalQuizAnswers, StudentsAnswers, TopicalQuizes, ClassTest, \
+    ClassTestStudentTest
 from Teacher.models import ClassTestNotifications
 from .models import *
 # Create your views here.
 from django.views.generic import TemplateView
 
 
-class Academia(LoginRequiredMixin, TemplateView):
-    template_name = 'SubjectList/academia.html'
+def send_mail(user, subject, body):
+    """
 
-    def get_context_data(self, *args, **kwargs):
-        context = super(Academia, self).get_context_data(**kwargs)
+    :param user: a users email
+    :param subject: e-mail subject
+    :param body: email-body
+    :return: none
+    """
+    configuration = ElasticEmail.Configuration()
+    configuration.api_key[
+        'apikey'] = '3699E6F03C0DBDF11D23F7E4582F51753069D25F9E0FCCE778A66472288716D0C15FFD467AB83F885BE10DB6CDDA6C49'
+
+    with ElasticEmail.ApiClient(configuration) as api_client:
+        api_instance = emails_api.EmailsApi(api_client)
+        email_message_data = EmailMessageData(
+            recipients=[
+                EmailRecipient(
+                    email=f'{user}',
+                    fields={
+                        "name": "",
+                    },
+                ),
+            ],
+            content=EmailContent(
+                body=[
+                    BodyPart(
+                        content_type=BodyContentType("HTML"),
+                        content=f"{body}",
+                        charset="utf-8",
+                    ),
+
+                ],
+                _from="njokevin9@gmail.com",
+                reply_to="myemail@gmail.com",
+                subject=f"{subject}",
+            ),
+        )
 
         try:
-            context['sciences'] = Course.objects.filter(discipline='science')
-            context['literature'] = Course.objects.filter(discipline='literature')
-            context['social'] = Course.objects.filter(discipline='social')
-
-        except DatabaseError as error:
-            context['error_message'] = "Failed to retrieve data from the database. Please try again later."
-        return context
-
-    def post(self, request, **kwargs):
-
-        if request.method == 'POST':
-            subjects = request.POST.getlist('subjects')
-            user = self.request.user
-            try:
-                my_subjects = MySubjects.objects.filter(user=user).first()
-                my_subjects.name.set(subjects)
-                my_subjects.save()
-
-                return redirect('student-home')
-
-            except DatabaseError as error:
-                return redirect('student-home')
+            api_response = api_instance.emails_post(email_message_data)
+            print(api_response)
+        except ElasticEmail.ApiException as e:
+            print("Exception when calling EmailsApi->emails_post: %s\n" % e)
 
 
-class Learning(LoginRequiredMixin, TemplateView):
+class Learning(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """
+    View to display subjects by grade for learning.
+    """
     template_name = 'SubjectList/select_subject.html'
 
+    def get_context_data(self, **kwargs):
+        """
+        Retrieve and display subjects by grade.
 
-class Read(LoginRequiredMixin, TemplateView):
+        This method fetches subjects from the database based on the provided grade,
+        and displays them in the template.
+
+        Args:
+            grade (str): The grade for which subjects should be displayed.
+
+        Returns:
+            dict: A dictionary containing context data for the template.
+        """
+        context = super().get_context_data(**kwargs)
+        grade = self.kwargs['grade']
+
+        try:
+            # Display subjects by Grade
+            subjects = Subject.objects.filter(grade=grade)
+            context['subjects'] = subjects
+        except OperationalError:
+            # Handle database operational error
+            messages.error(self.request, 'Database Error! Try again')
+            context['subjects'] = None  # Set subjects to None to indicate error
+        except Exception as e:
+            # Handle other unexpected exceptions
+            messages.error(self.request, f'An error occurred: {e}. Please contact the admin for assistance.')
+            context['subjects'] = None  # Set subjects to None to indicate error
+
+        return context
+
+    def test_func(self):
+        """
+        Ensure only selected grades can be viewed.
+
+        Returns:
+            bool: True if the user can view the content, False otherwise.
+        """
+        try:
+            grade = int(self.kwargs.get('grade', 0))  # Default to 0 if grade is not present
+            if 4 <= grade <= 7:
+                return True
+            else:
+                return False
+        except ValueError:
+            # Handle invalid grade value (not an integer)
+            return False
+
+
+class Read(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """
+    View to read subtopics by name and topic.
+    """
     template_name = 'SubjectList/read.html'
 
     def get_context_data(self, **kwargs):
-        context = super(Read, self).get_context_data(**kwargs)
-        name = self.kwargs['name']
+        """
+        Retrieve and display a subtopic for reading.
+
+        This method fetches a subtopic from the database based on the provided name and topic,
+        and displays it in the template.
+
+        Args:
+            subtopic (str): The name of the subtopic.
+            topic (str): The name of the topic.
+
+        Returns:
+            dict: A dictionary containing context data for the template.
+        """
+        context = super().get_context_data(**kwargs)
+        name = self.kwargs.get('subtopic')
+        topic = self.kwargs.get('topic')
 
         try:
-            context['subject'] = Subtopic.objects.filter(name=name).first()
-            return context
+            # Get subtopic to be displayed
+            context['subject'] = Subtopic.objects.get(name=name, topic__name=topic)
+        except Subtopic.MultipleObjectsReturned:
+            # Handle the case where multiple objects were returned
+            context['subject'] = Subtopic.objects.filter(name=name, topic__name=topic).first()
+        except Subtopic.DoesNotExist:
+            # Handle the case where no objects were returned
+            messages.error(self.request, "Sorry, We couldn't find the results you queried for!")
+            context['subject'] = None
+        except DatabaseError:
+            # Handle any DB error by redirecting to the home page
+            return redirect('student-home')
 
-        except DatabaseError as error:
-            pass
+        return context
 
+    def test_func(self):
+        """
+        Limit view to Students only.
+
+        Returns:
+            bool: True if the user can view the content, False otherwise.
+        """
+        role = self.request.user.role
+        return role == 'Student'
 
 
 class Finish(LoginRequiredMixin, TemplateView):
+    """
+    Save user's learning progress.
+    """
     template_name = 'SubjectList/finish.html'
 
     def get_context_data(self, **kwargs):
-        context = super(Finish, self).get_context_data(**kwargs)
+        """
+        Retrieve and display a subtopic for finishing.
+
+        This method fetches a subtopic from the database based on the provided name and topic,
+        and displays it in the template.
+
+        Args:
+            subtopic (str): The name of the subtopic.
+            topic (str): The primary key (topic name) of the topic.
+
+        Returns:
+            dict: A dictionary containing context data for the template.
+        """
+        context = super().get_context_data(**kwargs)
         try:
-            subtopic = Subtopic.objects.filter(name=self.kwargs['name']).first()
-            topic = subtopic.topic.name
-            context['topic'] = topic
+            # Get subtopic based on URL parameters
+            subtopic = Subtopic.objects.get(name=self.kwargs['name'], topic__name=self.kwargs['pk'])
+            context['subtopic'] = subtopic
+        except Subtopic.DoesNotExist:
+            # Handle the case where no matching subtopic was found
+            messages.error(self.request, 'We could not find results matching your query. Please do not edit the URL!!')
+            context['subtopic'] = None
 
-            return context
-
-        except DatabaseError as error:
-            pass
+        return context
 
     def post(self, request, **kwargs):
+        """
+        Handle the POST request to save learning progress.
+
+        Args:
+            request: The HTTP request object.
+            **kwargs: Additional keyword arguments from the URL.
+
+        Returns:
+            HttpResponseRedirect: Redirects to the appropriate view.
+        """
         if request.method == 'POST':
             user = request.user
             try:
-                subtopic = Subtopic.objects.filter(name=self.kwargs['name']).first()
-                topic = subtopic.topic.name
-                topic = Topic.objects.filter(name=topic).first()
-                subject = Subject.objects.filter(name=subtopic.subject).first()
+                # Get the subtopic based on the context data
+                subtopic = self.get_context_data().get('subtopic')
+                topic = subtopic.topic
+                subject = subtopic.subject
+
+                # Create notification message
                 about = f'{subject}: {topic} quiz is ready.'
-                message = 'The quiz for this topic is now ready. Once started the quiz will finish in 15 minutes. Good luck.'
-                is_progress = Progress.objects.filter(user=self.request.user, topic=topic, subtopic=subtopic)
-                print(subtopic, topic, subject, is_progress)
+                message = 'The quiz for this topic is now ready. Once started, the quiz will finish in 15 minutes. ' \
+                          'Good luck.'
+
+                # Check if user's progress already exists for the subtopic
+                my_progress = Progress.objects.filter(user=user, topic=topic)
+                is_progress = my_progress.filter(subtopic=subtopic)
+
                 if is_progress:
-                    pass
+                    messages.success(request, 'Your progress has been successfully saved')
                 else:
                     try:
+                        # Create a new progress record
                         progress = Progress.objects.create(user=user, subtopic=subtopic, subject=subject)
                         progress.topic.set([topic])
                         progress.save()
                     except IntegrityError:
-                        pass
+                        # Handle IntegrityError (duplicate progress)
+                        messages.error(request, "Oops! That didn't work. Please try again. "
+                                                "If the problem persists, please contact the admin!")
+                        return redirect(request.get_full_path())
+                    except DatabaseError:
+                        return redirect(request.get_full_path())
+
+                    # Check if all subtopics are completed
                     total_topics = topic.topics_count
-                    all_subtopics = Progress.objects.filter(user=user, topic=topic).values(
-                        'subtopic').distinct().count()
-                    print(all_subtopics)
+                    all_subtopics = my_progress.values('subtopic').distinct().count()
                     if all_subtopics == int(total_topics):
                         try:
+                            # Create a notification for completed topic. this notification will be used to create
+                            # Topical Tests.
                             notification = TopicExamNotifications.objects.create(user=user, about=about,
                                                                                  notification_type='quiz',
                                                                                  subject=subject, message=message,
                                                                                  topic=topic,
-                                                                                 date = datetime.datetime.now())
-                        except :
-                            return HttpResponse(f'We could not create a test for you . Please contact Admin.')
-                    else:
-                        pass
+                                                                                 date=timezone.now())
 
-            except DatabaseError as error:
-                pass
+                            # Compose email body
+                            body = f"Dear {user.personalprofile.f_name}, We are thrilled to congratulate you on " \
+                                   f"successfully completing the {topic} in {subject}! Your dedication and hard work " \
+                                   f"are truly commendable, and we applaud your commitment to your studies. To " \
+                                   f"further enhance your understanding and mastery of the topic, " \
+                                   f"we have prepared a tailored test exclusively for you. This test is designed to " \
+                                   f"challenge your knowledge and reinforce your grasp of the concepts covered in {topic}" \
+                                   f"and identify areas for further improvement. Your results will provide valuable " \
+                                   f"insights into your progress and guide your learning journey." \
+                                   f"If you have any questions or encounter any issues," \
+                                   f"please feel free to reach out to our support team, and" \
+                                   f"we will be more than happy to assist you. Keep up the great work, and we look" \
+                                   f"forward to your continued success in your studies! \n"
 
-            except Exception as error:
-                return HttpResponse(f'{error}')
+                            # Send email
+                            send_mail(user='njokevin999@gmail.com', subject=about, body=body)
+                        except IntegrityError as e:
+                            # Handle IntegrityError during notification creation
+                            messages.error(request, 'Sorry, we could not complete your request. If the problem '
+                                                    'persists, please contact the admin')
+
+            except DatabaseError:
+                # Handle DatabaseError
+                messages.error(request, "Oops! That didn't work. Please try again. "
+                                        "If the problem persists, please contact the admin!")
+            except AttributeError:
+                # Handle AttributeError
+                messages.error(request, "Oops! That didn't work. Please try again. "
+                                        "If the problem persists, please contact the admin!")
 
         return redirect('student-home')
 
@@ -132,200 +301,263 @@ class Syllabus(LoginRequiredMixin, TemplateView):
     template_name = 'SubjectList/syllabus.html'
 
     def get_context_data(self, **kwargs):
-        context = super(Syllabus, self).get_context_data(**kwargs)
-        subject = self.kwargs['name']
+        """
+        Retrieve and display the syllabus for a subject.
+
+        This method fetches the topics associated with the specified subject and displays them in the template.
+
+        Args:
+            subject_id (str): The ID of the subject.
+
+        Returns:
+            dict: A dictionary containing context data for the template.
+        """
+        context = super().get_context_data(**kwargs)
+
         try:
-            context['syllabus'] = Topic.objects.filter(subject__name=subject).order_by('order')
+            subject_id = self.kwargs.get('subject_id')
 
+            # Fetch topics for the specified subject and order them
+            topics = Topic.objects.filter(subject__id=subject_id).order_by('order')
 
-        except DatabaseError as error:
-            pass
+            if not topics:
+                # Display a message if no topics are found
+                messages.success(self.request, 'We could not find results matching your query!!')
+            else:
+                # Add data to context
+                context['subject'] = topics.last()
+                context['syllabus'] = topics
+
+        except ValueError:
+            # Handle ValueError (invalid subject_id)
+            messages.error(self.request, 'We could not find results matching the query. Do not edit the URL')
+
+        except DatabaseError:
+            # Handle DatabaseError
+            messages.error(self.request, 'We could not find the results you are looking for due to a Database Error!')
+            context['syllabus'] = None
 
         return context
 
 
 class Assignment(LoginRequiredMixin, TemplateView):
+    """
+    View for viewing assignments based on the current class of the user.
+    """
     template_name = 'SubjectList/assignment.html'
 
     def get_context_data(self, **kwargs):
-        context = super(Assignment, self).get_context_data(**kwargs)
-        current_class = self.request.user.academicprofile.current_class
-        assignments = ClassTest.objects.filter(class_id=current_class)
-        context['assignments'] = assignments
+        """
+        Retrieve and display assignments for the current class.
+
+        This method fetches assignments associated with the current class of the user and displays them in the template.
+
+        Args:
+            **kwargs: Additional keyword arguments from the URL.
+
+        Returns:
+            dict: A dictionary containing context data for the template.
+        """
+        context = super().get_context_data(**kwargs)
+
+        try:
+            current_class = getattr(self.request.user.academicprofile, 'current_class', None)
+
+            # Fetch assignments for the current class
+            assignments = ClassTest.objects.filter(class_id=current_class)
+            context['assignments'] = assignments
+
+            # If no current_class is found raise ValueError
+            if current_class is None:
+                raise ValueError
+
+
+        except ValueError:
+            # Only show the error message in case of invalid class id
+            messages.error(self.request, 'Invalid class Id. Please contact Admin')
+            context['assignments'] = 'error'
+
+        except DatabaseError:
+            # Handle DatabaseError
+            messages.error(self.request, 'We could not find the results you are looking for due to a Database Error!')
+            context['assignments'] = None
 
         return context
 
 
-class AssignmentDetail(LoginRequiredMixin, TemplateView):
+class AssignmentDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    """
+    View class assignments details
+    """
     template_name = 'SubjectList/assignment_lobby.html'
 
     def get_context_data(self, **kwargs):
-        context = super(AssignmentDetail, self).get_context_data(**kwargs)
-        test_uuid = self.kwargs['uuid']
-        test = ClassTest.objects.filter(uuid=test_uuid).first()
-        context['assignment'] = test
+        context = super(AssignmentDetail, self).get_context_data(**kwargs)  # Include 'request' as an argument here
+        test_uuid_str = self.kwargs.get('uuid')
 
-        return context
-
-    def post(self, request, **kwargs):
-        if request.method == "POST":
-            user = request.user
-            test = self.kwargs['uuid']
-            class_test = ClassTest.objects.filter(uuid=test).first()
-            save_test = ClassTestStudentTest.objects.create(user=user, test=class_test, finished=False)
-
-            return redirect('tests', 'ClassTests', test)
-
-
-class TakeAssessment(LoginRequiredMixin, TemplateView):
-    template_name = 'SubjectList/assessment.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(TakeAssessment, self).get_context_data(**kwargs)
-
-        test_id = self.kwargs['uuid']
-        class_test = ClassTest.objects.filter(uuid=test_id).first()
-        # del self.request.session['class_test_quiz_index']
-        index = self.request.session.get('class_test_quiz_index', 0)
-        test_size = class_test.test_size
-        current_quiz = class_test.quiz.all()[index]
-        self.request.session['quiz'] = str(current_quiz)
-        self.request.session['test_size'] = test_size
-        context['quiz'] = current_quiz
-        context['index'] = index+1
-        numbers = [i + 1 for i in range(test_size)]
-        choices = TopicalQuizAnswers.objects.filter(quiz=current_quiz)
-        context['choices'] = choices
-
-        context['test_size'] = numbers
-
-        return context
-
-    def post(self, request, **kwargs):
-        user = request.user
-        test = self.kwargs['uuid']
-        selection = request.POST.get('choice')
-        quiz = request.session.get('quiz')
-        index = self.request.session.get('class_test_quiz_index', 0)
-        test_size = request.session['test_size']
-        quiz = TopicalQuizes.objects.filter(id=quiz).first()
-        selection = TopicalQuizAnswers.objects.get(uuid=selection)
-        test = ClassTest.objects.filter(uuid=test).first()
-
-        answer = StudentsAnswers.objects.create(user=user, quiz=quiz, selection=selection, test=test)
-
-        if int(index) >= int(test_size - 1):
-            del self.request.session['class_test_quiz_index']
-            del self.request.session['test_size']
-            del self.request.session['quiz']
-
-            return redirect('finish-assessment', self.kwargs['uuid'])
-        else:
-            request.session['class_test_quiz_index'] = index + 1
-
-            return redirect(request.path, test)
-
-
-class FinishAssessment(LoginRequiredMixin, TemplateView):
-    template_name = 'SubjectList/finish_assessment.html'
-
-    def get_context_data(self, **kwargs):
-        test = self.kwargs['uuid']
-
-        context = super(FinishAssessment, self).get_context_data(**kwargs)
-        user = self.request.user
-        class_test = ClassTest.objects.filter(uuid=test).first()
-        context['test_size']= class_test.test_size
         try:
-            test = ClassTestStudentTest.objects.filter(user=user, test=test).order_by('date').last()
-            # subject = test.test.subject
-            # subject = Subject.objects.filter(name=subject).first()
-            # print(subject,'\n\n\n\n')
-            # print(test.uuid, '\n\n\n\n\n')
-            if test:
-                answers = StudentsAnswers.objects.filter(user=user, test=class_test).values('selection__uuid')
-                correct_answers = TopicalQuizAnswers.objects.filter(uuid__in=answers, is_correct='True')
-                print(correct_answers, '\n\n\n')
-                test.marks = correct_answers.count()
-                test.save()
-                mark = StudentsAnswers.objects.filter(selection__in=correct_answers)
-                for item in mark:
-                    item.is_correct = True
-                    item.save()
-                # about = f'The results for {subject} class test  are out.'
-                # message = f'Congratulations on completing your test. The results' \
-                #           ' are out, click the button below to view the results. '
-                #
-                #
-                # try:
-                #     notifications = TopicalExamResults.objects.create(user=user, test=test.uuid, about=about, message=message,  subject=subject)
-                #
-                # except IntegrityError as error:
-                #     pass
-                context['score'] = correct_answers.count()
-                context['test'] = class_test
-            else:
-                pass
-
+            test_uuid = uuid.UUID(test_uuid_str)  # Convert the string to a UUID object
+        except ValueError:
+            # Handle invalid UUID format
+            messages.error(self.request, 'Invalid UUID format. Please provide a valid assignment UUID.')
             return context
 
-        except DatabaseError as error:
-            pass
+        try:
+            test = ClassTest.objects.get(uuid=test_uuid)
+            context['assignment'] = test
+        except ClassTest.DoesNotExist:
+            # Handle assignment not found
+            messages.error(self.request,
+                           'Oops, We could not find a matching assignment. Try again or contact the admin.')
+        except ClassTest.MultipleObjectsReturned:
+            # Handle multiple objects returned
+            test = ClassTest.objects.filter(uuid=test_uuid).first()
+            context['assignment'] = test
+        except ValidationError:
+            # Handle validation error
+            messages.error(self.request,
+                           'Oops, something went wrong with the assignment data. Try again or contact the admin.')
+        except Exception as e:
+            # Handle other unexpected exceptions
+            messages.error(self.request, f'An error occurred: {e}. Please contact the admin for assistance.')
+
+        return context
+
+    def test_func(self) -> bool:
+        role = self.request.user.role
+        return role == "Student"
+
+    def post(self, request, **kwargs):
+        """
+        Handle the POST request to create a test for a learner related to the class test.
+        """
+        if request.method == "POST":
+            user = request.user
+            test_uuid = self.kwargs['uuid']  # Assuming you have 'uuid' in your URL kwargs
+
+            try:
+                # Get class test instance from cache
+                class_test = self.get_context_data().get('assignment')
+
+                # Create a ClassTestStudentTest object
+                save_test = ClassTestStudentTest.objects.create(user=user, test=class_test, finished=False)
+
+                # Redirect to the 'tests' view with appropriate arguments
+                return redirect('tests', 'ClassTests', test_uuid)
+            except ClassTest.ObjectDoesNotExist:
+                # Handle ObjectDoesNotExist (invalid UUID)
+                messages.error(request, 'Invalid test UUID. Please check the URL or contact Admin')
+                return redirect(request.get_full_path())
+
+            except IntegrityError:
+                # Handle IntegrityError
+                messages.error(request, 'Sorry, we could not create a test for you. Please contact Admin')
+                return redirect(request.get_full_path())
+
+            except ValueError:
+                # Handle ValueError
+                messages.error(request, 'Sorry, we could not create a test for you. Please contact Admin')
+                return redirect(request.get_full_path())
+
 
 
 class Messages(LoginRequiredMixin, TemplateView):
+    """
+    View for displaying notifications and messages to users.
+    """
     template_name = 'SubjectList/messages.html'
 
+    # noinspection PyBroadException
     def get_context_data(self, **kwargs):
-        context = super(Messages, self).get_context_data(**kwargs)
+        """
+        Retrieve and organize notifications based on the user's role.
+
+        This method fetches and organizes notifications based on the user's role and displays them in the template.
+
+        Args:
+            **kwargs: Additional keyword arguments from the URL.
+
+        Returns:
+            dict: A dictionary containing context data for the template.
+        """
+        context = super().get_context_data(**kwargs)
         user = self.request.user
-        if self.request.user.role == 'Guardian':
+
+        # Determine the base HTML template based on the user's role
+        if user.role == 'Guardian':
             context['base_html'] = 'Guardian/baseg.html'
-        elif self.request.user.role == 'Teacher':
+        elif user.role == 'Teacher':
             context['base_html'] = 'Teacher/teachers_base.html'
         else:
             context['base_html'] = 'Users/base.html'
+
+        # Fetch and organize notifications based on user's role
         if user.role == "Student":
             class_id = user.academicprofile.current_class
             try:
-                topical_exam_results = TopicalExamResults.objects.filter(user=user)
-                topical_exam = TopicExamNotifications.objects.filter(user=user)
-                class_bookings = ClassBookingNotifications.objects.filter(user=user)
-                class_test_notifications = ClassTestNotifications.objects.filter(class_id=class_id)
-                messages = list(topical_exam) + list(topical_exam_results) + list(class_bookings) + list(class_test_notifications)
-                context['messages'] = messages
+                # Fetch relevant notifications for students
+                topical_exam_results = TopicalExamResults.objects.filter(user=user).order_by('-date')
+                topical_exam = TopicExamNotifications.objects.filter(user=user).order_by('-date')
+                class_bookings = ClassBookingNotifications.objects.filter(user=user).order_by('-date')
+                class_test_notifications = ClassTestNotifications.objects.filter(class_id=class_id).order_by('-date')
 
+                # Combine and order notifications
+                notifications = list(topical_exam) + list(topical_exam_results) + list(class_bookings) + list(class_test_notifications)
+                context['notifications'] = notifications
 
-                return context
-
-
-            except DatabaseError as error:
-                pass
-
+            except Exception:
+                # Handle any errors
+                context['notifications'] = None
         else:
+            # Fetch relevant notifications for other roles (Guardian, Teacher, etc.)
             payment_notification = PaymentNotifications.objects.filter(user=user)
             subscription_notifications = SubscriptionNotifications.objects.filter(user=user)
             messages = list(subscription_notifications) + list(payment_notification)
-
             context['messages'] = messages
-            return context
+
+        return context
+
 
 
 class MyProgress(LoginRequiredMixin, TemplateView):
+    """
+    View for displaying user's progress in different subjects.
+    """
     template_name = 'SubjectList/progress.html'
 
     def get_context_data(self, **kwargs):
-        context = super(MyProgress, self).get_context_data(**kwargs)
+        """
+        Retrieve and display user's progress in different subjects.
+
+        This method fetches the user's progress in different subjects and displays it in the template.
+
+        Args:
+            **kwargs: Additional keyword arguments from the URL.
+
+        Returns:
+            dict: A dictionary containing context data for the template.
+        """
+        context = super().get_context_data(**kwargs)
+
         try:
-            subject = Progress.objects.filter(user=self.request.user,
-                                              subject__isnull=False).values('subject__name', 'subject__topics'). \
-                annotate(topic_count=Count('topic', distinct=True))
+            # Fetch the user's progress in different subjects
+            subject_progress = Progress.objects.filter(user=self.request.user, subject__isnull=False).values(
+                'subject__name', 'subject__topics').annotate(topic_count=Count('topic', distinct=True))
 
-            context['subject'] = subject
-            return context
+            context['subject'] = subject_progress
 
-        except DatabaseError as error:
-            pass
+        except DatabaseError:
+            # Handle DatabaseError if a database error occurs
+            messages.error(self.request, 'Database Error! Were Fixing it')
+            context['subject'] = None
+
+        except Exception as e:
+            # Handle other exceptions with a generic error message
+            messages.error(self.request, 'Database Error! Were Fixing it')
+            context['subject'] = None
+
+
+        return context
 
 
 class UpcomingClasses(LoginRequiredMixin, TemplateView):
@@ -446,47 +678,54 @@ class ContactUs(LoginRequiredMixin, TemplateView):
             subject = Course.objects.all()
             context['subject'] = subject
 
-            return context
 
-        except DatabaseError as error:
-            pass
+
+        except Exception as error:
+            context['subject'] = None
+            messages.error(self.request, f'An  error occured ! we are fixing it')
+
+        return context
 
     def post(self, request, **kwargs):
+        """
+        Handle user inquiries based on the 'about' field.
 
-        if request.method == 'POST':
-            user = request.user
-            message = request.POST.get('message')
-            about = request.POST.get('about')
+        This method handles different types of user inquiries based on the 'about' field and stores them in the database.
 
-            if about == 'Academic':
-                subject = request.POST.get('subject')
+        Args:
+            request (HttpRequest): The HTTP request object.
+            **kwargs: Additional keyword arguments from the URL.
 
-                try:
-                    subject = Subject.objects.filter(name=subject).first()
-                    try:
+        Returns:
+            HttpResponseRedirect: Redirects the user to the appropriate page.
+        """
+        user = request.user
+        message = request.POST.get('message')
+        about = request.POST.get('about')
 
-                        inquiry = AcademicInquiries.objects.create(user=user, quiz_class=about, subject=subject,
-                                                               message=message)
-                        return redirect('student-home')
+        try:
+            if about == 'Academic' and message is not None:
+                subject_name = request.POST.get('subject')
+                subject = Subject.objects.filter(name=subject_name).first()
 
-                    except IntegrityError:
-                        pass
-
-                except DatabaseError as error:
-                    pass
-
-            elif about == 'Account':
-                try:
-                    inquiry = AccountInquiries.objects.create(user=user, quiz_class=about, message=message)
-
+                if subject:
+                    # Create an AcademicInquiry record
+                    AcademicInquiries.objects.create(user=user, subject=subject, message=message)
                     return redirect('student-home')
+                else:
+                    raise IntegrityError("Invalid subject")
 
-                except IntegrityError:
-                    pass
+            elif about == 'Account' and message is not None:
+                # Create an AccountInquiry record
+                AccountInquiries.objects.create(user=user, quiz_class=about, message=message)
+                return redirect('student-home')
+
             else:
-                return HttpResponse('could not send your inquiry. Please try again')
+                # If 'about' is not selected or 'message' is empty, raise IntegrityError
+                raise IntegrityError
 
+        except (IntegrityError, DatabaseError, Exception) as error:
+            # Handle database-related errors and invalid data errors
+            messages.error(request, 'An error occurred. Please try again or contact support.')
 
-
-
-
+        return redirect(request.get_full_path())

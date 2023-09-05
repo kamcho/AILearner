@@ -5,7 +5,8 @@
 <div style="width:80%;" class="container quiz-form">
     <form method="post">
         {% csrf_token %}
-        <select class="form-select" aria-label="Default select example" name="about" id="about">
+        <label>About</label>
+        <select class="form-select" aria-label="Default select example" name="about" id="about" required>
             <option ></option>
             <option >Academic</option>
             <option >Account</option>
@@ -23,7 +24,7 @@
 
         <div class="mb-3">
            <label for="exampleFormControlTextarea1" class="form-label">Enter you question.</label>
-           <textarea class="form-control" id="exampleFormControlTextarea1" rows="3" name="message"></textarea>
+           <textarea class="form-control" id="exampleFormControlTextarea1" rows="3" name="message" required></textarea>
         </div>
            <button class="btn btn-info">Submit</button>
 

@@ -3,8 +3,12 @@
 {% load custom_filters %}
 
 {% block content %}
+<div class="container">
+{% if not strength %}
 
 
+
+{% else %}
 <h6>Total tests done {{ total_tests }}</h6>
 <p>Average Score 3%</p>
 <p>Overall Position - Top 30%</p>
@@ -46,6 +50,6 @@
 
 
 
-
-
+{% endif %}
+</div>
 {% endblock %}

@@ -3,6 +3,10 @@
 
 
 <div class="container">
+    {% if error %}
+
+        <button class="btn btn-warning">Save</button>
+    {% else %}
     <h6>Strand Info.</h6>
     <p>{{ subtopic.subject }}</p>
     <small>{{ subtopic.topic }}</small><br>
@@ -28,7 +32,7 @@
 
 
 
-
+{% endif %}
 </div>
 
 
