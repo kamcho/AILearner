@@ -5,33 +5,44 @@
 {% block content %}
 
     <div class="container">
-        <br>
-        {% if instance == 'ClassTests' %}
-        <h6>Scores {{ marks.marks }} / {{ marks.test.test_size }}</h6>
+
+        {% if not marks %}
         {% else %}
-                <h6>Scores {{ marks.marks }} / {{ marks.test_size }}</h6>
+
+            {% if instance == 'ClassTests' %}
+            <h6>Scores {{ marks.marks }} / {{ marks.test.test_size }}</h6>
+            {% else %}
+                    <h6>Scores {{ marks.marks }} / {{ marks.test_size }}</h6>
+            {% endif %}
         {% endif %}
     </div>
-    <br>
+
 
     <div class="container">
-        {% for quiz in quizzes %}
-            {% if quiz.is_correct == False %}
-                <div style="color:crimson;">
-                    <h6>{{ forloop.counter }}) {{ quiz.quiz.quiz }}</h6>
 
-                     <small style="padding-left:15px;">{{ quiz.selection.choice }}</small><i style="font-size:30px;color:crimson;" class="bi bi-x"></i>
-                    <small>{{ quiz.is_correct }}</small>
-                </div>
+        {% if not quizzes %}
 
-            {% else %}
-                <div >
-                    <h6 style="color:purple;">{{ forloop.counter }}) {{ quiz.quiz.quiz }}</h6>
+        {% else %}
+            {% for quiz in quizzes %}
+                {% if quiz.is_correct == False %}
+                    <div style="color:crimson;">
+                        <h6>{{ forloop.counter }}) {{ quiz.quiz.quiz }}</h6>
 
-                     <small style="color:green;padding-left:15px;">{{ quiz.selection.choice }}</small><i style="font-size:30px;color:green;" class="bi bi-check-all"></i>
-                </div>
-            {% endif %}
-        {% endfor %}
+                         <small style="padding-left:15px;">{{ quiz.selection.choice }}</small><i style="font-size:30px;color:crimson;" class="bi bi-x"></i>
+                        <small>{{ quiz.is_correct }}</small>
+                    </div>
+
+                {% else %}
+                    <div >
+                        <h6 style="color:purple;">{{ forloop.counter }}) {{ quiz.quiz.quiz }}</h6>
+
+                         <small style="color:green;padding-left:15px;">{{ quiz.selection.choice }}</small><i style="font-size:30px;color:green;" class="bi bi-check-all"></i>
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+
+        {% endif %}
     </div>
 
 

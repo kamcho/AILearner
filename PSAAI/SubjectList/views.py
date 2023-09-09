@@ -1,5 +1,4 @@
-from datetime import date, timedelta
-from typing import Optional
+import logging
 from ElasticEmail.model.email_content import EmailContent
 from ElasticEmail.model.body_part import BodyPart
 from ElasticEmail.model.body_content_type import BodyContentType
@@ -9,19 +8,19 @@ from ElasticEmail.model.email_message_data import EmailMessageData
 from ElasticEmail.model.email_recipient import EmailRecipient
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.core.exceptions import ValidationError, ObjectDoesNotExist
-from django.db import IntegrityError, DatabaseError, OperationalError
+from django.db import DatabaseError
 from django.db.models import Count
-from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.utils import timezone
 
-from Exams.models import TopicalQuizAnswers, StudentsAnswers, TopicalQuizes, ClassTest, \
-    ClassTestStudentTest
+from Exams.models import ClassTest, ClassTestStudentTest
 from Teacher.models import ClassTestNotifications
+from Users.models import AcademicProfile
 from .models import *
 # Create your views here.
 from django.views.generic import TemplateView
+
+logger = logging.getLogger('django')
 
 
 def send_mail(user, subject, body):
@@ -83,7 +82,7 @@ class Learning(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         and displays them in the template.
 
         Args:
-            grade (str): The grade for which subjects should be displayed.
+            (str): The grade for which subjects should be displayed.
 
         Returns:
             dict: A dictionary containing context data for the template.
@@ -94,15 +93,50 @@ class Learning(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         try:
             # Display subjects by Grade
             subjects = Subject.objects.filter(grade=grade)
+            if not subjects:
+                raise Subject.DoesNotExist
             context['subjects'] = subjects
-        except OperationalError:
+        except Subject.DoesNotExist as e:
             # Handle database operational error
-            messages.error(self.request, 'Database Error! Try again')
+
             context['subjects'] = None  # Set subjects to None to indicate error
+            error_message = f"Grade {grade} subjects are not available"  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'Subject',
+                }
+            )
+
         except Exception as e:
             # Handle other unexpected exceptions
-            messages.error(self.request, f'An error occurred: {e}. Please contact the admin for assistance.')
+            messages.error(self.request, f'An error occurred. Please contact @support for assistance.')
             context['subjects'] = None  # Set subjects to None to indicate error
+            error_message = f"Grade {grade} subjects are not available"  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'Subject',
+                }
+            )
 
         return context
 
@@ -119,7 +153,7 @@ class Learning(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 return True
             else:
                 return False
-        except ValueError:
+        except Exception:
             # Handle invalid grade value (not an integer)
             return False
 
@@ -138,8 +172,8 @@ class Read(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         and displays it in the template.
 
         Args:
-            subtopic (str): The name of the subtopic.
-            topic (str): The name of the topic.
+            (str): The name of the subtopic.
+            (str): The name of the topic.
 
         Returns:
             dict: A dictionary containing context data for the template.
@@ -151,15 +185,65 @@ class Read(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         try:
             # Get subtopic to be displayed
             context['subject'] = Subtopic.objects.get(name=name, topic__name=topic)
-        except Subtopic.MultipleObjectsReturned:
+        except Subtopic.MultipleObjectsReturned as e:
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'Subtopic',
+                }
+            )
             # Handle the case where multiple objects were returned
             context['subject'] = Subtopic.objects.filter(name=name, topic__name=topic).first()
-        except Subtopic.DoesNotExist:
+        except Subtopic.DoesNotExist as e:
             # Handle the case where no objects were returned
-            messages.error(self.request, "Sorry, We couldn't find the results you queried for!")
+            messages.error(self.request, "An error occurred!. Please do not edit the url!!."
+                                         " If the issue persists contact @support")
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'Subtopic',
+                }
+            )
             context['subject'] = None
-        except DatabaseError:
+        except Exception as e:
             # Handle any DB error by redirecting to the home page
+            messages.error(self.request, "An error occurred!. We are fixing it.")
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'Subtopic',
+                }
+            )
             return redirect('student-home')
 
         return context
@@ -198,12 +282,28 @@ class Finish(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         try:
             # Get subtopic based on URL parameters
-            subtopic = Subtopic.objects.get(name=self.kwargs['name'], topic__name=self.kwargs['pk'])
+            subtopic = Subtopic.objects.get(name=self.kwargs['subtopic'], topic__name=self.kwargs['topic'])
             context['subtopic'] = subtopic
-        except Subtopic.DoesNotExist:
+        except (Subtopic.DoesNotExist, Subtopic.MultipleObjectsReturned) as e:
             # Handle the case where no matching subtopic was found
             messages.error(self.request, 'We could not find results matching your query. Please do not edit the URL!!')
             context['subtopic'] = None
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'Subtopic',
+                }
+            )
 
         return context
 
@@ -243,12 +343,26 @@ class Finish(LoginRequiredMixin, TemplateView):
                         progress = Progress.objects.create(user=user, subtopic=subtopic, subject=subject)
                         progress.topic.set([topic])
                         progress.save()
-                    except IntegrityError:
+                    except Exception as e:
                         # Handle IntegrityError (duplicate progress)
                         messages.error(request, "Oops! That didn't work. Please try again. "
                                                 "If the problem persists, please contact the admin!")
-                        return redirect(request.get_full_path())
-                    except DatabaseError:
+                        error_message = str(e)  # Get the error message as a string
+                        error_type = type(e).__name__
+
+                        logger.critical(
+                            error_message,
+                            exc_info=True,  # Include exception info in the log message
+                            extra={
+                                'app_name': __name__,
+                                'url': self.request.get_full_path(),
+                                'school': uuid.uuid4(),
+                                'error_type': error_type,
+                                'user': self.request.user,
+                                'level': 'Critical',
+                                'model': 'Progress',
+                            }
+                        )
                         return redirect(request.get_full_path())
 
                     # Check if all subtopics are completed
@@ -280,19 +394,49 @@ class Finish(LoginRequiredMixin, TemplateView):
 
                             # Send email
                             send_mail(user='njokevin999@gmail.com', subject=about, body=body)
-                        except IntegrityError as e:
+                        except Exception as e:
                             # Handle IntegrityError during notification creation
                             messages.error(request, 'Sorry, we could not complete your request. If the problem '
-                                                    'persists, please contact the admin')
+                                                    'persists, please contact the @support')
+                            error_message = str(e)  # Get the error message as a string
+                            error_type = type(e).__name__
 
-            except DatabaseError:
+                            logger.critical(
+                                error_message,
+                                exc_info=True,  # Include exception info in the log message
+                                extra={
+                                    'app_name': __name__,
+                                    'url': self.request.get_full_path(),
+                                    'school': uuid.uuid4(),
+                                    'error_type': error_type,
+                                    'user': self.request.user,
+                                    'level': 'Critical',
+                                    'model': 'TopicExamNotifications',
+                                }
+                            )
+                            return redirect(request.get_full_path())
+
+            except DatabaseError as e:
                 # Handle DatabaseError
                 messages.error(request, "Oops! That didn't work. Please try again. "
                                         "If the problem persists, please contact the admin!")
-            except AttributeError:
-                # Handle AttributeError
-                messages.error(request, "Oops! That didn't work. Please try again. "
-                                        "If the problem persists, please contact the admin!")
+                error_message = str(e)  # Get the error message as a string
+                error_type = type(e).__name__
+
+                logger.critical(
+                    error_message,
+                    exc_info=True,  # Include exception info in the log message
+                    extra={
+                        'app_name': __name__,
+                        'url': self.request.get_full_path(),
+                        'school': uuid.uuid4(),
+                        'error_type': error_type,
+                        'user': self.request.user,
+                        'level': 'Critical',
+                        'model': 'Database',
+                    }
+                )
+                return redirect(request.get_full_path())
 
         return redirect('student-home')
 
@@ -328,14 +472,25 @@ class Syllabus(LoginRequiredMixin, TemplateView):
                 context['subject'] = topics.last()
                 context['syllabus'] = topics
 
-        except ValueError:
-            # Handle ValueError (invalid subject_id)
-            messages.error(self.request, 'We could not find results matching the query. Do not edit the URL')
+        except Exception as e:
+            messages.error(self.request, 'An error occurred, We are fixing it.')
 
-        except DatabaseError:
-            # Handle DatabaseError
-            messages.error(self.request, 'We could not find the results you are looking for due to a Database Error!')
-            context['syllabus'] = None
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+                }
+            )
 
         return context
 
@@ -359,9 +514,11 @@ class Assignment(LoginRequiredMixin, TemplateView):
             dict: A dictionary containing context data for the template.
         """
         context = super().get_context_data(**kwargs)
+        user = self.request.user
 
         try:
-            current_class = getattr(self.request.user.academicprofile, 'current_class', None)
+            academic_profile = AcademicProfile.objects.get(user=user)
+            current_class = academic_profile.current_class
 
             # Fetch assignments for the current class
             assignments = ClassTest.objects.filter(class_id=current_class)
@@ -372,15 +529,69 @@ class Assignment(LoginRequiredMixin, TemplateView):
                 raise ValueError
 
 
-        except ValueError:
+        except AcademicProfile.DoesNotExist as e:
+            academic_profile = AcademicProfile.objects.create(user=user)
             # Only show the error message in case of invalid class id
-            messages.error(self.request, 'Invalid class Id. Please contact Admin')
+            messages.error(self.request, 'You did not specify the class you are in. Contact @support')
             context['assignments'] = 'error'
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
 
-        except DatabaseError:
+            logger.warning(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Warning',
+                    'model': 'AcademicProfile',
+                }
+            )
+
+        except ValueError as e:
             # Handle DatabaseError
-            messages.error(self.request, 'We could not find the results you are looking for due to a Database Error!')
-            context['assignments'] = None
+            messages.error(self.request, 'You did not specify the class you are in and can therefore'
+                                         ' not view your assignments. Contact @support')
+            context['assignments'] = 'error'
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'AcademicProfile',
+                }
+            )
+        except Exception as e:
+            # Handle DatabaseError
+            messages.error(self.request, 'An error occurred, we are fixing it !!')
+            context['assignments'] = 'error'
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+                }
+            )
 
         return context
 
@@ -399,27 +610,59 @@ class AssignmentDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             test_uuid = uuid.UUID(test_uuid_str)  # Convert the string to a UUID object
         except ValueError:
             # Handle invalid UUID format
-            messages.error(self.request, 'Invalid UUID format. Please provide a valid assignment UUID.')
-            return context
+            messages.error(self.request, 'Invalid UUID format. Please do not edit the url !!.')
 
         try:
-            test = ClassTest.objects.get(uuid=test_uuid)
+            test = ClassTest.objects.get(uuid=test_uuid_str)
             context['assignment'] = test
-        except ClassTest.DoesNotExist:
+        except (ClassTest.DoesNotExist, ClassTest.MultipleObjectsReturned) as e:
             # Handle assignment not found
             messages.error(self.request,
-                           'Oops, We could not find a matching assignment. Try again or contact the admin.')
-        except ClassTest.MultipleObjectsReturned:
-            # Handle multiple objects returned
-            test = ClassTest.objects.filter(uuid=test_uuid).first()
-            context['assignment'] = test
-        except ValidationError:
-            # Handle validation error
-            messages.error(self.request,
-                           'Oops, something went wrong with the assignment data. Try again or contact the admin.')
+                           'Oops, We could not find a matching assignment. Please do not edit the url. Try again or contact @support.')
+
+            # Handle DatabaseError
+
+            context['assignments'] = 'error'
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'ClassTest',
+                    'object_id': test_uuid_str,
+                }
+            )
+
+
         except Exception as e:
             # Handle other unexpected exceptions
             messages.error(self.request, f'An error occurred: {e}. Please contact the admin for assistance.')
+            context['assignments'] = 'error'
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+                    'object_id': test_uuid_str,
+                }
+            )
 
         return context
 
@@ -444,21 +687,28 @@ class AssignmentDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
                 # Redirect to the 'tests' view with appropriate arguments
                 return redirect('tests', 'ClassTests', test_uuid)
-            except ClassTest.ObjectDoesNotExist:
-                # Handle ObjectDoesNotExist (invalid UUID)
-                messages.error(request, 'Invalid test UUID. Please check the URL or contact Admin')
-                return redirect(request.get_full_path())
 
-            except IntegrityError:
+            except Exception as e:
                 # Handle IntegrityError
                 messages.error(request, 'Sorry, we could not create a test for you. Please contact Admin')
-                return redirect(request.get_full_path())
+                error_message = str(e)  # Get the error message as a string
+                error_type = type(e).__name__
 
-            except ValueError:
-                # Handle ValueError
-                messages.error(request, 'Sorry, we could not create a test for you. Please contact Admin')
+                logger.critical(
+                    error_message,
+                    exc_info=True,  # Include exception info in the log message
+                    extra={
+                        'app_name': __name__,
+                        'url': self.request.get_full_path(),
+                        'school': uuid.uuid4(),
+                        'error_type': error_type,
+                        'user': self.request.user,
+                        'level': 'Critical',
+                        'model': 'ClassTestStudentTest',
+                        'object_id': test_uuid,
+                    }
+                )
                 return redirect(request.get_full_path())
-
 
 
 class Messages(LoginRequiredMixin, TemplateView):
@@ -492,9 +742,9 @@ class Messages(LoginRequiredMixin, TemplateView):
             context['base_html'] = 'Users/base.html'
 
         # Fetch and organize notifications based on user's role
-        if user.role == "Student":
-            class_id = user.academicprofile.current_class
-            try:
+        try:
+            if user.role == "Student":
+                class_id = user.academicprofile.current_class
                 # Fetch relevant notifications for students
                 topical_exam_results = TopicalExamResults.objects.filter(user=user).order_by('-date')
                 topical_exam = TopicExamNotifications.objects.filter(user=user).order_by('-date')
@@ -502,21 +752,38 @@ class Messages(LoginRequiredMixin, TemplateView):
                 class_test_notifications = ClassTestNotifications.objects.filter(class_id=class_id).order_by('-date')
 
                 # Combine and order notifications
-                notifications = list(topical_exam) + list(topical_exam_results) + list(class_bookings) + list(class_test_notifications)
+                notifications = list(topical_exam) + list(topical_exam_results) + list(class_bookings) + list(
+                    class_test_notifications)
                 context['notifications'] = notifications
 
-            except Exception:
-                # Handle any errors
-                context['notifications'] = None
-        else:
-            # Fetch relevant notifications for other roles (Guardian, Teacher, etc.)
-            payment_notification = PaymentNotifications.objects.filter(user=user)
-            subscription_notifications = SubscriptionNotifications.objects.filter(user=user)
-            messages = list(subscription_notifications) + list(payment_notification)
-            context['messages'] = messages
+
+            else:
+                # Fetch relevant notifications for other roles (Guardian, Teacher, etc.)
+                payment_notification = PaymentNotifications.objects.filter(user=user)
+                subscription_notifications = SubscriptionNotifications.objects.filter(user=user)
+                notifications = list(subscription_notifications) + list(payment_notification)
+                context['notifications'] = notifications
+        except Exception as e:
+            messages.error(self.request, 'Sorry, we could not get your messages. Contact @support')
+
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+                }
+            )
 
         return context
-
 
 
 class MyProgress(LoginRequiredMixin, TemplateView):
@@ -546,124 +813,29 @@ class MyProgress(LoginRequiredMixin, TemplateView):
 
             context['subject'] = subject_progress
 
-        except DatabaseError:
-            # Handle DatabaseError if a database error occurs
-            messages.error(self.request, 'Database Error! Were Fixing it')
-            context['subject'] = None
+
 
         except Exception as e:
             # Handle other exceptions with a generic error message
             messages.error(self.request, 'Database Error! Were Fixing it')
             context['subject'] = None
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
 
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
 
-        return context
-
-
-class UpcomingClasses(LoginRequiredMixin, TemplateView):
-    template_name = 'SubjectList/upcoming_classes.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(UpcomingClasses, self).get_context_data(**kwargs)
-        today = date.today()
-
-        # Calculate the date range for the coming 7 days
-        end_date = today + timedelta(days=7)
-
-        # Filter OnlineClass objects with a date within the
-        try:
-            # OnlineClass.objects.filter(date__range=(today, end_date))
-            upcoming_classes = OnlineClass.objects.all()
-
-            context['classes'] = upcoming_classes
-            return context
-
-        except DatabaseError as error:
-            pass
-
-
-class ClassBookings(LoginRequiredMixin, TemplateView):
-    template_name = 'SubjectList/class_booking.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(ClassBookings, self).get_context_data(**kwargs)
-        class_id = self.kwargs['id']
-
-        try:
-            work = OnlineClass.objects.filter(id=class_id).last()
-            context['class'] = work
-            return context
-
-        except DatabaseError as error:
-            pass
-
-    def post(self, request, **kwargs):
-        user = request.user
-        class_id = self.kwargs['id']
-        try:
-
-            class_instance = OnlineClass.objects.filter(id=class_id).last()
-            action = request.POST.get('action')
-            if class_instance:
-                if 'book-class' in action:
-
-                    try:
-                        booking = ClassBooking.objects.create(user=user, class_name=class_instance)
-                        return redirect('student-home')
-                    except IntegrityError:
-                        pass
-                elif 'delete-class' in action:
-                    booking = ClassBooking.objects.filter(user=user, class_name=class_instance).first()
-                    print(booking)
-                    if booking:
-                        booking.delete()
-                    return redirect('student-home')
-                else:
-                    return redirect('notifications')
-
-        except DatabaseError as error:
-            pass
-
-
-class BookedClasses(LoginRequiredMixin, TemplateView):
-    template_name = 'SubjectList/booked_classes.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(BookedClasses, self).get_context_data(**kwargs)
-        user = self.request.user
-        try:
-            bookings = ClassBooking.objects.filter(user=user)
-            context['bookings'] = bookings
-
-            return context
-
-        except DatabaseError as error:
-            pass
-
-
-class CallLobby(LoginRequiredMixin, TemplateView):
-    template_name = 'SubjectList/lobby.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(CallLobby, self).get_context_data(**kwargs)
-        class_id = self.kwargs['id']
-        try:
-            class_instance = VideoChannel.objects.filter(class_id=class_id).last()
-            context['class'] = class_instance
-
-            return context
-
-        except DatabaseError as error:
-            pass
-
-
-class VideoCall(LoginRequiredMixin, TemplateView):
-    template_name = 'SubjectList/video_call.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(VideoCall, self).get_context_data(**kwargs)
-        app_id = 'b45a2ed7b1774731b2555d0c77264519'
-        context['app_id'] = app_id
+                }
+            )
 
         return context
 
@@ -680,9 +852,26 @@ class ContactUs(LoginRequiredMixin, TemplateView):
 
 
 
-        except Exception as error:
+        except Exception as e:
             context['subject'] = None
             messages.error(self.request, f'An  error occured ! we are fixing it')
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'Course',
+
+                }
+            )
 
         return context
 
@@ -705,27 +894,61 @@ class ContactUs(LoginRequiredMixin, TemplateView):
 
         try:
             if about == 'Academic' and message is not None:
-                subject_name = request.POST.get('subject')
-                subject = Subject.objects.filter(name=subject_name).first()
+                subject_id = request.POST.get('subject')
+                subject = Subject.objects.get(id=subject_id)
 
-                if subject:
-                    # Create an AcademicInquiry record
-                    AcademicInquiries.objects.create(user=user, subject=subject, message=message)
-                    return redirect('student-home')
-                else:
-                    raise IntegrityError("Invalid subject")
+                # Create an AcademicInquiry record
+                AcademicInquiries.objects.create(user=user, subject=subject, message=message)
+                return redirect('student-home')
+
 
             elif about == 'Account' and message is not None:
                 # Create an AccountInquiry record
                 AccountInquiries.objects.create(user=user, quiz_class=about, message=message)
                 return redirect('student-home')
 
-            else:
-                # If 'about' is not selected or 'message' is empty, raise IntegrityError
-                raise IntegrityError
 
-        except (IntegrityError, DatabaseError, Exception) as error:
+
+        except Subject.DoesNotExist as e:
             # Handle database-related errors and invalid data errors
-            messages.error(request, 'An error occurred. Please try again or contact support.')
+            messages.error(request, 'An error occurred. Please try again or contact @support.')
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'Subject',
+
+                }
+            )
+
+        except Exception as e:
+            # Handle database-related errors and invalid data errors
+            messages.error(request, 'An error occurred. Please try again or contact @support.')
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+
+                }
+            )
 
         return redirect(request.get_full_path())

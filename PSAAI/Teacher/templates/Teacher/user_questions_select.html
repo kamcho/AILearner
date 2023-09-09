@@ -19,6 +19,7 @@
 <br>
     <div>
        <select class="form-select" id="topicSelect" name="subject" aria-label="Default select example">
+            <option></option>
              {% for topic in topics %}
                <option value="{{ topic.id }}">{{ topic }}</option>
              {% endfor %}

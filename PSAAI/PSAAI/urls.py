@@ -20,9 +20,12 @@ from django.urls import path,include
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
+path('Logs/', include('Logs.urls')),
     path('admin/', admin.site.urls),
     path('', include('Users.urls')),
-    path('academic/',include('SubjectList.urls')),
+    path('academic/', include('SubjectList.urls')),
+
+
     path('Exams/', include('Exams.urls')),
     path('Subscription/', include('Subscription.urls')),
     path('Guardian/', include('Guardian.urls')),

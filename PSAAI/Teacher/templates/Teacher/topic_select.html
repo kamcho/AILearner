@@ -6,10 +6,15 @@
     {% for topic in topics %}
 
       <div class="for">
-        <input class="form-check-input" name="selected" type="checkbox" value="{{ topic.id }}">
+          {% if exam_type == 'general' %}
+              <input class="form-check-input" name="selected" type="checkbox" value="{{ topic.id }}" required>
+          {% else %}
+              <input class="form-check-input" name="selected" type="radio" value="{{ topic.id }}" required>
+          {% endif %}
           {{ topic }}
         </label>
       </div>
+
       <br>
 
     {% endfor %}

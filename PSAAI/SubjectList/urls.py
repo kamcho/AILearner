@@ -13,11 +13,7 @@ urlpatterns = [
     path('<str:subject_id>/syllabus-coverage/', Syllabus.as_view(), name='syllabus'),
     path('Notifications/', Messages.as_view(), name='notifications'),
     path('Progress/', MyProgress.as_view(), name='progress'),
-    path('online-class/', UpcomingClasses.as_view(), name='upcoming-classes'),
-    path('Video-Call', VideoCall.as_view(), name='video-call'),
-    path('online-class/<str:id>/booking', ClassBookings.as_view(), name='book-class'),
-    path('booked-classes/', BookedClasses.as_view(), name='booked-classes'),
-    path('<str:id>/lobby', CallLobby.as_view(), name='lobby'),
+
     path('contact/', ContactUs.as_view(), name='contact')
 
 ]

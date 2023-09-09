@@ -14,15 +14,7 @@
         </div>
 
 
-        <div>
-            {% if user.role == "Student" %}
-                {% if user.mysubscription.status %}
-                    <p style="color:green;">Active</p>
-                {% else %}
-                    <p style="color:crimson;">Renew Subscription</p>
-                {% endif %}
-            {% endif %}
-        </div>
+
 
         <div class="">
 
@@ -83,16 +75,19 @@
                 <div >
                     <h6 style="font-size:15px;">Laikipia University</h6>
 
-                    <h6 style="font-size:13px;">Grade 4</h6>
+                    <h6 style="font-size:13px;">Grade {{ user.academicprofile.current_class.grade }}</h6>
                     <br>
                     <h6 >Subjects</h6>
 
                     <div class="subject-list">
-                        {% for subject in subjects %}
-                          <p ><i class="bi bi-prescription2"> </i>{{ subject }}</p>
-                        {% endfor %}
+                        {% if not subjects %}
+                            <p>We could not find your selected Subjects, We are fixing it.</p>
+                        {% else %}
+                            {% for subject in subjects %}
+                              <p><i class="bi bi-prescription2"> </i>{{ subject }}</p>
+                            {% endfor %}
+                        {% endif %}
                     </div>
-<!--                    <a href="{% url 'academia' %}"><button style="width:100px;" class="btn btn-warning">Edit</button></a>-->
                 </div>
         {% elif  user.role == "Guardian"%}
         <h6>Add Student</h6>

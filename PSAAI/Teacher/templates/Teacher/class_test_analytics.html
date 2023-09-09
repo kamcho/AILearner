@@ -3,7 +3,11 @@
 
 
 <div class="container">
+  {% if error %}
 
+
+
+  {% else %}
 
   <h6>{{ test.subject }} Grade - {{ test.subject.grade }}</h6>
   <br>
@@ -40,6 +44,8 @@
   {% endfor %}
 
 </div>
+
+  {% endif %}
 </div>
 
 <script>

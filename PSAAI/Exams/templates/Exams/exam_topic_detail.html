@@ -26,7 +26,7 @@
         {% for topic in subject %}
           <tr>
               <td><a href="{% url 'exam-subject-id' subject_name topic.topic__name %}"><h6>{{ topic.topic__name }}</h6></a></td>
-              <td><span class="badge bg-secondary">{{ user|topical_average:topic.topic__name }}</span> / <span class="badge bg-dark">{{ topic.test_size }}</span> </td>
+              <td><span class="badge bg-secondary">{{ user|topical_average:topic.topic__name }}</span>  <span class="badge bg-dark">{{ topic.test_size }}</span> </td>
               <td><span class="badge bg-info">{{ user|topical_average_count:topic.topic__name }}</span> </td>
           </tr>
         {% endfor %}
@@ -35,7 +35,7 @@
     {% endif %}
 
     <br>
-<hr>
+
 
 
 

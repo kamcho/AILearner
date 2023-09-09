@@ -123,8 +123,8 @@
           // Populate subjects
           $.each(data.subjects, function(index, subject) {
             subjectSelect.append($('<option>', {
-              value: subject,
-              text: subject
+              value: subject.id,
+              text: subject.name
             }));
           });
         },

@@ -1,5 +1,5 @@
 import datetime
-from sqlite3 import OperationalError
+import logging
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -11,6 +11,8 @@ from django.shortcuts import redirect
 from .models import *
 from django.views.generic import TemplateView
 from SubjectList.models import TopicalExamResults, TopicExamNotifications
+
+logger = logging.getLogger('django')
 
 
 class Exams(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
@@ -79,10 +81,10 @@ class Exams(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
             # Count the total number of tests
             total_tests_count = (
-                topical_subject_counts.count() +
-                knec_subject_counts.count() +
-                class_subject_counts.count() +
-                general_subject_counts.count()
+                    topical_subject_counts.count() +
+                    knec_subject_counts.count() +
+                    class_subject_counts.count() +
+                    general_subject_counts.count()
             )
 
             # Retrieve the Subject objects with the common subject IDs
@@ -92,19 +94,33 @@ class Exams(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             context['subjects'] = subjects
 
 
-        except (DatabaseError, TypeError, Exception) as error:
+        except Exception as e:
             # Handle DatabaseError if needed
-            messages.error(self.request, 'An error occured were fixing it!')
+            messages.error(self.request, 'An error occurred. We are fixing it!')
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+
+                }
+            )
 
         return context
 
-
     def test_func(self):
         user = self.request.user
-        if user.role == "Student":
-            return True
-        else:
-            return False
+
+        return user.role == "Student"
 
 
 class ExamTopicView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
@@ -132,32 +148,50 @@ class ExamTopicView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
         try:
             # Retrieve student test data for the subject
-            subject_tests = StudentTest.objects.filter(user=user, subject=subject_id) \
-                .values('topic__name', 'test_size').order_by('topic').distinct()
+            subject_tests = StudentTest.objects.filter(user=user, subject__id=subject_id) \
+                .values('topic__name').order_by('topic').distinct()
 
             # Retrieve KNEC test data for the subject
-            knec_tests = StudentKNECExams.objects.filter(user=user, subject=subject_id)
+            knec_tests = StudentKNECExams.objects.filter(user=user, subject__id=subject_id)
 
             # Retrieve class test data for the subject, excluding a specific UUID
-            class_tests = ClassTestStudentTest.objects.filter(user=user, test__subject=subject_id)
+            class_tests = ClassTestStudentTest.objects.filter(user=user, test__subject__id=subject_id)
 
             context['subject'] = subject_tests
             context['tests'] = knec_tests
             context['class_tests'] = class_tests
             context['subject_name'] = self.kwargs['subject']
+            if not (subject_tests or knec_tests or class_tests):
+                messages.info(self.request, 'We could not find results matching your query.')
 
-        except DatabaseError as error:
+        except DatabaseError as e:
             # Handle DatabaseError if needed
-            pass
+            messages.error(self.request, 'An error occurred. We are fixing it!')
+
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+
+                }
+            )
 
         return context
 
     def test_func(self):
         user = self.request.user
-        if user.role == "Student":
-            return True
-        else:
-            return False
+
+        return user.role == "Student"
 
 
 class ExamSubjectDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
@@ -181,31 +215,48 @@ class ExamSubjectDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         context = super(ExamSubjectDetail, self).get_context_data(**kwargs)
 
         # Get subject and topic from URL parameters
-        subject_name = self.kwargs['subject']
+        subject_id = self.kwargs['subject']
         topic_name = self.kwargs['topic']
 
         try:
             # Retrieve tests for the selected subject and topic
             tests = StudentTest.objects.filter(
                 user=self.request.user,
-                subject__name=subject_name,
+                subject__id=subject_id,
                 topic__name=topic_name
             )
 
             context['subject'] = tests
+            if not tests:
+                messages.info(self.request, 'We could not find results matching your query.')
 
-        except DatabaseError as error:
+        except DatabaseError as e:
             # Handle DatabaseError if needed
-            pass
+            messages.error(self.request, 'An error occurred. We are fixing it!')
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+
+                }
+            )
 
         return context
 
     def test_func(self):
         user = self.request.user
-        if user.role == "Student":
-            return True
-        else:
-            return False
+
+        return user.role == "Student"
 
 
 class TestDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
@@ -227,101 +278,91 @@ class TestDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         user = self.request.user
         test_uuid = self.kwargs['uuid']
         instance = self.kwargs['instance']
-
         try:
-            # Initialize variables
-            test = None
-            answers = None
-
+            test_uuid = uuid.UUID(test_uuid)  # Convert the string to a UUID object
             if instance == 'Topical':
+
+                model = 'StudentTest'
                 answers = StudentsAnswers.objects.filter(user=user, test_object_id=test_uuid)
-                test = StudentTest.objects.filter(user=user, uuid=test_uuid).last()
+                test = StudentTest.objects.get(user=user, uuid=test_uuid)
+
             elif instance == 'KNECExams':
-                test = StudentKNECExams.objects.filter(user=user, test=test_uuid).last()
+
+                model = 'StudentKNECExams'
+                test = StudentKNECExams.objects.get(user=user, test=test_uuid)
                 answers = StudentsKnecAnswers.objects.filter(user=user, test=test)
+
             elif instance == 'ClassTests':
+
+                model = 'ClassTestStudentTest'
                 answers = StudentsAnswers.objects.filter(user=user, test_object_id=test_uuid)
-                test = ClassTestStudentTest.objects.filter(user=user, test=test_uuid).last()
+                test = ClassTestStudentTest.objects.get(user=user, test=test_uuid)
+
             else:
                 pass
-
-            # Set the base HTML template based on user role
-            if self.request.user.role == 'Guardian':
-                context['base_html'] = 'Guardian/baseg.html'
-            elif self.request.user.role == 'Teacher':
-                context['base_html'] = 'Teacher/teachers_base.html'
-            else:
-                context['base_html'] = 'Users/base.html'
 
             context['quizzes'] = answers
             context['marks'] = test
             context['instance'] = instance
 
-        except DatabaseError as error:
-            # Handle DatabaseError if needed
-            pass
-
-        return context
-
-    def test_func(self):
-        user = self.request.user
-        if user.role == "Student":
-            return True
-        else:
-            return False
-
-class StartRepeat(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
-    template_name = 'Exams/repeat_start.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(StartRepeat, self).get_context_data(**kwargs)
-        user = self.request.user
-        test_uuid = self.kwargs['uuid']
-
-        try:
-            # Check if test_uuid is a valid UUID
-            if not self.is_valid_uuid(test_uuid):
-                raise Exception  # Raise Http404 if it's not a valid UUID
-
-            # Retrieve the repeat test
-            test = StudentTest.objects.filter(user=user, uuid=test_uuid).last()
-
-            # Retrieve the related quiz topics for the repeat test
-            quiz = test.quiz.all()
-            topics = TopicalQuizes.objects.filter(id__in=quiz).values('topic__name').annotate(
-                topic_count=Count('topic__name')).order_by('topic__name')
-
-            context['quizes'] = topics
-            context['test'] = test
-
-        except (DatabaseError, Exception) as error:
-            # Handle DatabaseError if needed
-            pass
-
-        return context
-
-    def is_valid_uuid(uuid_str):
-        """
-        Check if a string is a valid UUID.
-
-        Args:
-            uuid_str (str): The string to check.
-
-        Returns:
-            bool: True if the string is a valid UUID, False otherwise.
-        """
-        try:
-            uuid.UUID(uuid_str)
-            return True
         except ValueError:
-            return False
+            # Handle invalid UUID format
+            messages.error(self.request, 'Invalid UUID format. Please do not edit the url !!.')
+
+        except ObjectDoesNotExist as e:
+            messages.error(self.request, 'We could not find the test!. please contact @support')
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': model,
+
+                }
+            )
 
 
-    def post(self, request, **kwargs):
-        if self.request.method == 'POST':
-            test_uuid = self.kwargs['uuid']
 
-            return redirect('tests', test_uuid)
+
+
+        except DatabaseError as e:
+            messages.error(self.request, 'An error occurred!!. Do not be alarmed we are fixing it.')
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+
+                }
+            )
+        # Set the base HTML template based on user role
+        if self.request.user.role == 'Guardian':
+            context['base_html'] = 'Guardian/baseg.html'
+        elif self.request.user.role == 'Teacher':
+            context['base_html'] = 'Teacher/teachers_base.html'
+        else:
+            context['base_html'] = 'Users/base.html'
+        if not answers:
+            messages.error(self.request, 'Dear user we could not retrieve your tests detail.Please contact @support')
+
+        return context
 
     def test_func(self):
         user = self.request.user
@@ -349,42 +390,80 @@ class Start(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         context = super(Start, self).get_context_data(**kwargs)
 
         try:
-            topic_name = self.kwargs['pk']
+            topic_name = self.kwargs['topic']
+            test_id = kwargs['uuid']
+            user = self.request.user
+
 
             # Retrieve the topic based on the 'pk' parameter from the URL
-            topic = Topic.objects.get(name=topic_name)
+            topics = Topic.objects.get(name=topic_name)
+            test = StudentTest.objects.filter(user=user, uuid=test_id)
+            print(test, topics)
+            if test:
+                context['done'] = 'True'
+                messages.info(self.request, 'This test has already been done and cannot be retaken.')
 
             # Check if topic is None (no object found)
 
-            context['topic'] = topic
+            context['topic'] = topics
 
-        except Topic.MultipleObjectsReturned:
-            # Handle the case where multiple objects were returned
-            context['topic'] = Topic.objects.filter(name=topic_name).first()
-
-        except Topic.DoesNotExist:
+        except Topic.DoesNotExist as e:
             # Handle the case where no object is found
             context['topic'] = None
-            messages.error(self.request, 'Topic Does Not Exist.')
+            messages.error(self.request, 'An error occurred !!! Dear Student do not edit the url !!')
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
 
-        except DatabaseError as error:
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'Topic',
+
+                }
+            )
+
+        except Exception as e:
             # Handle other DatabaseError if needed
-            pass
+            messages.error(self.request, 'An error occurred !!! We are fixing it. '
+                                         'If the problem persists contact @support')
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+
+                }
+            )
 
         return context
 
     def post(self, request, *args, **kwargs):
         if request.method == 'POST':
             user = request.user
-            topic_name = kwargs['pk']
             test_uuid = kwargs['uuid']
+            topic_name = kwargs['topic']
 
             try:
                 # Retrieve the topic based on the 'pk' parameter from the URL
-                topic = Topic.objects.filter(name=topic_name).first()
+                topic = Topic.objects.get(name=topic_name)
 
-                if not topic:
-                    return HttpResponse({'error': 'Topic not found'})
+                print(topic)
 
                 # Create a new StudentTest object
                 test = StudentTest.objects.create(
@@ -401,11 +480,51 @@ class Start(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 # Redirect to the 'tests' view with appropriate arguments
                 return redirect('tests', 'Topical', test.uuid)
 
-            except DatabaseError as error:
+            except IntegrityError as e:
                 # Handle DatabaseError if needed
-                return HttpResponse({'error': 'Database error'})
+                messages.error(self.request, 'An error occurred and therefore, you cannot take this test at this time!!.'
+                                             ' Stand by as we fix the issue. Sorry for any inconveniences caused!!')
+                error_message = str(e)  # Get the error message as a string
+                error_type = type(e).__name__
 
-        return HttpResponse({'error': 'Invalid request'})
+                logger.critical(
+                    error_message,
+                    exc_info=True,  # Include exception info in the log message
+                    extra={
+                        'app_name': __name__,
+                        'url': self.request.get_full_path(),
+                        'school': uuid.uuid4(),
+                        'error_type': error_type,
+                        'user': self.request.user,
+                        'level': 'Critical',
+                        'model': 'StudentTest',
+
+                    }
+                )
+
+            except Exception as e:
+                # Handle DatabaseError if needed
+                messages.error(self.request, 'An error occurred and therefore, you cannot take this test at this time!!.'
+                                             ' Stand by as we fix the issue. Sorry for any inconveniences caused!!')
+                error_message = str(e)  # Get the error message as a string
+                error_type = type(e).__name__
+
+                logger.critical(
+                    error_message,
+                    exc_info=True,  # Include exception info in the log message
+                    extra={
+                        'app_name': __name__,
+                        'url': self.request.get_full_path(),
+                        'school': uuid.uuid4(),
+                        'error_type': error_type,
+                        'user': self.request.user,
+                        'level': 'Critical',
+                        'model': 'DatabaseError',
+
+                    }
+                )
+            return redirect(request.get_full_path())
+
 
     def test_func(self):
         user = self.request.user
@@ -464,7 +583,6 @@ class Tests(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
                 if question_index >= len(questions.quiz.all()):
                     context['message'] = "Test is completed."
-                    return redirect('finish', instance, test_id)
 
                 else:
                     current_question = questions.quiz.all()[question_index]
@@ -844,16 +962,15 @@ class StartKnec(TemplateView):
         except KNECGradeExams.DoesNotExist:
             # Handle the case where no matching exam is found
             test = None
-            messages.error(self.request,'We could not find this test. Contact admin')
+            messages.error(self.request, 'We could not find this test. Contact admin')
         except MultipleObjectsReturned:
             # Handle the case where multiple matching exam is found
 
             test = None
-            messages.error(self.request,'There was an issue retrieving this test were fixing it')
+            messages.error(self.request, 'There was an issue retrieving this test were fixing it')
         except (DatabaseError, Exception):
             test = None
-            messages.error(self.request,'Server problems were fixing it')
-
+            messages.error(self.request, 'Server problems were fixing it')
 
         context['test'] = test
         return context
@@ -873,7 +990,6 @@ class StartKnec(TemplateView):
         if request.method == "POST":
             user = self.request.user
             test_uuid = self.kwargs['uuid']
-
 
             try:
                 # Attempt to retrieve the KNEC exam based on UUID and grade

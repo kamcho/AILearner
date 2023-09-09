@@ -20,14 +20,16 @@
           </select>
           <br>
           <select class="form-select"  name="subject" id="subjectSelect" aria-label="Default select example" required>
+
               {% for subject in subjects %}
                 <option value="{{ subject.id }}">{{ subject }}</option>
               {% endfor %}
           </select>
           {% else %}
           <select class="form-select" id="subjectSelect" name="subject" aria-label="Default select example" required>
+              <option></option>
               {% for subject in user.teacherprofile.subject.all %}
-                <option value="{{ subject.id }}">{{ subject }}</option>
+                <option value="{{ subject.id }}">{{ subject }} - Grade ({{ subject.grade }})</option>
               {% endfor %}
           </select>
           {% endif %}
@@ -36,6 +38,7 @@
 
           <br>
           <select class="form-select" id="topicSelect" name="topic" aria-label="Default select example" required>
+
               <option >Topic</option>
           </select>
 

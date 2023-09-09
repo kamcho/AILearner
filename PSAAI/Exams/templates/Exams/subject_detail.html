@@ -9,7 +9,9 @@
 
 
 
+{% if not subject %}
 
+{% else %}
      <table class="table">
         <thead>
           <tr>
@@ -28,7 +30,7 @@
         {% endfor %}
         </tbody>
      </table>
-
+{% endif %}
 
 
 

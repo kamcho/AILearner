@@ -13,6 +13,8 @@ import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+import Logs
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
@@ -24,8 +26,8 @@ SECRET_KEY = 'django-insecure-*1r4hwdyal=y_j%*m&+-_4!@j)33!9a(z*k_%71c($@&71fbue
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['19a1-105-163-2-173.ngrok-free.app', '127.0.0.1']
-CSRF_TRUSTED_ORIGINS = ["https://19a1-105-163-2-173.ngrok-free.app"]
+ALLOWED_HOSTS = ['4173-105-163-2-77.ngrok-free.app', '127.0.0.1']
+CSRF_TRUSTED_ORIGINS = ["https://4173-105-163-2-77.ngrok-free.app"]
 
 # Application definition
 
@@ -45,6 +47,9 @@ INSTALLED_APPS = [
     'Analytics',
     'Teacher',
     'Supervisor',
+    'Logs',
+    'django_db_logger',
+
 ]
 
 MIDDLEWARE = [
@@ -86,6 +91,35 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'custom_handler': {
+            'level': 'DEBUG',
+            'class': 'Logs.logging.DatabaseLogHandler',  # Correct Python path
+        },
+        'mail_admins': {
+            'level': 'INFO',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'include_html': True
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['custom_handler'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+    },
+}
+ADMINS = [('Kevin', 'njokevin9@gmail.com')]
+SERVER_EMAIL = 'njokevin9@gmail.com'
+
+
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators

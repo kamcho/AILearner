@@ -112,7 +112,8 @@ class StudentKNECExams(BaseTest):
 
 
 class ClassTest(BaseGroupTest):
-    class_id = models.ForeignKey(SchoolClass, default='1', on_delete=models.CASCADE)
+    MultipleObjectsReturned = None
+    class_id = models.ForeignKey(SchoolClass,  on_delete=models.CASCADE)
     quiz = models.ManyToManyField(TopicalQuizes)
 
 
@@ -141,6 +142,7 @@ class StudentsAnswers(models.Model):
     test_object_id = models.UUIDField()  # Use editable=False
     test = GenericForeignKey('test_content_type', 'test_object_id')
     is_correct = models.BooleanField(default=False)
+
     def __str__(self):
         return str(self.user)
 
@@ -153,5 +155,6 @@ class StudentsKnecAnswers(models.Model):
 
     test = models.ForeignKey(StudentKNECExams, on_delete=models.CASCADE)
     is_correct = models.BooleanField(default=False)
+
     def __str__(self):
         return str(self.user)

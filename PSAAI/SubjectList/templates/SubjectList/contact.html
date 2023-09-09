@@ -14,7 +14,7 @@
         <br>
         <select class="form-select" aria-label="Default select example" name="subject" disabled id="subject">
           {% for item in subject %}
-                  <option value="{{ item }}">{{ item }}</option>
+                  <option value="{{ item.id }}">{{ item }}</option>
 
           {% endfor %}
 
