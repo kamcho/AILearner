@@ -5,6 +5,8 @@
 
 
 <table class="container table">
+    {% if error == 'Invalidate' %}
+    {% else %}
     {% if not tests %}
         <div style="margin:0 auto;width:90%;">
                     <h6 class="text-center alert alert-dark">You do not have any tests</h6>
@@ -46,6 +48,8 @@
             </tr>
          {% endfor %}
         </tbody>
+
+    {% endif %}
       </table>
 
 {% endif %}

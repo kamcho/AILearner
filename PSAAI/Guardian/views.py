@@ -1,20 +1,27 @@
+import logging
+import re
 from abc import ABC
 from itertools import groupby
 from datetime import datetime
 
+import uuid
 from django.contrib import messages
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import DatabaseError
 from django.db.models import Count
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 
 # Create your views here.
 from django.views.generic import ListView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
-from Exams.models import StudentTest, StudentsAnswers, ClassTestStudentTest, StudentKNECExams, StudentsKnecAnswers
-from SubjectList.models import Progress, Topic
+from Exams.models import StudentTest, StudentsAnswers, ClassTestStudentTest, StudentKNECExams, StudentsKnecAnswers, \
+    GeneralTest
+from SubjectList.models import Progress, Topic, Subject
 
-from Users.models import MyUser, PersonalProfile
+from Users.models import MyUser, PersonalProfile, AcademicProfile
+
+logger = logging.getLogger('django')
 
 
 class GuardianHome(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
@@ -25,16 +32,40 @@ class GuardianHome(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(GuardianHome, self).get_context_data(**kwargs)
-        user = self.request.user.uuid  # get user
+        user = self.request.user  # get user
         try:
             # Get learners linked to logged in guardian
-            my_kids = PersonalProfile.objects.filter(ref_id=user)  # get linked kids account
+            my_kids = PersonalProfile.objects.filter(ref_id=user.uuid)  # get linked kids account
+            if not my_kids:
+                messages.error(self.request, f'We could not find any students in your watch list.'
+                                             f' Add a user from your profile page.')
             context['kids'] = my_kids
-        except (Exception,):
+        except Exception as e:
             # Handle any exceptions
             messages.error(self.request, 'An exception occurred were fixing it')
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+
+                }
+            )
 
         return context
+
+    def post(self, *args, **kwargs):
+        if self.request.method == 'POST':
+            return redirect('profile')
 
     def test_func(self):
         return self.request.user.role == 'Guardian'
@@ -48,14 +79,36 @@ class MyKidsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(MyKidsView, self).get_context_data(**kwargs)
-        user = self.request.user.uuid
+        user = self.request.user
         try:
             # Get learners linked to logged in guardian
-            my_kids = PersonalProfile.objects.filter(ref_id=user)
+            my_kids = PersonalProfile.objects.filter(ref_id=user.uuid)
             context['kids'] = my_kids
+            if not my_kids:
+                messages.error(self.request, f'We could not find any students in your watch list.'
+                                             f' Add a user from your profile page.')
+                context['kids'] = None
             context['current_time'] = datetime.now()  # Get current time
-        except Exception:
-            messages.error(self.request, 'DataBase Error were fixing it')
+        except Exception as e:
+            messages.error(self.request, 'An error occurred. Do not be alarmed we are fixing the issue')
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+
+                }
+            )
+
 
         return context
 
@@ -71,8 +124,17 @@ class TaskSelection(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(TaskSelection, self).get_context_data(**kwargs)
+        try:
+            email = self.kwargs['email']
+            context['email'] = email  # Get a students email from url
+            academic_profile = AcademicProfile.objects.get(user__email=email)
+            context['grade'] = academic_profile.current_class.grade
 
-        context['email'] = self.kwargs['email']  # Get a students email from url
+        except ObjectDoesNotExist as e:
+            messages.error(self.request, 'A user with this profile was not found. Please contact admin!')
+
+
+
 
         # choose which base template to use based on roles
         if self.request.user.role == 'Guardian':
@@ -87,7 +149,8 @@ class TaskSelection(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         user = self.request.user
 
         # Check if the user has a 'Guardian' or 'Teacher' role
-        if user.role in ['Guardian', 'Teacher']:
+        if user.role == 'Guardian':
+
 
             # Attempt to get the student's profile using the provided email
             try:
@@ -99,6 +162,8 @@ class TaskSelection(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             # Ensure the student is associated with the logged-in user
             if student.ref_id == user.uuid:
                 return True
+        elif user.role == 'Teacher':
+            return True
 
         return False
 
@@ -111,23 +176,95 @@ class KidTests(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(KidTests, self).get_context_data(**kwargs)
-        kid = self.kwargs['email']
-        subject_tests = StudentTest.objects.filter(user__email=kid).values('topic__subject__name',
-                                                                           'topic__subject__grade',
-                                                                           'topic__name').distinct()
-        grouped_subjects = []
-        for subject, tests in groupby(subject_tests,
-                                      key=lambda x: (x['topic__subject__name'], x['topic__subject__grade'])):
-            grade = subject[1]
-            topics = [test['topic__name'] for test in tests]
-            grouped_subjects.append({'subject': subject[0], 'grade': grade, 'topics': topics})
+        user = self.kwargs['email']
+        context['child'] = user
+        user = MyUser.objects.get(email=user)
 
-        context['subjects'] = grouped_subjects
-        context['child'] = kid
-        if self.request.user.role == 'Guardian':
-            context['base_html'] = 'Guardian/baseg.html'
-        elif self.request.user.role == 'Teacher':
-            context['base_html'] = 'Teacher/teachers_base.html'
+        try:
+            # Lists to store subject IDs
+            subject_ids = []
+
+            # Retrieve student test data
+            student_tests = StudentTest.objects.filter(user=user)
+            topical_subject_counts = student_tests.values('subject__id')
+            topical_tests = topical_subject_counts.order_by('subject__id')
+            print(student_tests)
+
+            # Retrieve class test data
+            class_tests = ClassTestStudentTest.objects.filter(user=user)
+            class_subject_counts = class_tests.values('test__subject__id')
+            my_class_tests = class_subject_counts.order_by('test__subject__id')
+
+            # Retrieve KNEC test data
+            knec_tests = StudentKNECExams.objects.filter(user=user)
+            knec_subject_counts = knec_tests.values('test__subject__id')
+            my_knec_tests = knec_subject_counts.order_by('test__subject__id')
+
+            # Retrieve general test data
+            general_tests = GeneralTest.objects.filter(user=user)
+            general_subject_counts = general_tests.values('subject__id')
+            my_general_tests = general_subject_counts.order_by('subject__id')
+
+            # Collect subject IDs from different types of tests
+            if topical_tests:
+                for subject_id in topical_tests:
+                    subject_ids.append(subject_id['subject__id'])
+
+            if my_general_tests:
+                for subject_id in my_general_tests:
+                    subject_ids.append(subject_id['subject__id'])
+
+            if my_class_tests:
+                for subject_id in my_class_tests:
+                    subject_ids.append(subject_id['test__subject__id'])
+
+            if my_knec_tests:
+                for subject_id in my_knec_tests:
+                    subject_ids.append(subject_id['test__subject__id'])
+            # Convert the list of subject IDs to a set to remove duplicates
+            subject_ids_set = set(subject_ids)
+
+            # Count the total number of tests
+            total_tests_count = (
+                    topical_subject_counts.count() +
+                    knec_subject_counts.count() +
+                    class_subject_counts.count() +
+                    general_subject_counts.count()
+            )
+
+            # Retrieve the Subject objects with the common subject IDs
+            subjects = Subject.objects.filter(id__in=subject_ids_set)
+            if self.request.user.role == 'Guardian':
+                context['base_html'] = 'Guardian/baseg.html'
+            elif self.request.user.role == 'Teacher':
+                context['base_html'] = 'Teacher/teachers_base.html'
+
+            context['test_count'] = total_tests_count
+            context['subjects'] = subjects
+            print(subjects)
+
+
+        except Exception as e:
+            # Handle DatabaseError if needed
+            messages.error(self.request, 'An error occurred. We are fixing it!')
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+
+                }
+            )
+
         return context
 
     def test_func(self):
@@ -135,7 +272,7 @@ class KidTests(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         user = self.request.user
 
         # Check if the user has a 'Guardian' or 'Teacher' role
-        if user.role in ['Guardian', 'Teacher']:
+        if user.role == 'Guardian':
 
             # Attempt to get the student's profile using the provided email
             try:
@@ -147,6 +284,8 @@ class KidTests(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             # Ensure the student is associated with the logged-in user
             if student.ref_id == user.uuid:
                 return True
+        elif user.role == 'Teacher':
+            return True
 
         return False
 
@@ -160,7 +299,7 @@ class KidExamTopicView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
         try:
             subject = StudentTest.objects.filter(user__email=user, subject__name=self.kwargs['subject']) \
-                .values('topic__name').order_by('topic').distinct()
+                .values('topic__name', 'subject__grade').order_by('topic').distinct()
             context['subject'] = subject
             knec_test = StudentKNECExams.objects.filter(user__email=user)
             context['tests'] = knec_test
@@ -168,23 +307,41 @@ class KidExamTopicView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 uuid='c2f49d23-41eb-457a-a147-8e132751774c')
             context['class_tests'] = class_test
             context['subject_name'] = self.kwargs['subject']
-            if self.request.user.role == 'Guardian':
-                context['base_html'] = 'Guardian/baseg.html'
-            elif self.request.user.role == 'Teacher':
-                context['base_html'] = 'Teacher/teachers_base.html'
-            context['email'] = MyUser.objects.filter(email=user).first()
 
-            return context
 
-        except DatabaseError as error:
-            pass
+        except Exception as e:
+            messages.error(self.request, 'An error occurred. Please try again later as we fix this issue.')
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+
+                }
+            )
+        if self.request.user.role == 'Guardian':
+            context['base_html'] = 'Guardian/baseg.html'
+        elif self.request.user.role == 'Teacher':
+            context['base_html'] = 'Teacher/teachers_base.html'
+        context['email'] = MyUser.objects.filter(email=user).first()
+
+        return context
 
     def test_func(self):
         email = self.kwargs.get('email')
         user = self.request.user
 
         # Check if the user has a 'Guardian' or 'Teacher' role
-        if user.role in ['Guardian', 'Teacher']:
+        if user.role == 'Guardian':
 
             # Attempt to get the student's profile using the provided email
             try:
@@ -196,6 +353,8 @@ class KidExamTopicView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             # Ensure the student is associated with the logged-in user
             if student.ref_id == user.uuid:
                 return True
+        elif user.role == 'Teacher':
+            return True
 
         return False
 
@@ -212,23 +371,41 @@ class KidExamSubjectDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView
         try:
             subject = StudentTest.objects.filter(user=user, subject__name=subject, topic__name=topic)
             context['subject'] = subject
-            if self.request.user.role == 'Guardian':
-                context['base_html'] = 'Guardian/baseg.html'
-            elif self.request.user.role == 'Teacher':
-                context['base_html'] = 'Teacher/teachers_base.html'
-            context['email'] = user
 
-            return context
 
-        except DatabaseError as error:
-            pass
+        except Exception as e:
+            messages.error(self.request, 'An error occurred when processing your request. Please try again later')
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+
+                }
+            )
+        if self.request.user.role == 'Guardian':
+            context['base_html'] = 'Guardian/baseg.html'
+        elif self.request.user.role == 'Teacher':
+            context['base_html'] = 'Teacher/teachers_base.html'
+        context['email'] = user
+
+        return context
 
     def test_func(self):
         email = self.kwargs.get('email')
         user = self.request.user
 
         # Check if the user has a 'Guardian' or 'Teacher' role
-        if user.role in ['Guardian', 'Teacher']:
+        if user.role == 'Guardian':
 
             # Attempt to get the student's profile using the provided email
             try:
@@ -240,6 +417,8 @@ class KidExamSubjectDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView
             # Ensure the student is associated with the logged-in user
             if student.ref_id == user.uuid:
                 return True
+        elif user.role == 'Teacher':
+            return True
 
         return False
 
@@ -249,11 +428,32 @@ class KidTestDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(KidTestDetail, self).get_context_data(**kwargs)
-        subject = self.kwargs['name']
-        email = self.kwargs['email']
-        subject = StudentTest.objects.filter(user__email=email, subject__name=subject)
-        context['tests'] = subject
-        context['email'] = email
+        try:
+            subject = self.kwargs['name']
+            email = self.kwargs['email']
+            subject = StudentTest.objects.filter(user__email=email, subject__name=subject)
+            context['tests'] = subject
+            context['email'] = email
+        except Exception as e:
+            messages.error(self.request, 'An error occurred when processing your request. Please try again later')
+
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+
+                }
+            )
         if self.request.user.role == 'Guardian':
             context['base_html'] = 'Guardian/baseg.html'
         elif self.request.user.role == 'Teacher':
@@ -266,7 +466,7 @@ class KidTestDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         user = self.request.user
 
         # Check if the user has a 'Guardian' or 'Teacher' role
-        if user.role in ['Guardian', 'Teacher']:
+        if user.role == 'Guardian':
 
             # Attempt to get the student's profile using the provided email
             try:
@@ -278,6 +478,8 @@ class KidTestDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             # Ensure the student is associated with the logged-in user
             if student.ref_id == user.uuid:
                 return True
+        elif user.role == 'Teacher':
+            return True
 
         return False
 
@@ -305,27 +507,46 @@ class KidTestRevision(LoginRequiredMixin, UserPassesTestMixin, TemplateView, ABC
             else:
                 pass
 
-            if self.request.user.role == 'Guardian':
-                context['base_html'] = 'Guardian/baseg.html'
-            elif self.request.user.role == 'Teacher':
-                context['base_html'] = 'Teacher/teachers_base.html'
-            else:
-                context['base_html'] = 'Users/base.html'
+
 
             context['quizzes'] = answers
             context['marks'] = test
 
-            return context
 
-        except DatabaseError as error:
-            pass
+        except Exception as e:
+            messages.error(self.request, 'An error occurred when processing your request. Please try again later')
+
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+
+                }
+            )
+        if self.request.user.role == 'Guardian':
+            context['base_html'] = 'Guardian/baseg.html'
+        elif self.request.user.role == 'Teacher':
+            context['base_html'] = 'Teacher/teachers_base.html'
+        else:
+            context['base_html'] = 'Users/base.html'
+        return context
 
     def test_func(self):
         email = self.kwargs.get('email')
         user = self.request.user
 
         # Check if the user has a 'Guardian' or 'Teacher' role
-        if user.role in ['Guardian', 'Teacher']:
+        if user.role == 'Guardian':
 
             # Attempt to get the student's profile using the provided email
             try:
@@ -337,6 +558,8 @@ class KidTestRevision(LoginRequiredMixin, UserPassesTestMixin, TemplateView, ABC
             # Ensure the student is associated with the logged-in user
             if student.ref_id == user.uuid:
                 return True
+        elif user.role == 'Teacher':
+            return True
 
         return False
 
@@ -351,22 +574,42 @@ class LearnerProgress(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super(LearnerProgress, self).get_context_data(**kwargs)
         email = self.kwargs['email']  # Get students email from url
+        grade = self.kwargs['grade']
         try:
             # Get students progress
-            subject = Progress.objects.filter(user__email=email, subject__isnull=False).values('subject__name',
+            subject = Progress.objects.filter(user__email=email, subject__grade=grade).values('subject__name',
                                                                                                'subject__topics').annotate(
                 topic_count=Count('topic', distinct=True))
 
-            # Choose base template based on role
-            if self.request.user.role == 'Guardian':
-                context['base_html'] = 'Guardian/baseg.html'
-            elif self.request.user.role == 'Teacher':
-                context['base_html'] = 'Teacher/teachers_base.html'
-            context['subject'] = subject
 
-        except (Exception,):
-            # Handle any exceptions
-            messages.error(self.request, 'An error occurred, were fixing it')
+            context['subject'] = subject
+            context['grade'] = grade
+
+        except Exception as e:
+            messages.error(self.request, 'An error occurred when processing your request. Please try again later')
+
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+
+                }
+            )
+        # Choose base template based on role
+        if self.request.user.role == 'Guardian':
+            context['base_html'] = 'Guardian/baseg.html'
+        elif self.request.user.role == 'Teacher':
+            context['base_html'] = 'Teacher/teachers_base.html'
         return context
 
     def test_func(self):
@@ -374,7 +617,7 @@ class LearnerProgress(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         user = self.request.user
 
         # Check if the user has a 'Guardian' or 'Teacher' role
-        if user.role in ['Guardian', 'Teacher']:
+        if user.role == 'Guardian':
 
             # Attempt to get the student's profile using the provided email
             try:
@@ -386,6 +629,8 @@ class LearnerProgress(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             # Ensure the student is associated with the logged-in user
             if student.ref_id == user.uuid:
                 return True
+        elif user.role == 'Teacher':
+            return True
 
         return False
 
@@ -401,7 +646,7 @@ class LearnerSyllabus(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         user = self.request.user
 
         # Check if the user has a 'Guardian' or 'Teacher' role
-        if user.role in ['Guardian', 'Teacher']:
+        if user.role == 'Guardian':
 
             # Attempt to get the student's profile using the provided email
             try:
@@ -413,6 +658,8 @@ class LearnerSyllabus(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             # Ensure the student is associated with the logged-in user
             if student.ref_id == user.uuid:
                 return True
+        elif user.role == 'Teacher':
+            return True
 
         return False
 
@@ -420,19 +667,39 @@ class LearnerSyllabus(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         context = super(LearnerSyllabus, self).get_context_data(**kwargs)
       
         subject = self.kwargs['name']  # Get subject from url
+        grade = self.kwargs['grade']
         try:
             # Get all topics by subject
-            coverage = Topic.objects.filter(subject__name=subject).order_by('order')
-
+            coverage = Topic.objects.filter(subject__name=subject, subject__grade=grade).order_by('order')
+            context['syllabus'] = coverage
+            context['subject'] = subject
             if self.request.user.role == 'Guardian':
                 context['base_html'] = 'Guardian/baseg.html'
             elif self.request.user.role == 'Teacher':
                 context['base_html'] = 'Teacher/teachers_base.html'
 
-        except Exception:
-            # Handle any exceptions
-            messages.error(self.request, 'An error occurred we are fixing it')
+        except Exception as e:
+            messages.error(self.request, 'An error occurred when processing your request. Please try again later')
+
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+
+                }
+            )
+
         context['email'] = self.kwargs['email']
-        context['syllabus'] = coverage
+
 
         return context

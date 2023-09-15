@@ -4,8 +4,11 @@
 
 
 
+{% if not subject %}
 
 
+
+{% else %}
 <div class="container">
         <a href="{% url 'initialise-test' class subject %}"><button class="btn btn-warning">Create Test</button></a>
 
@@ -62,7 +65,7 @@
 
 
 
-
+{% endif %}
 
 
 {% endblock %}

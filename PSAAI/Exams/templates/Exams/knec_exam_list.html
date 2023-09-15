@@ -6,30 +6,33 @@
 
 
 
+<div class="container">
+    {% if not exams %}
 
-<table class="table">
-        <thead>
-          <tr>
-            <th><h6>Subject</h6></th>
-            <th><h6>Term</h6></th>
-            <th><h6>Date</h6></th>
-          </tr>
-        </thead>
-    <br>
-    <br>
-        <tbody>
-        {% for test in exams %}
-          <tr>
+    {% else %}
+        <table class="table">
+            <thead>
+              <tr>
+                <th><h6>Subject</h6></th>
+                <th><h6>Term</h6></th>
+                <th><h6>Date</h6></th>
+              </tr>
+            </thead>
+        <br>
+        <br>
+            <tbody>
+            {% for test in exams %}
+              <tr>
 
-            <td><a href="{% url 'knec-start' grade test.uuid  %}">{{ test.subject }}</a> </td>
-            <td>{{ test.grade }}</td>
-              <td>{{ test.date }}</td>
-          </tr>
-        {% endfor %}
-        </tbody>
-     </table>
-
-
+                <td><a href="{% url 'knec-start' grade test.uuid  %}">{{ test.subject }}</a></td>
+                <td>{{ test.grade }}</td>
+                <td>{{ test.date }}</td>
+              </tr>
+            {% endfor %}
+            </tbody>
+         </table>
+    {% endif %}
+</div>
 
 
 

@@ -17,7 +17,6 @@ from Exams.models import ClassTest, ClassTestStudentTest
 from Teacher.models import ClassTestNotifications
 from Users.models import AcademicProfile
 from .models import *
-# Create your views here.
 from django.views.generic import TemplateView
 
 logger = logging.getLogger('django')
@@ -340,6 +339,7 @@ class Finish(LoginRequiredMixin, TemplateView):
                 else:
                     try:
                         # Create a new progress record
+                        messages.success(request, 'Your progress has been successfully saved')
                         progress = Progress.objects.create(user=user, subtopic=subtopic, subject=subject)
                         progress.topic.set([topic])
                         progress.save()
@@ -807,9 +807,12 @@ class MyProgress(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
 
         try:
+            grade = self.kwargs['grade']
+
             # Fetch the user's progress in different subjects
-            subject_progress = Progress.objects.filter(user=self.request.user, subject__isnull=False).values(
-                'subject__name', 'subject__topics').annotate(topic_count=Count('topic', distinct=True))
+            subject_progress = Progress.objects.filter(user=self.request.user, subject__grade=grade).values(
+                'subject__name', 'subject__topics', 'subject__grade').annotate(
+                topic_count=Count('topic', distinct=True))
 
             context['subject'] = subject_progress
 

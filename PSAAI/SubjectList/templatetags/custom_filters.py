@@ -244,22 +244,38 @@ def topic_analytics_count(user, topic):
 
 @register.filter
 def get_topics(user, subject):
-    topical_tests = StudentTest.objects.filter(user=user, subject__id=subject)
+    if user is  int:
+        topical_tests = StudentTest.objects.filter(user=user, subject=subject)
+    else:
+        topical_tests = StudentTest.objects.filter(user__email=user, subject=subject)
+
     topical_topics = topical_tests.values('topic__name')
     return topical_topics
 
 @register.filter
 def get_test_count(user, subject):
-    topical_tests = StudentTest.objects.filter(user=user, subject__id=subject).count()
-    class_test = ClassTestStudentTest.objects.filter(user=user, test__subject__id=subject).count()
-    knec_test = StudentKNECExams.objects.filter(user=user, test__subject__id=subject).count()
-    general_test = GeneralTest.objects.filter(user=user, subject__id=subject).count()
-    return topical_tests + class_test + knec_test
+    if user is int:
+        topical_tests = StudentTest.objects.filter(user=user, subject=subject).count()
+        class_test = ClassTestStudentTest.objects.filter(user=user, test__subject=subject).count()
+        knec_test = StudentKNECExams.objects.filter(user=user, test__subject=subject).count()
+        general_test = GeneralTest.objects.filter(user=user, subject=subject).count()
+    else:
+        topical_tests = StudentTest.objects.filter(user__email=user, subject=subject).count()
+        class_test = ClassTestStudentTest.objects.filter(user__email=user, test__subject=subject).count()
+        knec_test = StudentKNECExams.objects.filter(user__email=user, test__subject=subject).count()
+        general_test = GeneralTest.objects.filter(user__email=user, subject=subject).count()
+
+    return topical_tests + class_test + knec_test + general_test
 
 @register.filter
 def get_topic_count(user, subject):
-    topical_tests = StudentTest.objects.filter(user=user, subject__id=subject).\
-        values('topic').order_by('topic').count()
+    if user is int:
+        topical_tests = StudentTest.objects.filter(user=user, subject=subject).\
+            values('topic').order_by('topic').count()
+    else:
+
+        topical_tests = StudentTest.objects.filter(user__email=user, subject=subject). \
+            values('topic').order_by('topic').count()
     return topical_tests
 
 

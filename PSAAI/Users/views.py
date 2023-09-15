@@ -1,6 +1,8 @@
 import uuid
 
 from django.contrib import messages
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import DatabaseError
@@ -23,6 +25,30 @@ class RegisterView(CreateView):
 
     def get_success_url(self):
         return reverse('login')
+
+
+
+
+class Login(TemplateView):
+    template_name = 'Users/login.html'
+
+    def post(self, *args, **kwargs):
+        if self.request.method == 'POST':
+            # Create an instance of the AuthenticationForm and populate it with user-submitted data
+
+            username = self.request.POST.get('email')
+            password = self.request.POST.get('password')
+            user = authenticate(self.request, username=username, password=password)
+
+            if user is not None:
+                # Log the user in
+                login(self.request, user)
+                # Redirect to a success page
+                return redirect('redirect')
+            else:
+                # Return an error message if authentication fails
+                messages.error(self.request, "Invalid username or password. Try again !")
+                return redirect(self.request.get_full_path())
 
 
 class MyProfile(LoginRequiredMixin, TemplateView):

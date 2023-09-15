@@ -5,23 +5,20 @@
 {% block content %}
 
 
-    <p>You have come to th end of this test. Your results will be uploaded in a few minutes.</p>
-{% if instance == 'ClassTests' or instance == 'KNECExams' %}
-<h6>You scored {{ score }} / {{ size}}</h6>
-    <a href="{% url 'test-detail' instance test.test.uuid %}"><button class="btn btn-info">Review</button></a>
-{% else %}
-<h6>You scored {{ score }} / {{ test.test_size}}</h6>
-
-    <a href="{% url 'test-detail' instance test.uuid %}"><button class="btn btn-info">Review</button></a>
-
-{% endif %}
-    <a href="{% url 'student-home' %}"><button class="btn btn-warning">Home</button></a>
-
-
-
-
-
-
+<div class="container">
+    {% if instance == 'KNECGradeExams' or instance == 'ClassTests' %}
+        <p>You have come to the end of this test. You answered {{ score }} out of {{ size }} questions correctly.</p>
+        <h6>You scored {{ score }} / {{ size }}</h6>
+        <br>
+        <a href="{% url 'test-detail' instance test_uuid %}"><button class="btn btn-info">Review</button></a>
+    {% else %}
+        <p>You have come to the end of this test. You answered {{ score }} out of {{ test.test_size }} questions correctly.</p>
+        <h6>You scored {{ score }} / {{ test.test_size}}</h6>
+        <br>
+        <a href="{% url 'test-detail' instance test_uuid %}"><button class="btn btn-info">Review</button></a>
+    {% endif %}
+        <a href="{% url 'student-home' %}"><button class="btn btn-warning">Home</button></a>
+</div>
 
 
 {% endblock %}

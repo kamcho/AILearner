@@ -3,6 +3,54 @@
     /* background-color:black; */
     
 }
+.login-card{
+    width: 60%;
+    height:500px;
+    margin: 0 auto;
+    box-shadow: 2px 4px 12px 3px rgba(0, 0, 0, 0.1);
+    border-radius:10px;
+
+
+}
+.login-card form{
+    padding:30px;
+}
+.login-card i{
+    font-size:30px;
+    margin: 0 auto;
+    text-align:center;
+    color:purple;
+}
+  .custom-input {
+            border: none;
+            box-shadow: none;
+
+        }
+.dashed-heading {
+  position: relative;
+  display: inline-block; /* Set display to inline-block to allow width adjustment */
+  padding: 0 20px; /* Add padding to make room for dashes */
+}
+
+.dashed-heading::before,
+.dashed-heading::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 3px;
+  background-color: black;
+  border-radius:2px;
+}
+
+.dashed-heading::before {
+  left: -5px;
+}
+
+.dashed-heading::after {
+  right: -5px;
+}
 .server-info{
     margin:0 auto;
     text-align:center;
@@ -92,6 +140,7 @@ border-radius:10px ;
 
     padding-top:50px;
     margin:40px auto;
+
 
 
 }

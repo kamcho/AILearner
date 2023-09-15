@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
@@ -16,6 +18,8 @@ from .models import *
 from django.views.generic import TemplateView
 from django.db import IntegrityError, DatabaseError
 
+logger = logging.getLogger('django')
+
 
 class TeacherView(TemplateView):
     """
@@ -32,13 +36,34 @@ class ClassesView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(ClassesView, self).get_context_data(**kwargs)
+        user = self.request.user
         try:
             # Get teachers classes
-            my_class = StudentList.objects.filter(user=self.request.user)
+            my_class = StudentList.objects.filter(user=user)
+
             context['classes'] = my_class
-        except Exception:
-            # Handle any exceptions
-            messages.error(self.request, 'An error occurred')
+            if not my_class:
+                messages.info(self.request, 'We could not find any classes in your Teaching profile!')
+        except Exception as e:
+            messages.error(self.request, 'An error occurred when processing your request. Please try again later')
+
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+
+                }
+            )
 
 
         return context
@@ -54,16 +79,39 @@ class TaskViewSelect(TemplateView):
         try:
             # Get class list
             my_class = StudentList.objects.filter(user=self.request.user, class_id__class_name=class_id).first()
+            if not my_class:
+                messages.error(self.request, 'Invalid class ID. Please do not edit the url.'
+                                             ' If the problem persists contact @support')
+                return context
+
             context['subject'] = my_class.subject.id
             # Get a few students in a class to display
             students = AcademicProfile.objects.filter(current_class__class_name=class_id)[:3]
             # Get a few tests to display
-            tests = ClassTest.objects.filter(teacher=user, class_id__class_name=class_id)[:5]
+            tests = ClassTest.objects.filter(teacher=user, class_id__class_name=class_id)[:3]
             context['tests'] = tests
             context['class'] = class_id
             context['students'] = students
-        except Exception:
-            messages.error(self.request, 'an error occurred')  # show error message
+        except Exception as e:
+            messages.error(self.request, 'An error occurred when processing your request. Please try again later')
+
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+
+                }
+            )
 
 
         return context
@@ -83,9 +131,26 @@ class StudentsView(TemplateView):
             students = AcademicProfile.objects.filter(current_class__class_name=class_id)
             context['students'] = students
 
-        except Exception:
-            # Handle any exceptions
-            messages.error(self.request, 'an error occurred')  # show error message
+        except Exception as e:
+            messages.error(self.request, 'An error occurred when processing your request. Please try again later')
+
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+
+                }
+            )
 
         return context
 
@@ -108,8 +173,26 @@ class TestsView(TemplateView):
             context['tests'] = tests
             context['class'] = class_id
             context['subject'] = subject
-        except Exception:
-            messages.error(self.request, 'an error occurred')  # show error message
+        except Exception as e:
+            messages.error(self.request, 'An error occurred when processing your request. Please try again later')
+
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+
+                }
+            )
         return context
 
 
@@ -149,6 +232,7 @@ class ClassTestAnalytics(TemplateView):
         context = super(ClassTestAnalytics, self).get_context_data(**kwargs)
         try:
             test_uuid = self.kwargs['uuid']  # Get test UUID from URL
+            test_uuid = uuid.UUID(test_uuid)
 
             # Get the number of students who took the test
             test_count = ClassTestStudentTest.objects.filter(test=test_uuid).count()
@@ -192,9 +276,36 @@ class ClassTestAnalytics(TemplateView):
 
             context['quizzes'] = class_test.quiz.all()
             context['performance_data'] = performance_data
+
+        except ValueError as e:
+            messages.error(self.request, 'Invalid UUID format. Do not edit the url!!')
+            context['error'] = 'True'
         except Exception as e:
-            messages.error(self.request, f'An error occurred, Try again if the problem persists contact @support')  # Show error message
-            context['error'] = 'error'
+            error_type = type(e).__name__
+            if error_type == 'DoesNotExist':
+                messages.error(self.request, 'We could not find this test. Do not edit the url !!. '
+                                             'If you did not edit the url contact @support.')
+            else:
+                messages.error(self.request, 'An error occurred when processing your request. Please try again later.')
+
+            error_message = str(e)  # Get the error message as a string
+
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+
+                }
+            )
+            context['error'] = 'True'
         return context
 
 
@@ -209,9 +320,30 @@ class InitialiseCreateTest(TemplateView):
             # get class list
             context['class'] = StudentList.objects.get(user=self.request.user, class_id__class_name=class_id)
 
-        except Exception:
-            # Handle any errors
-            messages.error(self.request, 'An error occurred,Try again later')
+        except Exception as e:
+            error_type = type(e).__name__
+            if error_type == 'DoesNotExist':
+                messages.error(self.request, 'Invalid class id. Do not edit the url!!.')
+            else:
+                messages.error(self.request, 'An error occurred when processing your request. Please try again later')
+
+            error_message = str(e)  # Get the error message as a string
+
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+
+                }
+            )
         return context
 
     def post(self, request, **kwargs):
@@ -255,6 +387,9 @@ class ClassTestSelectTopic(TemplateView):
         exam_type = self.request.session.get('test_data')['exam_type']
 
         topics = Topic.objects.filter(subject__id=subject)  # filter topics by subject id
+        if not topics:
+            messages.error(self.request, 'We could not find any topics of the said subject.'
+                                         ' Did you edit the url on the previous page ??')
 
         context['topics'] = topics
         context['exam_type'] = exam_type
@@ -266,20 +401,43 @@ class ClassTestSelectTopic(TemplateView):
             selected = request.POST.getlist('selected')  # get all selected topics
 
             request.session['selected_topics'] = selected  # add selected topics to session
+            try:
+                if selected:
+                    # get selection_type from session and reroute appropriately
+                    selection_type = self.request.session.get('test_data')['selection_type']
+                    if selection_type == 'user':
+                        return redirect('user-question-selection')
+                    elif selection_type == 'system':
 
-            if selected:
-                # get selection_type from session and reroute appropriately
-                selection_type = self.request.session.get('test_data')['selection_type']
-                if selection_type == 'user':
-                    return redirect('user-question-selection')
-                elif selection_type == 'system':
-
-                    return redirect('system-question-selection')
+                        return redirect('system-question-selection')
 
 
-            else:
-                messages.error(request, 'An error occurred were fixing it')
-                return redirect(self.request.get_full_path())
+                else:
+                    messages.info(request, 'Please select at least 1 topic.')
+                    return redirect(self.request.get_full_path())
+            except KeyError as e:
+                messages.error(self.request, 'We encountered an error when processing your request.'
+                                             ' Please restart test creation process.'
+                                             ' If the problem persists contact @support')
+                error_message = str(e)  # Get the error message as a string
+                error_type = type(e).__name__
+
+                logger.critical(
+                    error_message,
+                    exc_info=True,  # Include exception info in the log message
+                    extra={
+                        'app_name': __name__,
+                        'url': self.request.get_full_path(),
+                        'school': uuid.uuid4(),
+                        'error_type': error_type,
+                        'user': self.request.user,
+                        'level': 'Critical',
+                        'model': 'NoDatabase',
+
+                    }
+                )
+
+        return redirect(self.request.get_full_path())
 
 
 
@@ -300,11 +458,30 @@ def SystemQuestionsSelect(request):
             quizzes = TopicalQuizes.objects.filter(subject=subject, topic__in=selected_topics).order_by('?')[:test_size]
             items = []
             # parse data
-            for item in list(quizzes.values_list('id', flat=True)):
-                items.append(str(item))
-            request.session['selected'] = items  # add the questions to session
-        except Exception:
-            pass
+            if quizzes:
+                for item in list(quizzes.values_list('id', flat=True)):
+                    items.append(str(item))
+                request.session['selected'] = items  # add the questions to session
+        except Exception as e:
+            messages.error(request, 'We could not find questions for the selected topics. Contact @support')
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+
+                }
+            )
+
 
         return redirect('save-test')
 
@@ -315,13 +492,16 @@ def load_class(request):
     :param request:
     :return:
     """
+    default = {'None':'None'}
     subject = request.GET.get('subject')  # get subject from POST
     classes = StudentList.objects.filter(user=request.user, subject=subject)  # get class list by subject
 
     # parse data
-    class_data = [{'id': class_obj.class_id.id, 'name': class_obj.class_id.class_name} for class_obj in classes]
-    print(class_data)
-    return JsonResponse(class_data, safe=False)
+    if classes:
+        class_data = [{'id': class_obj.class_id.id, 'name': class_obj.class_id.class_name} for class_obj in classes]
+        return JsonResponse(class_data, safe=False)
+    else:
+        return JsonResponse(default, safe=True)
 
 
 def get_topical_quizzes(request):
@@ -330,18 +510,33 @@ def get_topical_quizzes(request):
 
         # Try to get the questions for the given topic_id
         questions = TopicalQuizes.objects.filter(topic_id=topic_id)
+        if questions:
 
-        # Prepare the data in a format suitable for JSON serialization
-        questions_data = [{'id': question.id, 'quiz': question.quiz} for question in questions]
+            # Prepare the data in a format suitable for JSON serialization
+            questions_data = [{'id': question.id, 'quiz': question.quiz} for question in questions]
 
-        return JsonResponse({'questions': questions_data})
-
-    except ObjectDoesNotExist:
-        # Handle the case where the topic_id does not exist in the database
-        return JsonResponse({'error': 'Topic not found'}, status=404)
+            return JsonResponse({'questions': questions_data})
 
     except Exception as e:
+        messages.error(request, 'We encountered an error when setting the test. Please contact @support')
         # Handle other unexpected exceptions
+        error_message = str(e)  # Get the error message as a string
+        error_type = type(e).__name__
+
+        logger.critical(
+            error_message,
+            exc_info=True,  # Include exception info in the log message
+            extra={
+                'app_name': __name__,
+                'url': request.get_full_path(),
+                'school': uuid.uuid4(),
+                'error_type': error_type,
+                'user': request.user,
+                'level': 'Critical',
+                'model': 'TopicalQuizzes',
+
+            }
+        )
         return JsonResponse({'error': str(e)}, status=500)
 
 
@@ -383,8 +578,25 @@ class UserQuestionsSelect(TemplateView):
             # Query the Topic objects using the selected_topic IDs
             context['topics'] = Topic.objects.filter(id__in=selected_topics)
         except Exception as e:
-            # Handle any exceptions that may occur during the database query
-            messages.error(self.request, f'An error occurred: {str(e)}. We are fixing it.')
+            messages.error(self.request, 'An error occurred when processing your request. Please try again later !!')
+
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+
+                }
+            )
 
         return context
 
@@ -413,7 +625,25 @@ class SaveTest(TemplateView):
 
         except Exception as e:
             # Handle any exceptions that may occur during the database query
-            messages.error(self.request, f'An error occurred: {str(e)}. We are fixing it.')
+            messages.error(self.request, f'An error occured when processing your request.'
+                                         f' You might be required to restart this process again !!.')
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+
+                }
+            )
 
         return context
 
@@ -447,6 +677,9 @@ class SaveTest(TemplateView):
                 )
                 test.save()
                 test.quiz.add(*ids)
+                # Clear session data
+                del self.request.session['test_data']
+                del self.request.session['selected']
 
                 message = f'{subject_instance.name} test is now available. Please finish before {date}.'
                 about = f'{subject_instance.name} class-test is now available.'
@@ -466,25 +699,32 @@ class SaveTest(TemplateView):
                 )
 
                 # Clear session data
-                del self.request.session['test_data']
-                del self.request.session['selected']
+
 
                 return redirect('teachers-home')
 
-            except IntegrityError as e:
-                # Handle IntegrityError
-                error_message = e.args[0] if e.args else "Unknown Integrity Error"
-                print(f"IntegrityError occurred: {error_message}")
-                return HttpResponse({'error': error_message})
-
-            except Subject.DoesNotExist:
-                # Handle Subject not found
-                messages.error(self.request, 'Subject not found.')
-                return redirect(request.get_full_path())
-
             except Exception as e:
                 # Handle missing required data
-                messages.error(self.request, str(e))
+                messages.error(self.request, 'We encountered an error while processing your request.'
+                                             ' Please contact @support')
+                error_message = str(e)  # Get the error message as a string
+                error_type = type(e).__name__
+
+                logger.critical(
+                    error_message,
+                    exc_info=True,  # Include exception info in the log message
+                    extra={ 
+                        
+                        'app_name': __name__,
+                        'url': self.request.get_full_path(),
+                        'school': uuid.uuid4(),
+                        'error_type': error_type,
+                        'user': self.request.user,
+                        'level': 'Critical',
+                        'model': 'DatabaseError',
+
+                    }
+                )
                 return redirect(request.get_full_path())
 
         return redirect(request.get_full_path())  # Return a bad request response if not a POST request
@@ -529,12 +769,29 @@ class CreateQuestion(TemplateView):
                 # get teachers profile
                 subjects = TeacherProfile.objects.get(user=user)
 
-            except TeacherProfile.MultipleObjectsReturned:
+
+            except Exception as e:
                 # Handle multiple profiles returned
-                messages.error(self.request, 'An error occurred')
-            except TeacherProfile.DoesNotExist:
-                # create profile if none is found
-                TeacherProfile.objects.create(user=user)
+                messages.error(self.request, 'An error occurred when processing your request. Please contact @support.')
+                error_message = str(e)  # Get the error message as a string
+                error_type = type(e).__name__
+
+                logger.critical(
+                    error_message,
+                    exc_info=True,  # Include exception info in the log message
+                    extra={
+
+                        'app_name': __name__,
+                        'url': self.request.get_full_path(),
+                        'school': uuid.uuid4(),
+                        'error_type': error_type,
+                        'user': self.request.user,
+                        'level': 'Critical',
+                        'model': 'TeacherProfile',
+
+                    }
+                )
+
             context['subjects'] = subjects
             context['base_html'] = 'Teacher/teachers_base.html'
         elif user.role == 'Supervisor':
@@ -578,13 +835,34 @@ class AddAnswerSelection(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(AddAnswerSelection, self).get_context_data(**kwargs)
-        quiz_info = self.request.session.get('quiz_inf')  # get quiz from session to display
-        context['quiz'] = quiz_info
-        if not quiz_info:
-            # Handle where key was not found
-            messages.error(self.request, 'A key error occurred please follow protocol.'
-                                         ' Youll need to restart the process again!!')
-            context['error'] = 'error'
+        try:
+            quiz_info = self.request.session.get('quiz_info', None)  # get quiz from session to display
+            context['quiz'] = quiz_info
+            if not quiz_info:
+                # Handle where key was not found
+                messages.error(self.request, 'A key error occurred please follow protocol.'
+                                             ' Youll need to restart the process again!!')
+                context['error'] = 'error'
+        except Exception as e:
+            messages.error(self.request, 'An error occurred when processing your request. Please contact @support.')
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'Exception',
+
+                }
+            )
 
 
         return context
@@ -607,9 +885,28 @@ class AddAnswerSelection(TemplateView):
                                                               'selection3': selection3,
                                                               'selection4': selection4
                                                               }
-                except KeyError:
-                    messages.error(request, 'An error occurred, please try again. If the problem persists contact '
-                                            'support')
+                except Exception as e:
+
+                    messages.error(self.request,
+                                   'An error occurred when processing your request. Please contact @support.')
+                    error_message = str(e)  # Get the error message as a string
+                    error_type = type(e).__name__
+
+                    logger.critical(
+                        error_message,
+                        exc_info=True,  # Include exception info in the log message
+                        extra={
+
+                            'app_name': __name__,
+                            'url': self.request.get_full_path(),
+                            'school': uuid.uuid4(),
+                            'error_type': error_type,
+                            'user': self.request.user,
+                            'level': 'Critical',
+                            'model': 'TeacherProfile',
+
+                        }
+                    )
                 # redirect based on role
                 if user.role == 'Teacher':
                     return redirect('save-quiz')
@@ -631,18 +928,34 @@ class SaveQuiz(TemplateView):
             quiz = self.request.session.get('quiz_info')['quiz']
             selection = self.request.session.get('selection_info')
 
-            subtopic = Subtopic.objects.filter(id=subtopic).first()  # get subtopic from DB
+            subtopic = Subtopic.objects.get(id=subtopic)  # get subtopic from DB
             context['quiz'] = quiz
             context['subtopic'] = subtopic
             context['selection'] = selection
-            if not subtopic and quiz and selection:
-                # ensure all required data is present
-                context['error'] = 'error'
-                messages.error(self.request, 'A key Error occurred. Please reset to fix')
 
-        except (DatabaseError, Exception):
+
+        except Exception as e:
             # Handle any errors
-            messages.error(self.request, 'An error occurred, were fixing it')
+            context['error'] = 'error'
+            messages.error(self.request, 'An error occurred when processing your request. Please contact @support.')
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'TeacherProfile',
+
+                }
+            )
 
         return context
 
@@ -665,8 +978,8 @@ class SaveQuiz(TemplateView):
                 db_sub_topic = Subtopic.objects.get(id=subtopic_uuid)
                 if db_sub_topic:
                     # Create a question and its choices
-                    quiz = TopicalQuizes.objects.create(subject=db_sub_topic.subject, topic=db_sub_topic.topic, subtopic=db_sub_topic,
-                                                        quiz=quiz)
+                    quiz = TopicalQuizes.objects.create(subject=db_sub_topic.subject, topic=db_sub_topic.topic,
+                                                        subtopic=db_sub_topic, quiz=quiz)
                     selection_1 = TopicalQuizAnswers.objects.create(quiz=quiz, choice=selection1, is_correct=True) # correct choice
 
                     # False choices
@@ -676,12 +989,28 @@ class SaveQuiz(TemplateView):
 
 
             # Handle any errors that may arise
-            except (MultipleObjectsReturned, ObjectDoesNotExist):
-                messages.error(self.request, 'An error occurred, were fixing it')
-                return redirect(request.get_full_path())
-            except Exception:
-                messages.error(self.request, f'An error occurred and you are required to restart question creation! '
-                                             f'Sorry')
+
+            except Exception as e:
+
+                messages.error(self.request, 'An error occurred when processing your request. Please contact @support.')
+                error_message = str(e)  # Get the error message as a string
+                error_type = type(e).__name__
+
+                logger.critical(
+                    error_message,
+                    exc_info=True,  # Include exception info in the log message
+                    extra={
+
+                        'app_name': __name__,
+                        'url': self.request.get_full_path(),
+                        'school': uuid.uuid4(),
+                        'error_type': error_type,
+                        'user': self.request.user,
+                        'level': 'Critical',
+                        'model': 'TeacherProfile',
+
+                    }
+                )
                 return redirect(request.get_full_path())
 
 
@@ -706,9 +1035,27 @@ class DashBoard(TemplateView):
             context['classes'] = my_class
             context['streams'] = streams
 
-        except Exception:
+        except Exception as e:
             # Handle any exceptions
-            messages.error(self.request, 'An error occurred, were fixing it')
+            messages.error(self.request, 'An error occurred when processing your request. Please contact @support.')
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'TeacherProfile',
+
+                }
+            )
 
         return context
 
@@ -741,15 +1088,31 @@ class DashBoard(TemplateView):
                         my_class.delete()  # delete object from db
                         messages.info(request, f'Successfully delete {class_id} from Watch List')
 
-            except ObjectDoesNotExist:
-                # Handle object does not exist
-                messages.error(self.request, 'we could not find any results matching your query. Contact Support')
-            except (MultipleObjectsReturned, Exception):
-                # Handle multiple objects returned
-                messages.error(self.request, 'An error occurred, try again as we fix it')
-                return redirect('dashboard')
 
-        return redirect('dashboard')
+            except Exception as e:
+                # Handle multiple objects returned
+                messages.error(self.request, 'An error occurred when processing your request. Please contact @support.')
+                error_message = str(e)  # Get the error message as a string
+                error_type = type(e).__name__
+
+                logger.critical(
+                    error_message,
+                    exc_info=True,  # Include exception info in the log message
+                    extra={
+
+                        'app_name': __name__,
+                        'url': self.request.get_full_path(),
+                        'school': uuid.uuid4(),
+                        'error_type': error_type,
+                        'user': self.request.user,
+                        'level': 'Critical',
+                        'model': 'TeacherProfile',
+
+                    }
+                )
+                return redirect(self.request.get_full_path())
+
+        return redirect(self.request.get_full_path())
 
 
 def get_subjects(request):
@@ -804,8 +1167,26 @@ class SubjectSelect(LoginRequiredMixin, TemplateView):
             context['grade7'] = grade7
             context['teaching_profile'] = teaching_profile
 
-        except Exception:
-            messages.error(self.request, 'An error occurred')
+        except Exception as e:
+            messages.error(self.request, 'An error occurred when processing your request. Please contact @support.')
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'TeacherProfile',
+
+                }
+            )
 
         return context
 
@@ -837,7 +1218,25 @@ class SubjectSelect(LoginRequiredMixin, TemplateView):
             except Subject.DoesNotExist:
                 messages.error(self.request, 'Invalid subject id')
 
-            except Exception:
-                messages.error(self.request, 'An error occurred were fixing it')
+            except Exception as e:
+                messages.error(self.request, 'An error occurred when processing your request. Please contact @support.')
+                error_message = str(e)  # Get the error message as a string
+                error_type = type(e).__name__
+
+                logger.critical(
+                    error_message,
+                    exc_info=True,  # Include exception info in the log message
+                    extra={
+
+                        'app_name': __name__,
+                        'url': self.request.get_full_path(),
+                        'school': uuid.uuid4(),
+                        'error_type': error_type,
+                        'user': self.request.user,
+                        'level': 'Critical',
+                        'model': 'TeacherProfile',
+
+                    }
+                )
 
             return redirect(self.request.get_full_path())

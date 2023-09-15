@@ -7,7 +7,7 @@
 
       <div class="for">
           {% if exam_type == 'general' %}
-              <input class="form-check-input" name="selected" type="checkbox" value="{{ topic.id }}" required>
+              <input class="form-check-input" name="selected" type="checkbox" value="{{ topic.id }}" >
           {% else %}
               <input class="form-check-input" name="selected" type="radio" value="{{ topic.id }}" required>
           {% endif %}

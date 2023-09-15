@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import ObjectDoesNotExist
@@ -8,6 +10,8 @@ from Exams.models import *
 from Teacher.models import *
 from Users.models import PersonalProfile
 
+logger = logging.getLogger('django')
+
 
 class IsStudent(UserPassesTestMixin):
     """
@@ -16,13 +20,18 @@ class IsStudent(UserPassesTestMixin):
     def test_func(self):
         user_email = self.kwargs['mail']  # Get the user's email from the URL
         try:
+            student = MyUser.objects.get(email=user_email)
             user = self.request.user.uuid
             # Get a user with the passed email
             student = PersonalProfile.objects.get(user__email=user_email)
 
             return student.ref_id == user  # limits viewership to students in watch list only
-        except (DatabaseError, ObjectDoesNotExist, Exception):
+        except PersonalProfile.ObjectDoesNotExist:
+
+            profile = PersonalProfile.objects.create(user__email=user_email)
             # Any exceptions occurrence limits view
+            return True
+        except Exception:
             return False
 
 
@@ -38,20 +47,36 @@ class OverallAnalytics(LoginRequiredMixin, IsStudent, TemplateView):
 
         try:
             # Try to retrieve the user by their email
-            user = MyUser.objects.get(email=user_email)
 
             # Fetch analytics data for the user's tests
-            tests = StudentTest.objects.filter(user=user).values('subject__id') \
+            tests = StudentTest.objects.filter(user__email=user_email).values('subject__id') \
                 .annotate(subject_count=Count('subject__name')).order_by('subject__name').distinct()
 
             context['tests'] = tests
-            context['child'] = user
-        except MyUser.DoesNotExist:
-            # Handle the case when the user does not exist
-            messages.error(self.request, f'A user with email "{user_email}" does not exist')
-        except Exception:
+            context['child'] = MyUser.objects.get(email=user_email)
+            if not tests:
+                messages.info(self.request, 'We could not find tests to analyse')
+
+        except Exception as e:
             # Handle other unexpected errors
             messages.error(self.request, 'An error occurred. We are fixing it.')
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'StudentKNECExams',
+
+                }
+            )
 
         return context
 
@@ -73,7 +98,8 @@ class SubjectAnalytics(LoginRequiredMixin, IsStudent, TemplateView):
             subject = subject.id  # get subject id
             student_tests = StudentTest.objects.filter(user=user, subject__id=subject)  # get topical tests
             class_test = ClassTestStudentTest.objects.filter(user=user, test__subject__id=subject)  # get class tests
-            context['total_tests'] = int(student_tests.count()) + int(class_test.count())
+            test_count = int(student_tests.count()) + int(class_test.count())
+            context['total_tests'] = test_count
 
             weakness = StudentsAnswers.objects.filter(user=user, quiz__subject__id=subject, is_correct=False). \
                 values('quiz__topic__name').annotate(
@@ -87,21 +113,37 @@ class SubjectAnalytics(LoginRequiredMixin, IsStudent, TemplateView):
             context['strength'] = strength
             context['weakness'] = weakness
             context['child'] = user
+            if test_count == 0:
+                messages.info(self.request, 'We could not find students data to analyse.')
 
         # Handle any errors
-        except MyUser.DoesNotExist:
-            # Handle user does not exist
-            messages.error(self.request, f'a user with email - {user} does not exist')
+
         except Subject.DoesNotExist:
             # Handle subject does not exist
             messages.error(self.request, 'Subject not found !!! did you edit the url if not contact us.')
-        except Subject.MultipleObjectsReturned:
-            # Handle multiple subjects returned
-            messages.error(self.request, 'An error occurred were fixing it')
 
-        except Exception:
+
+        except Exception as e:
             # Handle any other exceptions
 
-            messages.error(self.request, 'An error occurred were fixing it')
+            messages.error(self.request, 'An error occurred. Try again later as we fix the issue.')
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'StudentKNECExams',
+
+                }
+            )
+
 
         return context

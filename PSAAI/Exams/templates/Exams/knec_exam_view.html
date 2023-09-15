@@ -20,7 +20,7 @@
         {% for subject in subjects %}
         <div class="subject-select-card">
             <div class="booked-class-ody">
-                <a href="{% url 'knec-exams-list' subject.subject grade %}"><h6><i class="bi bi-bookmark-plus"></i> {{ subject.subject }} </h6></a>
+                <a href="{% url 'knec-exams-list' subject.subject.id grade %}"><h6><i class="bi bi-bookmark-plus"></i> {{ subject.subject }} </h6></a>
                 <small><i class="bi bi-gear"> </i> Grade {{ grade }}</small>
             </div>
             <br>

@@ -5,15 +5,17 @@
 {% block content %}
 
 
+<div class="container">
+
 <h6>NB <p>It is highly advisable to select only one topic in a test in order
     to properly measure your progress. However, if you want to mix up the test feel free
 to do so.</p></h6>
 <form method="post">
 {% csrf_token %}
-    <select class="form-select" name="exam-type" aria-label="Default select example" id="exam-type">
+    <select class="form-select" name="exam-type" aria-label="Default select example" id="exam-type" required>
       <option></option>
-      <option >Topical</option>
-      <option >General</option>
+      <option value="Topical">Topical (Test on one specific topic)</option>
+      <option  value="General">General (Test from a number of topics)</option>
     </select>
 
     <br>
@@ -21,7 +23,7 @@ to do so.</p></h6>
 {% for topic in topics %}
 
     <div class="form-check">
-      <input class="form-check-input" type="checkbox" name="topics" value="{{ topic.id }}" id="{{ topic }}">
+      <input class="form-check-input" type="checkbox" name="topics" value="{{ topic.id }}" id="{{ topic }}" >
       <label class="form-check-label" for="{{ topic }}">
         {{ topic }}
       </label>
@@ -30,7 +32,7 @@ to do so.</p></h6>
 {% endfor %}
 
 <br>
-<select class="form-select" aria-label="Default select example" name="size">
+<select class="form-select" aria-label="Default select example" name="size" required>
   <option value="15">15 questions</option>
   <option value="20">20 questions</option>
   <option value="25">25 questions</option>
@@ -48,7 +50,7 @@ to do so.</p></h6>
 
 
 
-
+</div>
 
 
 

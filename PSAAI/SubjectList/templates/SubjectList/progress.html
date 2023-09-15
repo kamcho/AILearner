@@ -1,3 +1,4 @@
+
 {% extends 'Users/base.html' %}
 {% load crispy_forms_tags %}
 {% load static %}
@@ -22,7 +23,7 @@
         <li><a class="dropdown-item" href="#">4</a></li>
       </ul>
     </div>
-<br>
+
 
 <div class="subject-progress-view">
 
@@ -32,7 +33,7 @@
         {% for prog in subject %}
         <div class="subject-progress-card">
 
-            <a href="{% url 'syllabus' prog.subject__name %}"><h6 class="p-txt"><i class="bi bi-bookmark-plus"></i> {{ prog.subject__name }}</h6></a>
+            <a href="{% url 'syllabus' prog.subject__grade %}"><h6 class="p-txt"><i class="bi bi-bookmark-plus"></i> {{ prog.subject__name }}</h6></a>
 
     <br>
             <div class="kid-in-card">

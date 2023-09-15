@@ -15,9 +15,12 @@
 
       <div class="guardian-card-body">
           {% if not kids %}
-          <h6>You do not have any Learner on your watch list.</h6>
-          <button class="btn btn-warning">Add</button>
+          <p>You do not have any Learner on your watch list.</p>
+          <form method="post">
+              {% csrf_token %}
+                <button class="btn btn-warning">Add</button>
 
+          </form>
           {% else %}
         
           {% for kid in kids %}

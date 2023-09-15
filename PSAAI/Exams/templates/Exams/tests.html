@@ -3,6 +3,9 @@
 {% block content %}
 
 <div class="container">
+    {% if error %}
+        <p>This test cannot be taken now. Contact @support</p>
+    {% else %}
     <div style="position:absolute;top;3px;right:5px;">Test Ends in
         <br><span style="font-size:60px;" class="badge bg-info text-light" id="time">01:00</span>
     </div>
@@ -36,7 +39,7 @@
             <button id="nextButton" class="btn btn-info" disabled>NEXT</button>
         </form>
     </div>
-
+{% endif %}
 </div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
@@ -84,11 +87,11 @@
     }
 
     window.onload = function () {
-    if ('{{ instance }}' === 'Topical' || '{{ instance }}' === 'General') {
+    if ('{{ instance }}' === 'Topical' || '{{ instance }}' === 'General' || '{{ instance }}' === 'KNECGradeExam') {
             var test_duration = parseInt('{{ test.duration }}');
         }
         else{
-            var test_duration = parseInt('{{ test.test.duration }}');
+            var test_duration = parseInt('{{ test.duration }}');
         }
         var fiveMinutes = 60 * test_duration;
         var display = document.querySelector('#time');

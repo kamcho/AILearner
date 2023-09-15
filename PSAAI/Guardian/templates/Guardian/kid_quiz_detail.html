@@ -2,6 +2,9 @@
 
 
 {% block content %}
+
+
+<div class="container">
 {% if user.role != 'Student' %}
             <h6>{{ marks }}</h6>
         {% else %}
@@ -39,7 +42,7 @@
     {% endfor %}
 
 
-
+</div>
 
 
 

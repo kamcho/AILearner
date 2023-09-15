@@ -70,9 +70,15 @@
                 <li>
               <a class="nav-link" href="{% url 'assignments' %}" ><i class="bi bi-clipboard-check"> </i>Assignments</a>
           </li>
-        <li>
-            <a class="nav-link" href="{% url 'progress' %}" ><i class="bi bi-activity" > </i>Progress</a>
+        {% if not grade %}
+       <li>
+            <a class="nav-link" href="{% url 'progress' 'default' %}"><i class="bi bi-journal-check" style="color:white;"> </i>Progress</a>
           </li>
+       {% else %}
+        <li>
+            <a class="nav-link" href="{% url 'progress' 4 %}"><i class="bi bi-journal-check" style="color:white;"> </i>Progress</a>
+          </li>
+       {% endif %}
 
         <li>
             <a class="nav-link" href="{% url 'profile'  %}" ><i class="bi bi-person-circle" > </i>Profile</a>
@@ -177,10 +183,15 @@
        <li>
               <a class="nav-link" href="{% url 'exams' %}"><i class="bi bi-clipboard-check" style="color:white;"> </i>Quiz</a>
           </li>
-        <li>
-            <a class="nav-link" href="{% url 'progress' %}"><i class="bi bi-journal-check" style="color:white;"> </i>Progress</a>
+       {% if not grade %}
+       <li>
+            <a class="nav-link" href="{% url 'progress' 'default' %}"><i class="bi bi-journal-check" style="color:white;"> </i>Progress</a>
           </li>
-
+       {% else %}
+        <li>
+            <a class="nav-link" href="{% url 'progress' 4 %}"><i class="bi bi-journal-check" style="color:white;"> </i>Progress</a>
+          </li>
+       {% endif %}
         <li>
             <a class="nav-link" href="{% url 'profile'  %}"><i class="bi bi-person-circle" style="color:white;"> </i>Profile</a>
           </li>

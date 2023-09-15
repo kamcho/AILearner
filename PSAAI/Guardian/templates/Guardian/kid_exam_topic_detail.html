@@ -7,10 +7,10 @@
 
 
 
-
+<div class="container">
 
 {% if not subject %}
-        <h6>This student has no learning history</h6>
+        <h6>This student has no test history</h6>
     {% else %}
 <br>
 <h6>Topical Tests</h6>
@@ -19,6 +19,7 @@
         <thead>
           <tr>
             <th>Topic</th>
+              <th>Grade</th>
             <th>Average</th>
             <th>Count</th>
           </tr>
@@ -27,7 +28,8 @@
         {% for topic in subject %}
           <tr>
               <td><a href="{% url 'kid-exam-subject-id'  email subject_name topic.topic__name %}">{{ topic.topic__name}}</a></td>
-<td ><span  class="badge bg-info text-light">{{ email|topical_average:topic.topic__name }}</span> / {{ topic.test_size }}</td>
+              <td><span class="badge bg-info text-light">{{ topic.subject__grade }}</span></td>
+              <td ><span  class="badge bg-secondary text-light">{{ email|topical_average:topic.topic__name }}</span></td>
               <td><span class="badge bg-dark text-light">{{ email|topical_average_count:topic.topic__name }} </span></td>
           </tr>
         {% endfor %}
@@ -43,6 +45,7 @@
         <thead>
           <tr>
             <th>Subject</th>
+              <th>Grade</th>
             <th>Test Size</th>
             <th>Marks</th>
           </tr>
@@ -51,8 +54,10 @@
         {% for test in tests %}
           <tr>
               <td><a href="{% url 'kid-test-revision' 'KNECExams' email test.test %}">{{ test.subject }}</a></td>
-              <td><span class="badge bg-info text-light">{{ test.test_size }}</span></td>
-              <td><span class="badge bg-info text-light">{{ test.marks }}</span></td>
+                <td><span class="badge bg-info text-light">{{ test.subject.grade }}</span></td>
+
+              <td><span class="badge bg-secondary text-light">{{ test.test_size }}</span></td>
+              <td><span class="badge bg-dark text-light">{{ test.marks }}</span></td>
           </tr>
         {% endfor %}
         </tbody>
@@ -65,6 +70,7 @@
         <thead>
           <tr>
             <th>Subject</th>
+              <th>Grade</th>
             <th>Test Size</th>
             <th>Marks</th>
           </tr>
@@ -73,8 +79,10 @@
         {% for test in class_tests %}
           <tr>
               <td><a href="{% url 'kid-test-revision' 'ClassTests' email test.test %}">{{ test.test.subject }}</a></td>
-              <td><span class="badge bg-info text-light">{{ test.test.test_size }}</span></td>
-              <td><span class="badge bg-info text-light">{{ test.marks }}</span> </td>
+              <td><span class="badge bg-info text-light">{{ test.test.subject.grade }}</span></td>
+
+              <td><span class="badge bg-secondary text-light">{{ test.test.test_size }}</span></td>
+              <td><span class="badge bg-dark text-light">{{ test.marks }}</span> </td>
           </tr>
         {% endfor %}
         </tbody>
@@ -82,4 +90,7 @@
 
 
 {% endif %}
+
+
+    </div>
 {% endblock %}

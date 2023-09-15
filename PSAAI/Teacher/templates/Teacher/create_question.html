@@ -12,6 +12,11 @@
 
       <form method="post">
           {% csrf_token %}
+
+
+
+
+
           {% if user.role == 'Supervisor' %}
           <select class="form-select"  name="type" aria-label="Default select example" required>
                 <option value="knec">KNEC</option>
@@ -25,6 +30,11 @@
                 <option value="{{ subject.id }}">{{ subject }}</option>
               {% endfor %}
           </select>
+
+
+
+
+
           {% else %}
           <select class="form-select" id="subjectSelect" name="subject" aria-label="Default select example" required>
               <option></option>
@@ -33,6 +43,9 @@
               {% endfor %}
           </select>
           {% endif %}
+
+
+
 
 
 

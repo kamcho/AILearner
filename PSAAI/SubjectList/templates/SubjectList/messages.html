@@ -27,25 +27,24 @@
           {{ message.notification_type }}
           <br>
           {% if message.notification_type == 'quiz' %}
-            {% if user|test_is_done:message.uuid %}
-                <a href="{% url 'test-detail' 'Topical' message.uuid %}"><button class="btn btn-warning">View Results</button></a>
+                {% if user|test_is_done:message.uuid %}
+                    <a href="{% url 'test-detail' 'Topical' message.uuid %}"><button class="btn btn-warning">View Results</button></a>
                 {% else %}
-                <a href="{% url 'start' message.topic message.uuid %}"><button class="btn btn-info">Take Test</button></a>
-
+                    <a href="{% url 'start' message.topic message.uuid %}"><button class="btn btn-info">Take Test</button></a>
                 {% endif %}
-            {% elif message.notification_type == 'results' %}
+
+          {% elif message.notification_type == 'results' %}
                 <a href="{% url 'test-detail' message.test %}"><button class="btn btn-warning">View Results</button></a>
-          {% elif message.notification_type == 'retake' %}
-                <a href="{% url 'retake' message.subject message.uuid %}"><button class="btn btn-info">View Test</button></a>
-            {% elif message.notification_type == 'class-test' %}
+
+          {% elif message.notification_type == 'class-test' %}
               {% if user|test_is_done:message.test.uuid %}
-                <a href="{% url 'test-detail' message.test.uuid %}"><button class="btn btn-warning">View Result</button></a>
+                <a href="{% url 'test-detail' 'ClassTests' message.test.uuid %}"><button class="btn btn-warning">View Result</button></a>
               {% else %}
                 <a href="{% url 'assignment-lobby' message.test.uuid %}"><button class="btn btn-warning">View Test</button></a>
               {% endif %}
 
-            {% else %}
-
+          {% else %}
+<button>Pass</button>
 
           {% endif %}
         </div>

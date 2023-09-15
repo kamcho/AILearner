@@ -3,9 +3,13 @@
 
     <div class="container">
         <br>
+        {% if not students %}
+        <p>There are currently no students in this class. If you did not edit the url contact @support</p>
+        {% else %}
         {% for student in students %}
 
-            <p><i class="bi bi-person-circle"></i> <a href="{% url 'task-view-select' student %}"> {{ student }}</a></p>
+            <p><i class="bi bi-person-circle"> </i>
+                <a href="{% url 'task-view-select' student %}"> {{ student.user.personalprofile.surname|title }} {{ student.user.personalprofile.l_name.0|title }}. {{ student.user.personalprofile.f_name|title }}</a></p>
 
         {% endfor %}
     </div>
@@ -18,7 +22,7 @@
 
 
 
-
+{% endif %}
 
 
 {% endblock %}

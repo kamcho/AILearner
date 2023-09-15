@@ -26,8 +26,8 @@ SECRET_KEY = 'django-insecure-*1r4hwdyal=y_j%*m&+-_4!@j)33!9a(z*k_%71c($@&71fbue
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['4173-105-163-2-77.ngrok-free.app', '127.0.0.1']
-CSRF_TRUSTED_ORIGINS = ["https://4173-105-163-2-77.ngrok-free.app"]
+ALLOWED_HOSTS = ['e438-105-163-0-217.ngrok-free.app', '127.0.0.1']
+CSRF_TRUSTED_ORIGINS = ["https://e438-105-163-0-217.ngrok-free.app"]
 
 # Application definition
 
@@ -166,7 +166,7 @@ MEDIA_URL = '/media/'
 AUTH_USER_MODEL = 'Users.MyUser'
 LOGIN_REDIRECT_URL = 'redirect'
 CRISPY_TEMPLATE_TAG = 'bootstrap4'
-LOGIN_URL = 'login/'
+LOGIN_URL = 'Sign-In/'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'

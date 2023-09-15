@@ -1,6 +1,6 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from .views import RegisterView, MyProfile, Home, LoginRedirect, FinishSetup
+from .views import RegisterView, MyProfile, Home, LoginRedirect, FinishSetup, Login
 
 urlpatterns = [
 
@@ -9,7 +9,7 @@ urlpatterns = [
     path('', Home.as_view(), name='student-home'),
     path('login-Redirect/', LoginRedirect.as_view(), name='redirect'),
     path('Profile-Set-Up/', FinishSetup.as_view(), name='edit-profile'),
-    path('Sign-In/', auth_views.LoginView.as_view(template_name='Users/login.html'), name='login'),
+    path('Sign-In/', Login.as_view(), name='login'),
     path('Logout/', auth_views.LogoutView.as_view(template_name='Users/logout.html'), name='logout'),
 
 ]

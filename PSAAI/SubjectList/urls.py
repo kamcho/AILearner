@@ -12,7 +12,7 @@ urlpatterns = [
     path('save/<str:topic> /<str:subtopic>/Save-Progress/', Finish.as_view(), name='save-progress'),
     path('<str:subject_id>/syllabus-coverage/', Syllabus.as_view(), name='syllabus'),
     path('Notifications/', Messages.as_view(), name='notifications'),
-    path('Progress/', MyProgress.as_view(), name='progress'),
+    path('Grade-<str:grade>/Learning-Progress', MyProgress.as_view(), name='progress'),
 
     path('contact/', ContactUs.as_view(), name='contact')
 

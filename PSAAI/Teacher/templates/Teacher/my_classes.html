@@ -2,9 +2,15 @@
 {% block content %}
 
 
+{% if not classes %}
+<div class="container">
+    <p>We could not find any classes in your teaching profile. Click the button below to add.</p>
+    <a href="{% url 'dashboard' %}"><button class="btn btn-warning">Add</button></a>
+</div>
 
-
+{% else %}
 <div class="">
+
     <div class="teacher-home-view">
     {% for class in classes %}
         <div class="teacher-home-card">
@@ -33,7 +39,7 @@
 
 
 
-
+{% endif %}
 
 
 
