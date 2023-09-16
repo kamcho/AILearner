@@ -1,13 +1,9 @@
 import datetime
 import logging
-import uuid
-
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.db import DatabaseError, IntegrityError
-from django.db.models import Count
-from django.http import HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import redirect
 from .models import *
 from django.views.generic import TemplateView
@@ -87,6 +83,8 @@ class Exams(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                     class_subject_counts.count() +
                     general_subject_counts.count()
             )
+            if total_tests_count == 0:
+                messages.warning(self.request, 'You have not taken any Examinations !')
 
             # Retrieve the Subject objects with the common subject IDs
             subjects = Subject.objects.filter(id__in=subject_ids_set)
@@ -1050,6 +1048,8 @@ class KNECExamView(TemplateView):
         try:
             # Attempt to retrieve the subjects for the specified grade
             subjects = KNECGradeExams.objects.filter(grade=grade)
+            if not subjects:
+                messages.info(self.request, 'We could not find Tests matching your query!')
 
             context['subjects'] = subjects
             context['grade'] = grade

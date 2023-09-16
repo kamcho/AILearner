@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'Users',
     'SubjectList',
     'Exams',
-    'Subscription',
+
     'Guardian',
     'Analytics',
     'Teacher',

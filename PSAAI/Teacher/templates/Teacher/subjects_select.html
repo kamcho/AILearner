@@ -67,6 +67,7 @@
 
       <form method="POST">
           {% csrf_token %}
+
            <br>
           <h6>Add The subjects You Teach.</h6>
 
@@ -79,6 +80,9 @@
                   </label>
                 </div>
               {% endfor %}
+                <br>
+                    <button type="submit" class="btn btn-warning" name="profile">Add</button>
+                <br>
               <br>
           <p>Grade 5</p>
               {% for subject in grade5 %}
@@ -90,6 +94,10 @@
                 </div>
               {% endfor %}
               <br>
+          <br>
+                    <button type="submit" class="btn btn-warning" name="profile">Add</button>
+                <br>
+              <br>
           <p>Grade 6</p>
               {% for subject in grade6 %}
                 <div class="form-check">
@@ -99,6 +107,10 @@
                   </label>
                 </div>
               {% endfor %}
+              <br>
+          <br>
+                    <button type="submit" class="btn btn-warning" name="profile">Add</button>
+                <br>
               <br>
           <p>Grade 7</p>
               {% for subject in grade7 %}
@@ -110,7 +122,10 @@
                 </div>
               {% endfor %}
               <br>
-          <button type="submit" class="btn btn-warning" name="profile">Add</button>
+          <br>
+                    <button type="submit" class="btn btn-warning" name="profile">Add</button>
+                <br>
+              <br>
 
       </form>
 

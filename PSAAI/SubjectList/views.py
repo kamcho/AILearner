@@ -1,4 +1,6 @@
 import logging
+
+import uuid
 from ElasticEmail.model.email_content import EmailContent
 from ElasticEmail.model.body_part import BodyPart
 from ElasticEmail.model.body_content_type import BodyContentType
@@ -12,11 +14,11 @@ from django.db import DatabaseError
 from django.db.models import Count
 from django.shortcuts import redirect
 from django.utils import timezone
-
 from Exams.models import ClassTest, ClassTestStudentTest
+from SubjectList.models import Subject, Subtopic, Progress, TopicExamNotifications, Topic, TopicalExamResults, Course, \
+    AcademicInquiries, AccountInquiries
 from Teacher.models import ClassTestNotifications
 from Users.models import AcademicProfile
-from .models import *
 from django.views.generic import TemplateView
 
 logger = logging.getLogger('django')
@@ -62,9 +64,9 @@ def send_mail(user, subject, body):
 
         try:
             api_response = api_instance.emails_post(email_message_data)
-            print(api_response)
+
         except ElasticEmail.ApiException as e:
-            print("Exception when calling EmailsApi->emails_post: %s\n" % e)
+            pass
 
 
 class Learning(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
@@ -93,6 +95,7 @@ class Learning(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             # Display subjects by Grade
             subjects = Subject.objects.filter(grade=grade)
             if not subjects:
+                messages.warning(self.request, 'We could not find Subjects matching your query!!')
                 raise Subject.DoesNotExist
             context['subjects'] = subjects
         except Subject.DoesNotExist as e:
@@ -553,7 +556,7 @@ class Assignment(LoginRequiredMixin, TemplateView):
 
         except ValueError as e:
             # Handle DatabaseError
-            messages.error(self.request, 'You did not specify the class you are in and can therefore'
+            messages.error(self.request, 'You did not specify the class you are in and you can therefore'
                                          ' not view your assignments. Contact @support')
             context['assignments'] = 'error'
             error_message = str(e)  # Get the error message as a string
@@ -748,21 +751,22 @@ class Messages(LoginRequiredMixin, TemplateView):
                 # Fetch relevant notifications for students
                 topical_exam_results = TopicalExamResults.objects.filter(user=user).order_by('-date')
                 topical_exam = TopicExamNotifications.objects.filter(user=user).order_by('-date')
-                class_bookings = ClassBookingNotifications.objects.filter(user=user).order_by('-date')
                 class_test_notifications = ClassTestNotifications.objects.filter(class_id=class_id).order_by('-date')
 
                 # Combine and order notifications
-                notifications = list(topical_exam) + list(topical_exam_results) + list(class_bookings) + list(
+                notifications = list(topical_exam) + list(topical_exam_results)  + list(
                     class_test_notifications)
+
+                if not notifications:
+                    messages.info(self.request, 'You do not have any Notifications.')
                 context['notifications'] = notifications
 
 
             else:
                 # Fetch relevant notifications for other roles (Guardian, Teacher, etc.)
-                payment_notification = PaymentNotifications.objects.filter(user=user)
-                subscription_notifications = SubscriptionNotifications.objects.filter(user=user)
-                notifications = list(subscription_notifications) + list(payment_notification)
-                context['notifications'] = notifications
+
+
+                context['notifications'] = 'notifications'
         except Exception as e:
             messages.error(self.request, 'Sorry, we could not get your messages. Contact @support')
 
@@ -811,10 +815,14 @@ class MyProgress(LoginRequiredMixin, TemplateView):
 
             # Fetch the user's progress in different subjects
             subject_progress = Progress.objects.filter(user=self.request.user, subject__grade=grade).values(
-                'subject__name', 'subject__topics', 'subject__grade').annotate(
+                'subject__name', 'subject__topics', 'subject__grade', 'subject__id').annotate(
                 topic_count=Count('topic', distinct=True))
 
+            if not subject_progress:
+                messages.warning(self.request, 'You do not have any saved Learning history.')
+
             context['subject'] = subject_progress
+
 
 
 
@@ -875,7 +883,15 @@ class ContactUs(LoginRequiredMixin, TemplateView):
 
                 }
             )
-
+        role = self.request.user.role
+        if role == 'Student':
+            context['base_html'] = 'Users/base.html'
+        elif role == 'Guardian':
+            context['base_html'] = 'Guardian/baseg.html'
+        elif role == 'Teacher':
+            context['base_html'] = 'Teacher/teachers_base.html'
+        elif role == 'Supervisor':
+            context['base_html'] = 'Supervisor/base.html'
         return context
 
     def post(self, request, **kwargs):

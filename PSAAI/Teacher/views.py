@@ -251,6 +251,7 @@ class ClassTestAnalytics(TemplateView):
             for quiz in class_test.quiz.all():  # Get all quizzes in a test
                 test_dict[index] = quiz
                 index += 1
+            print(test_dict)
 
             # Get all correct selections from students' class test
             passed_count = StudentsAnswers.objects.filter(test_object_id=test_uuid, is_correct=True).values(
@@ -266,10 +267,13 @@ class ClassTestAnalytics(TemplateView):
                     if str(choice) == str(value):
                         performance_data[int(key)] = relative
                         p_index += 1
+                    else:
+                        performance_data[int(key)] = relative
 
             if performance_data:
                 most_failed = min(performance_data, key=performance_data.get)
                 most_passed = max(performance_data, key=performance_data.get)
+                print(performance_data)
 
                 context['passed'] = most_passed
                 context['failed'] = most_failed

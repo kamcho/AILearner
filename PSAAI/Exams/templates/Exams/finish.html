@@ -7,13 +7,16 @@
 
 <div class="container">
     {% if instance == 'KNECGradeExams' or instance == 'ClassTests' %}
-        <p>You have come to the end of this test. You answered {{ score }} out of {{ size }} questions correctly.</p>
+        <p>Congratulations! You've reached the end of the test. Your responses have been saved and can be reviewed in the exam panel.
+            Thank you for completing the test. You answered {{ score }} out of {{ size }} questions correctly.</p>
         <h6>You scored {{ score }} / {{ size }}</h6>
         <br>
         <a href="{% url 'test-detail' instance test_uuid %}"><button class="btn btn-info">Review</button></a>
     {% else %}
-        <p>You have come to the end of this test. You answered {{ score }} out of {{ test.test_size }} questions correctly.</p>
-        <h6>You scored {{ score }} / {{ test.test_size}}</h6>
+        <p>Congratulations! You've reached the end of the test. Your responses have been saved and can be reviewed in the exam panel.
+            Thank you for completing the test. You have come to the end of this test.
+            You answered {{ score }} out of {{ test.test_size }} questions correctly.</p>
+        <h6>You scored {{ score }} / {{ test.test_size}}.</h6>
         <br>
         <a href="{% url 'test-detail' instance test_uuid %}"><button class="btn btn-info">Review</button></a>
     {% endif %}

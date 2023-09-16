@@ -135,4 +135,12 @@
 </div>
 
 
+
+<script>
+    window.addEventListener('popstate', function(event) {
+        // This function is called when the user navigates back
+        location.reload(); // Reload the current page
+    });
+</script>
+
 {% endblock %}

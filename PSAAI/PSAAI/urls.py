@@ -27,7 +27,6 @@ path('Logs/', include('Logs.urls')),
 
 
     path('Exams/', include('Exams.urls')),
-    path('Subscription/', include('Subscription.urls')),
     path('Guardian/', include('Guardian.urls')),
     path('Supervisor/', include('Supervisor.urls')),
     path('Analytics/', include('Analytics.urls')),

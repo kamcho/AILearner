@@ -481,7 +481,7 @@ class Home(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             academic_profile = AcademicProfile.objects.get(user=user)
 
             print(academic_profile)
-            grade = academic_profile.current_class.grade
+
             progress_queryset = Progress.objects.filter(user=user)
 
             last_subject = progress_queryset.last()
@@ -503,7 +503,9 @@ class Home(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 context['next'] = next_topic
                 context['last_subject'] = last_subject
                 context['subjects'] = subject
-                context['grade'] = grade
+            grade = academic_profile.current_class.grade
+
+            context['grade'] = grade
 
 
 
@@ -531,27 +533,7 @@ class Home(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 }
             )
 
-        except Exception as e:
-            messages.error(self.request, 'An error occurred. Please contact @support')
-            error_message = str(e)  # Get the error message as a string
-            error_type = type(e).__name__
 
-            # Save Log to database
-            logger.critical(
-                error_message,
-                exc_info=True,  # Include exception info in the log message
-                extra={
-                    'app_name': __name__,
-                    'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
-                    'error_type': error_type,
-                    'user': self.request.user,
-                    'level': 'Critical',
-
-                    'model': 'DatabaseError',
-                    # Add more custom fields as needed
-                }
-            )
 
         except AcademicProfile.DoesNotExist as e:
             academic_profile = AcademicProfile.objects.create(user=user)
@@ -573,6 +555,28 @@ class Home(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                     'user': self.request.user,
                     'level': 'Critical',
                     'model': 'AcademicProfile',
+                }
+            )
+
+        except Exception as e:
+            messages.error(self.request, 'An error occurred. Please contact @support')
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            # Save Log to database
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': uuid.uuid4(),
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+
+                    'model': 'DatabaseError',
+                    # Add more custom fields as needed
                 }
             )
 

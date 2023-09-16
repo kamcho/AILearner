@@ -3,7 +3,7 @@ from django.db import models
 import uuid
 # Create your models here.
 from Exams.models import TopicalQuizes, TopicalQuizAnswers, ClassTest
-from SubjectList.models import Subject, Topic, Subtopic, OnlineClass, Notifications
+from SubjectList.models import Subject, Topic, Subtopic,  Notifications
 from Users.models import MyUser, SchoolClass
 
 
@@ -22,21 +22,6 @@ class StudentList(models.Model):
 
     def __str__(self):
         return str(self.user)
-
-
-class MyClasses(models.Model):
-    user = models.ForeignKey(MyUser, related_name='teachers_class', on_delete=models.CASCADE)
-    online_class = models.ForeignKey(OnlineClass, on_delete=models.CASCADE)
-    students = models.ManyToManyField(MyUser)
-
-    def __str__(self):
-        return str(self.user)
-
-
-
-
-
-
 
 
 class ClassTestNotifications(Notifications):

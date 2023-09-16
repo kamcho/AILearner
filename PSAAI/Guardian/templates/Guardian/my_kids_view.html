@@ -34,14 +34,10 @@
                 <div class="mb-8">
                     <input type="email" class="form-control" id="exampleFormControlInput1" placeholder="{{ kid.user.last_login }}">
                   </div>
+                <br>
                  
-                {% if kid.user.mysubscription.active == 'Active' %}
                 <p class="active">Active.</p>
-                {% else %}
-                <p class="error">{{ kid.user.mysubscription.active }}.</p>
 
-                {% endif %}
-                <small class="error">{{ current_time|timesince:kid.user.mysubscription.expiry }} to expiry.</small>
 
             </div>
 

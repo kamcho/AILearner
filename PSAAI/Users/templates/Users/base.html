@@ -50,9 +50,7 @@
           <li>
               <a class="nav-link" href="{% url 'student-home' %}" ><i class="bi bi-house" > </i>Home</a>
           </li>
-       <li>
-              <a class="nav-link" href=""><i class="bi bi-camera-video" > </i>Online</a>
-          </li>
+
        <li>
            <a class="nav-link" href="{% url 'notifications' %}">
             <button  style="background-color:purple;" class="btn  position-relative">
@@ -72,11 +70,11 @@
           </li>
         {% if not grade %}
        <li>
-            <a class="nav-link" href="{% url 'progress' 'default' %}"><i class="bi bi-journal-check" style="color:white;"> </i>Progress</a>
+            <a class="nav-link" href="{% url 'progress' 'default' %}"><i class="bi bi-journal-check" > </i>Progress</a>
           </li>
        {% else %}
         <li>
-            <a class="nav-link" href="{% url 'progress' 4 %}"><i class="bi bi-journal-check" style="color:white;"> </i>Progress</a>
+            <a class="nav-link" href="{% url 'progress' 4 %}"><i class="bi bi-journal-check" style=""> </i>Progress</a>
           </li>
        {% endif %}
 
@@ -165,9 +163,6 @@
               <a class="nav-link" href="{% url 'student-home' %}"><i class="bi bi-house" style="color:white;"> </i>Home</a>
           </li>
 
-       <li>
-              <a class="nav-link" href=""><i class="bi bi-camera-video" style="color:white;"> </i>Online</a>
-          </li>
 
        <li>
            <a class="nav-link" href="{% url 'notifications' %}">
@@ -185,7 +180,7 @@
           </li>
        {% if not grade %}
        <li>
-            <a class="nav-link" href="{% url 'progress' 'default' %}"><i class="bi bi-journal-check" style="color:white;"> </i>Progress</a>
+            <a class="nav-link" href="{% url 'progress' 'default' %}"><i class="bi bi-journal-check"> </i>Progress</a>
           </li>
        {% else %}
         <li>
@@ -228,8 +223,13 @@
     {% for message in messages %}
       {% if message.tags ==  'error' %}
         <h6 class="alert alert-danger">{{ message }}</h6>
-      {% else %}
+      {% elif message.tags == 'info' %}
+          <h6 class="alert alert-info">{{ message }}</h6>
+      {% elif message.tags == 'success' %}
           <h6 class="alert alert-success">{{ message }}</h6>
+      {% elif message.tags == 'warning' %}
+          <h6 class="alert alert-warning">{{ message }}</h6>
+
 
       {% endif %}
     {% endfor %}
@@ -247,6 +247,12 @@
 
 
 </div>
+<script>
+    window.addEventListener('popstate', function(event) {
+        // This function is called when the user navigates back
+        location.reload(); // Reload the current page
+    });
+</script>
 
 
 </body>
