@@ -40,6 +40,11 @@
                 <a href="{% url 'assignment-lobby' message.test.uuid %}"><button class="btn btn-warning">View Test</button></a>
               {% endif %}
 
+
+          {% elif message.notification_type == 'custom' %}
+             <a href="{% url 'start' 'Custom' message.uuid %}"><button class="btn btn-info">View Test</button></a>
+
+
           {% else %}
 <button>Pass</button>
 

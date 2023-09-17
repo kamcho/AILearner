@@ -1,3 +1,6 @@
+import logging
+import math
+
 from django import template
 from django.db.models import Sum
 from django.shortcuts import redirect
@@ -9,7 +12,7 @@ from SubjectList.models import *
 from Users.models import MyUser, SchoolClass
 
 register = template.Library()
-
+logger = logging.getLogger('django')
 
 @register.filter
 def divide(value, arg):
@@ -22,18 +25,17 @@ def divide(value, arg):
 
 @register.filter
 def get_user_progress_topic(user, subject):
-    subject = Subject.objects.filter(id=subject).first()
+    subject = Subject.objects.get(id=subject)
     progress = Progress.objects.filter(user=user, subject=subject).last()
     if progress:
         try:
-            current_subtopic = Subtopic.objects.filter(name=progress.subtopic).last()
+            current_subtopic = Subtopic.objects.get(name=progress.subtopic)
             return current_subtopic
 
         except Subtopic.DoesNotExist:
             try:
                 introduction = Topic.objects.get(subject=subject, order=1)
                 introduction = Subtopic.objects.get(topic=introduction, order=1)
-                print(introduction)
                 return introduction
             except Topic.DoesNotExist:
                 return None
@@ -43,7 +45,6 @@ def get_user_progress_topic(user, subject):
         try:
             introduction = Topic.objects.get(subject=subject, order=1)
             introduction = Subtopic.objects.get(topic=introduction, order=1)
-            print(introduction)
             return introduction
         except Topic.DoesNotExist:
             return None
@@ -55,12 +56,12 @@ def get_user_progress_topic(user, subject):
 def topic_in_progress(user, topic):
     try:
         progress = Progress.objects.filter(user=user, topic=topic)
-        if progress.exists():
+        if progress:
             return True
         else:
             return False
 
-    except Progress.DoesNotExist:
+    except Exception as e:
         return False
 
 
@@ -74,24 +75,22 @@ def guardian_topic_view(email, topic):
         else:
             return False
 
-    except Progress.DoesNotExist:
-        pass
 
-    except MyUser.DoesNotExist:
-        pass
+    except Exception as e:
+        return False
 
 
 @register.filter
 def subtopic_in_progress(user, subtopic):
     try:
         progress = Progress.objects.filter(user=user, subtopic=subtopic)
-        if progress.exists():
+        if progress:
             return True
         else:
             return False
 
-    except Progress.DoesNotExist:
-        pass
+    except Exception as e:
+        return False
 
 
 @register.filter
@@ -99,39 +98,21 @@ def guardian_subtopic_view(email, subtopic):
     try:
         user = MyUser.objects.get(email=email)
         progress = Progress.objects.filter(user=user, subtopic=subtopic)
-        if progress.exists():
+        if progress:
             return True
         else:
             return False
 
-    except MyUser.DoesNotExist:
-        pass
-
-    except Progress.DoesNotExist:
-        pass
-
-
-@register.filter
-def class_is_booked(user, class_id):
-    try:
-        booking = ClassBooking.objects.filter(user=user, class_name=class_id)
-        if booking.exists():
-            print(class_id)
-            return True
-        else:
-            print("not found", class_id)
-            return False
-
-    except ClassBooking.DoesNotExist:
+    except Exception as e:
         return False
 
 
 @register.filter
 def test_is_done(user, test_uuid):
     try:
-        class_test = ClassTestStudentTest.objects.filter(user=user, test=test_uuid).first()
-        student_test = StudentTest.objects.filter(user=user, uuid=test_uuid).first()
-        knec_test = StudentKNECExams.objects.filter(user=user, test=test_uuid).first()
+        class_test = ClassTestStudentTest.objects.get(user=user, test=test_uuid)
+        student_test = StudentTest.objects.get(user=user, uuid=test_uuid)
+        knec_test = StudentKNECExams.objects.get(user=user, test=test_uuid)
         if student_test or class_test or knec_test:
 
             return True
@@ -163,6 +144,7 @@ def class_test_average(test_uuid):
         return 0
     else:
         average = (int(total_marks) / int(tests.count()))
+        average = round(average)
 
         return f'{average} / {test.test_size} '
 
@@ -211,10 +193,12 @@ def subject_analytics_size(user, subject):
     total_test_size = sum_marks_and_test_sizes['total_test_size']
     return int(total_test_size)
 
+
 @register.filter
 def get_subject(subject):
     subject = Subject.objects.get(id=subject)
     return subject
+
 
 @register.filter
 def topic_analytics_strength(user, topic):
@@ -242,6 +226,7 @@ def topic_analytics_count(user, topic):
 
     return total
 
+
 @register.filter
 def get_topics(user, subject):
     if user is  int:
@@ -251,6 +236,7 @@ def get_topics(user, subject):
 
     topical_topics = topical_tests.values('topic__name')
     return topical_topics
+
 
 @register.filter
 def get_test_count(user, subject):
@@ -266,6 +252,7 @@ def get_test_count(user, subject):
         general_test = GeneralTest.objects.filter(user__email=user, subject=subject).count()
 
     return topical_tests + class_test + knec_test + general_test
+
 
 @register.filter
 def get_topic_count(user, subject):

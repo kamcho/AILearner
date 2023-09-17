@@ -9,17 +9,16 @@
 
 <div class="container">
 
-{% if not subject %}
-        <h6>This student has no test history</h6>
-    {% else %}
+
 <br>
-<h6>Topical Tests</h6>
+<h6>{{ subject_name }}</h6>
 
      <table class="table">
         <thead>
           <tr>
             <th>Topic</th>
               <th>Grade</th>
+              <th>Type</th>
             <th>Average</th>
             <th>Count</th>
           </tr>
@@ -29,67 +28,38 @@
           <tr>
               <td><a href="{% url 'kid-exam-subject-id'  email subject_name topic.topic__name %}">{{ topic.topic__name}}</a></td>
               <td><span class="badge bg-info text-light">{{ topic.subject__grade }}</span></td>
+              <td>Topical</td>
               <td ><span  class="badge bg-secondary text-light">{{ email|topical_average:topic.topic__name }}</span></td>
               <td><span class="badge bg-dark text-light">{{ email|topical_average_count:topic.topic__name }} </span></td>
           </tr>
         {% endfor %}
-        </tbody>
-     </table>
-
-
-<br><br>
-
-
-<h6>KNEC Tests</h6>
-<table class="table">
-        <thead>
-          <tr>
-            <th>Subject</th>
-              <th>Grade</th>
-            <th>Test Size</th>
-            <th>Marks</th>
-          </tr>
-        </thead>
-        <tbody>
         {% for test in tests %}
           <tr>
               <td><a href="{% url 'kid-test-revision' 'KNECExams' email test.test %}">{{ test.subject }}</a></td>
                 <td><span class="badge bg-info text-light">{{ test.subject.grade }}</span></td>
+              <td>KNEC</td>
 
-              <td><span class="badge bg-secondary text-light">{{ test.test_size }}</span></td>
-              <td><span class="badge bg-dark text-light">{{ test.marks }}</span></td>
+              <td><span class="badge bg-secondary text-light">{{ test.marks }} / {{ test.test_size }}</span></td>
+            <td><span class="badge bg-dark text-light">1 </span></td>
+
           </tr>
         {% endfor %}
-        </tbody>
- </table>
-
-<br><br>
-
-<h6>Class Tests</h6>
-<table class="table">
-        <thead>
-          <tr>
-            <th>Subject</th>
-              <th>Grade</th>
-            <th>Test Size</th>
-            <th>Marks</th>
-          </tr>
-        </thead>
-        <tbody>
         {% for test in class_tests %}
           <tr>
               <td><a href="{% url 'kid-test-revision' 'ClassTests' email test.test %}">{{ test.test.subject }}</a></td>
               <td><span class="badge bg-info text-light">{{ test.test.subject.grade }}</span></td>
-
-              <td><span class="badge bg-secondary text-light">{{ test.test.test_size }}</span></td>
-              <td><span class="badge bg-dark text-light">{{ test.marks }}</span> </td>
+                <td>Assignment</td>
+              <td><span class="badge bg-secondary text-light">{{ test.marks }} / {{ test.test.test_size }}</span></td>
+              <td><span class="badge bg-dark text-light">1</span></td>
           </tr>
         {% endfor %}
         </tbody>
      </table>
 
 
-{% endif %}
+
+
+
 
 
     </div>

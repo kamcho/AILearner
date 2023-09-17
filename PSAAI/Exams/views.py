@@ -937,8 +937,9 @@ class SetTest(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             user = self.kwargs['mail']
             user = MyUser.objects.get(email=user)
             subject = self.kwargs['subject']
-            subject = Subject.objects.filter(name=subject).first()
+            subject = Subject.objects.get(id=subject)
             topics = self.request.POST.getlist('topics')
+            print(topics[0])
             exam_type = self.request.POST.get('exam-type')
 
             test_size = self.request.POST.get('size')
@@ -951,11 +952,11 @@ class SetTest(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                     message = 'The test you requested is now available, Good luck.'
 
                     if exam_type == 'Topical':
-                        topic = Topic.objects.get(name=topics[0])
+                        topic = Topic.objects.get(id=topics[0])
                         about = f'You have a new test. View more info below.(topical){topic}'
 
                         notification = TopicExamNotifications.objects.create(user=user, about=about,
-                                                                             notification_type='quiz', uuid=test_id,
+                                                                             notification_type='custom',
                                                                              subject=subject,
                                                                              date=date,
                                                                              message=message,
