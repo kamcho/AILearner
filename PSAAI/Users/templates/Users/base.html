@@ -26,7 +26,7 @@
 
 
 
-    <nav class="navbar navbar-dark fixed-top" id="top-bar" style="background-color:purple;">
+    <nav class="navbar navbar-dark fixed-top" id="top-bar" style="background-color:rgba(29, 25, 46, .8);">
       <div class="container-fluid">
         <a class="zara"  href="#">Zara</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
@@ -127,94 +127,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-<nav class="vertical-bar" style="display:none;">
-    <div class="text-center">
-        <br>
-          <p>{{ user.personalprofile.f_name }}</p>
-
-
-          <small >{{ user.mysubscription.active }}</small>
-
-      </div>
-    <hr class="hr">
-   <ul class="navbar-nav">
-        {% if user.is_authenticated %}
-        {% if user.mysubjects.selected == "False" %}
-       <li>
-              <a class="nav-link" href=""><i class="bi bi-book" style="color:white;"> </i>Subject-select</a>
-          </li>
-       {% else %}
-
-
-
-
-
-          <li>
-              <a class="nav-link" href="{% url 'student-home' %}"><i class="bi bi-house" style="color:white;"> </i>Home</a>
-          </li>
-
-
-       <li>
-           <a class="nav-link" href="{% url 'notifications' %}">
-            <button  style="background-color:purple;color:white;" class="btn  position-relative">
-              Messages
-              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                {{ messages.count }}+
-                <span class="visually-hidden">unread messages</span>
-              </span>
-            </button>
-            </a>
-       </li>
-       <li>
-              <a class="nav-link" href="{% url 'exams' %}"><i class="bi bi-clipboard-check" style="color:white;"> </i>Quiz</a>
-          </li>
-       {% if not grade %}
-       <li>
-            <a class="nav-link" href="{% url 'progress' 'default' %}"><i class="bi bi-journal-check"> </i>Progress</a>
-          </li>
-       {% else %}
-        <li>
-            <a class="nav-link" href="{% url 'progress' 4 %}"><i class="bi bi-journal-check" style="color:white;"> </i>Progress</a>
-          </li>
-       {% endif %}
-        <li>
-            <a class="nav-link" href="{% url 'profile'  %}"><i class="bi bi-person-circle" style="color:white;"> </i>Profile</a>
-          </li>
-       <li>
-            <a class="nav-link" href="{% url 'contact'  %}" ><i class="bi bi-headphones" > </i>contact</a>
-          </li>
-
-          
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'logout' %}"><i class="bi bi-box-arrow-left" style="color:white;"> </i>Sign out</a>
-          </li>
-
-
-{% endif %}
-        {% else %}
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'login' %}">Sign In</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'register' %}">Sign Up</a>
-        </li>
-        {% endif %}
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'password-reset' %}"><i class="bi bi-x-octagon" style="color:white;"> </i>Reset</a>
-          </li>
-      </ul>
-
-</nav>
 
 {% if messages %}
     <br>

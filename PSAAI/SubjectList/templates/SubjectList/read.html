@@ -4,36 +4,47 @@
 
 {% block content %}
 
-<div class="container">
+<div class="subject-select-content-container">
     {% if not subject %}
 
     {% else %}
-    <div>
-        <h5 class="dashed-heading">{{ subject.subject }} Grade - {{ subject.subject.grade }}</h5>
-        <br>
-        <h6 >Topic - {{ subject.topic }}</h6>
-        <h6>Sub Topic - {{ subject }}</h6>
-    </div>
+    <br>
+    <br>
+    <br>
+    <div class="study-content">
+        <div class="study-headings ">
+            <div>
+              <h5 class="">{{ subject.subject }} Grade - {{ subject.subject.grade }}</h5>
+              <br>
+              <h6>Topic - {{ subject.topic }}</h6>
+              <h6>Sub Topic - {{ subject }}</h6>
+            </div>
+        </div>
+
     {% if user.role == 'Student' %}
-      <div class="text-center" style="margin-top:30px;">
-         <a href="{% url 'save-progress' subject.topic subject %}"><button class="btn btn-info">Finish</button></a>
-      </div>
+    <div class="text-center" style="margin-top:20px;">
+        <a href="{% url 'save-progress' subject.topic subject %}"><button class="btn btn-info">Finish</button></a>
+    </div>
     {% else %}
     {% endif %}
 
     <br>
 
 
-    <div>
-        <object data="https://media.geeksforgeeks.org/wp-content/cdn-uploads/20210101201653/PDF.pdf"
-                width="95%"
-                height="800">
+    <div class="study-content">
+        <object data="https://media.geeksforgeeks.org/wp-content/cdn-uploads/20210101201653/PDF.pdf" width="95%"
+            height="800">
         </object>
     </div>
 
 
 
-{% endif %}
+    {% endif %}
+
+    </div>
+    
+    <div style="margin-top: 40px;"></div>
+    
 </div>
 
 

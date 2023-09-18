@@ -6,31 +6,33 @@
 
 {% block content %}
 
-<div class="container dropdown" >
-      <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-        Grade {{ grade }}
-      </button>
-      <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-        <li><a class="dropdown-item" href="{% url 'progress' '4' %}">4</a></li>
-        <li><a class="dropdown-item" href="{% url 'progress' '5' %}">5</a></li>
-        <li><a class="dropdown-item" href="{% url 'progress' '6' %}">6</a></li>
-        <li><a class="dropdown-item" href="{% url 'progress' '7' %}">7</a></li>
-      </ul>
-    </div>
-<br>
+
+
+
+<div class="subject-select-content-container">
+  <br>
+  <div class="container dropdown" >
+    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+      Grade {{ grade }}
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+      <li><a class="dropdown-item" href="{% url 'progress' '4' %}">4</a></li>
+      <li><a class="dropdown-item" href="{% url 'progress' '5' %}">5</a></li>
+      <li><a class="dropdown-item" href="{% url 'progress' '6' %}">6</a></li>
+      <li><a class="dropdown-item" href="{% url 'progress' '7' %}">7</a></li>
+    </ul>
+  </div>
+
 {% if not subject %}
 
-    {% else %}
-
-
-
-<div class="subject-progress-view">
+  {% else %}
+<div class="subjects-select-view">
 
 
 
 
         {% for prog in subject %}
-        <div class="subject-progress-card">
+        <div class="subject-select-card">
 
             <a href="{% url 'syllabus' prog.subject__id %}"><h6 class="p-txt"><i class="bi bi-bookmark-plus"></i> {{ prog.subject__name }}</h6></a>
 
@@ -56,7 +58,7 @@
 </div>
 
 
-
+</div>
 
 
 

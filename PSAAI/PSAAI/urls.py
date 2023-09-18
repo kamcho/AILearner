@@ -20,24 +20,23 @@ from django.urls import path,include
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
-path('Logs/', include('Logs.urls')),
+
     path('admin/', admin.site.urls),
     path('', include('Users.urls')),
     path('academic/', include('SubjectList.urls')),
-
-
     path('Exams/', include('Exams.urls')),
+    path('Logs/', include('Logs.urls')),
     path('Guardian/', include('Guardian.urls')),
     path('Supervisor/', include('Supervisor.urls')),
     path('Analytics/', include('Analytics.urls')),
     path('Teacher/', include('Teacher.urls')),
     path('password-reset/', auth_views.PasswordResetView.as_view(template_name='Users/password_reset.html'),
          name='password-reset'),
-    path('password-reset-confirm/<uidb64>/<token>/',auth_views.PasswordResetConfirmView.
-         as_view(template_name='Users/password_reset_confirm.html'),name='password_reset_confirm'),
+    path('password-reset-confirm/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.
+         as_view(template_name='Users/password_reset_confirm.html'), name='password_reset_confirm'),
     path('password-reset/done/', auth_views.PasswordResetDoneView.
          as_view(template_name='Users/password_reset_done.html'), name='password_reset_done'),
-    path('password-reset-complete/',auth_views.PasswordResetCompleteView.
-         as_view(template_name='Users/password_reset_complete.html'),name='password_reset_complete'),
+    path('password-reset-complete/', auth_views.PasswordResetCompleteView.
+         as_view(template_name='Users/password_reset_complete.html'), name='password_reset_complete'),
 
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

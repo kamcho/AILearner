@@ -1,33 +1,112 @@
+.subject-select-content-container{
+    background-color: #000000;
+    
+    width: 100%;
+    height: fit-content;
+    position: absolute;
+    top: 55px;
+    min-height: 100vh;
+    
+    /* top: 50px; */
+}
+
 .subjects-select-view{
 
     display: grid;
     grid-template-columns: repeat(3, .7fr);
-    margin:0 auto;
+    margin:50px auto;
 
     row-gap: 20px;
     column-gap:20px;
     width:93%;
+    background-color:rgba(29, 25, 46, .8);
+
 
     padding-top:30px;
     padding-bottom:40px;
 
 }
 .subject-select-card{
-    width:99%;
-    height:270px;
-    box-shadow: 2px 4px 20px 5px rgba(0, 0, 0, 0.09);
-    padding: 20px;
+    overflow: hidden;
+  position: relative;
+  text-align: left;
+  margin: 20px auto;
+  height: 300px;
+  padding:20px;
+  border-radius: 0.5rem;
+  border: 2px solid linear-gradient(to right,rgb(142, 110, 255),rgb(208, 195, 255));
+  width: 95%;
+  max-width:400px;
+  background-color: #fff;
+  color: #000;
+    box-shadow: 0px 90px 41360px 310px rgba(123, 64, 160, 0.08);
+
 
 }
+
+
+.subject-select-card::before {
+  width: 150px;
+  height: 150px;
+  content: "";
+  background: linear-gradient(to right,rgb(142, 110, 255),rgb(208, 195, 255));
+  position: absolute;
+  z-index: 1;
+  border-radius: 50%;
+  right: -25%;
+  top: -25%;
+}
+
+
+
 .subject-select-in-card{
     width: 98%;
     height: 40%;
-    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.5);
     border-radius: 5px;
     padding: 10px;
+    color: #597393 !important;
+    background-color: #fff !important;
 
 }
 
+
+/* READ */
+
+.study-headings{
+    color: white;
+    padding: 20px;
+}
+.study-content{
+    margin: 0 auto;
+    width: 90%;
+    background-color:rgba(29, 25, 46, .8);
+
+}
+
+/* FINISH */
+
+.finish-content-container{
+    width: 100%;
+    height: 1000px;
+    background-color: #000;
+    position: absolute;
+    top: 55px;
+ 
+}
+.finish-view{
+    color:white;
+    margin: 59px auto;
+    background-color:rgba(29, 25, 46, .8);
+    height: 300px;
+    border-radius: 40px;
+
+    
+
+}
+.finish-content{
+    padding: 40px;
+}
 /* BOOKED CLASSES */
 .booked-class-body{
 
@@ -170,7 +249,7 @@
 }
 
 
-@media (max-width: 600px) {
+@media (max-width: 650px) {
     .subjects-select-view{
         display:inline;
 
@@ -193,6 +272,9 @@
     .subject-progress-card{
         margin:20px auto !important;
 
+    }
+    .finish-content{
+        padding: 20px;
     }
 
 

@@ -42,13 +42,12 @@ INSTALLED_APPS = [
     'Users',
     'SubjectList',
     'Exams',
-
     'Guardian',
     'Analytics',
     'Teacher',
     'Supervisor',
     'Logs',
-    'django_db_logger',
+
 
 ]
 

@@ -504,6 +504,8 @@ class Home(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 context['last_subject'] = last_subject
                 context['subjects'] = subject
             grade = academic_profile.current_class.grade
+            if grade is None:
+                raise AttributeError
 
             context['grade'] = grade
 
