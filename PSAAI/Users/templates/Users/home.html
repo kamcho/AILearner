@@ -32,24 +32,25 @@
           <br>
           <div class="">
             <small>Subject Coverage.</small>
-            <br><br>
-            <div class="progress">
+            <br>
+            <p>View your progress on each subject you have learnt.</p>
+            <!-- <div class="progress">
               <div class="progress-bar" role="progressbar" style="width: 25%;background-color: purple;"
                 aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
-            </div>
+            </div> -->
           </div>
 
         </div>
       </a>
       <a href="{% url 'knec-exams' grade %}">
         <div class="event-card">
-          <h6><i class="bi bi-pen"></i> KNEC Exams</h6>
+          <h6><i class="bi bi-speaker"></i> KNEC Announcements</h6>
           <hr class="centered-hr">
           <br>
 
           <div class="">
 
-            <small>Click here to view and register for nationwide exams.
+            <small>Click here to view updates from KNEC/KICD/CBC on new education matters.
 
             </small>
             <button class="btn btn-dark">View</button>
@@ -76,7 +77,7 @@
   <div class='table-container'>
 
 
-    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+    <!-- <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
       aria-expanded="false">Grade</button>
     <ul class="dropdown-menu dropdown-menu-end">
       <li><a class="dropdown-item" href="#">4</a></li>
@@ -86,7 +87,7 @@
         <hr class="dropdown-divider">
       </li>
       <li><a class="dropdown-item" href="#">7</a></li>
-    </ul>
+    </ul> -->
 
     <br>
     <br>
@@ -119,9 +120,10 @@
           <td>
             <div class="progress">
               <div class="progress-bar" role="progressbar"
-                style="width: {{ subject.topic_count|divide:subject.subject__topics }} %;background-color: purple;"
-                aria-valuenow="63" aria-valuemin="0" aria-valuemax="100">{{
-                subject.topic_count|divide:subject.subject__topics }}%</div>
+                style="width: {{ subject.topic_count|divide:subject.subject__topics }}%;background-color: purple;"
+                aria-valuenow="63" aria-valuemin="0" aria-valuemax="100">
+                {{ subject.topic_count|divide:subject.subject__topics }}%
+              </div>
             </div>
           </td>
         </tr>
@@ -147,7 +149,7 @@
 
 
 
-</>
+</div>
 
 
 

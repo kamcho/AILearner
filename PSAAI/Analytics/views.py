@@ -1,5 +1,6 @@
 import logging
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import ObjectDoesNotExist
@@ -30,7 +31,7 @@ class IsStudent(UserPassesTestMixin):
 
             profile = PersonalProfile.objects.create(user__email=user_email)
             # Any exceptions occurrence limits view
-            return True
+            return False
         except Exception:
             return False
 
@@ -69,7 +70,7 @@ class OverallAnalytics(LoginRequiredMixin, IsStudent, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -136,7 +137,7 @@ class SubjectAnalytics(LoginRequiredMixin, IsStudent, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',

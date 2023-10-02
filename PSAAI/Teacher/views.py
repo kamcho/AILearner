@@ -1,34 +1,34 @@
 import logging
-
+from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Count
-from django.forms import model_to_dict
-from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
-from django.shortcuts import render, redirect
-from django.urls import reverse
+from django.http import JsonResponse
+from django.shortcuts import redirect
 from django.utils import timezone
-
 from Exams.models import TopicalQuizes, TopicalQuizAnswers, StudentsAnswers, ClassTestStudentTest
 from SubjectList.models import Topic, Subtopic
 from Users.models import AcademicProfile
 from .models import *
-# Create your views here.
 from django.views.generic import TemplateView
 from django.db import IntegrityError, DatabaseError
 
 logger = logging.getLogger('django')
 
+class IsTeacher(UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.role == 'Teacher'
+    
 
-class TeacherView(TemplateView):
+class TeacherView(IsTeacher, TemplateView):
     """
         Teachers home page
     """
     template_name = 'Teacher/teachers_home.html'
 
 
-class ClassesView(LoginRequiredMixin, TemplateView):
+class ClassesView(IsTeacher, LoginRequiredMixin, TemplateView):
     """
         view teachers classes
     """
@@ -43,7 +43,7 @@ class ClassesView(LoginRequiredMixin, TemplateView):
 
             context['classes'] = my_class
             if not my_class:
-                messages.info(self.request, 'We could not find any classes in your Teaching profile!')
+                messages.warning(self.request, 'We could not find any classes in your Teaching profile!')
         except Exception as e:
             messages.error(self.request, 'An error occurred when processing your request. Please try again later')
 
@@ -56,7 +56,7 @@ class ClassesView(LoginRequiredMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -69,22 +69,20 @@ class ClassesView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class TaskViewSelect(TemplateView):
+class TaskViewSelect(IsTeacher, LoginRequiredMixin, TemplateView):
     template_name = 'Teacher/task_view_select.html'
 
     def get_context_data(self, **kwargs):
         context = super(TaskViewSelect, self).get_context_data(**kwargs)
         user = self.request.user  # get logged in user
         class_id = self.kwargs['class']  # get class name
+        subject = self.kwargs['subject']
         try:
             # Get class list
-            my_class = StudentList.objects.filter(user=self.request.user, class_id__class_name=class_id).first()
-            if not my_class:
-                messages.error(self.request, 'Invalid class ID. Please do not edit the url.'
-                                             ' If the problem persists contact @support')
-                return context
+            my_class = StudentList.objects.get(user=self.request.user, subject=subject, class_id__class_name=class_id)
+            
 
-            context['subject'] = my_class.subject.id
+            context['subject'] = my_class.subject
             # Get a few students in a class to display
             students = AcademicProfile.objects.filter(current_class__class_name=class_id)[:3]
             # Get a few tests to display
@@ -104,7 +102,7 @@ class TaskViewSelect(TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -117,7 +115,7 @@ class TaskViewSelect(TemplateView):
         return context
 
 
-class StudentsView(TemplateView):
+class StudentsView(IsTeacher, LoginRequiredMixin, TemplateView):
     """
         view students in a given class
     """
@@ -143,7 +141,7 @@ class StudentsView(TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -155,7 +153,7 @@ class StudentsView(TemplateView):
         return context
 
 
-class TestsView(TemplateView):
+class TestsView(IsTeacher, LoginRequiredMixin, TemplateView):
     """
         A view for a teacher to view tests he/she created for a specific class
     """
@@ -185,7 +183,7 @@ class TestsView(TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -221,7 +219,7 @@ def get_failed_value_by_uuid(queryset, uuid_str):
     return 0  # Return 0 if UUID not found or in case of any errors
 
 
-class ClassTestAnalytics(TemplateView):
+class ClassTestAnalytics(IsTeacher, LoginRequiredMixin, TemplateView):
     """
     Get a class's performance on a given test
     """
@@ -301,7 +299,7 @@ class ClassTestAnalytics(TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -314,15 +312,18 @@ class ClassTestAnalytics(TemplateView):
 
 
 
-class InitialiseCreateTest(TemplateView):
+class InitialiseCreateTest(IsTeacher, LoginRequiredMixin, TemplateView):
     template_name = 'Teacher/initialise_create_test.html'
 
     def get_context_data(self, **kwargs):
         context = super(InitialiseCreateTest, self).get_context_data(**kwargs)
         class_id = self.kwargs['class']
+        subject_id = self.kwargs['subject']
         try:
+            student_list = StudentList.objects.get(user=self.request.user, subject=subject_id, class_id__class_name=class_id)
             # get class list
-            context['class'] = StudentList.objects.get(user=self.request.user, class_id__class_name=class_id)
+            print(student_list)
+            context['class'] = student_list
 
         except Exception as e:
             error_type = type(e).__name__
@@ -340,7 +341,7 @@ class InitialiseCreateTest(TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -361,10 +362,6 @@ class InitialiseCreateTest(TemplateView):
             size = self.request.POST.get('test-size')
             date = self.request.POST.get('date')
 
-
-
-
-
             if subject and exam_type and selection_type and size and date and class_id:  # ensure all data is available
                 # Parse data to a dict and add to session
                 test_data = {'subject': subject, 'exam_type': exam_type, 'date': date,
@@ -377,7 +374,7 @@ class InitialiseCreateTest(TemplateView):
                 return redirect(self.request.get_full_path())
 
 
-class ClassTestSelectTopic(TemplateView):
+class ClassTestSelectTopic(IsTeacher, LoginRequiredMixin, TemplateView):
     """
         A view to select topics to select questions from
     """
@@ -432,7 +429,7 @@ class ClassTestSelectTopic(TemplateView):
                     extra={
                         'app_name': __name__,
                         'url': self.request.get_full_path(),
-                        'school': uuid.uuid4(),
+                        'school': settings.SCHOOL_ID,
                         'error_type': error_type,
                         'user': self.request.user,
                         'level': 'Critical',
@@ -477,7 +474,7 @@ def SystemQuestionsSelect(request):
                 extra={
                     'app_name': __name__,
                     'url': request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': request.user,
                     'level': 'Critical',
@@ -533,7 +530,7 @@ def get_topical_quizzes(request):
             extra={
                 'app_name': __name__,
                 'url': request.get_full_path(),
-                'school': uuid.uuid4(),
+                'school': settings.SCHOOL_ID,
                 'error_type': error_type,
                 'user': request.user,
                 'level': 'Critical',
@@ -568,7 +565,7 @@ def add_question_to_session(request):
         return JsonResponse({'success': False, 'error_message': str(e)})
 
 
-class UserQuestionsSelect(TemplateView):
+class UserQuestionsSelect(IsTeacher, LoginRequiredMixin, TemplateView):
     template_name = 'Teacher/user_questions_select.html'
 
     def get_context_data(self, **kwargs):
@@ -593,7 +590,7 @@ class UserQuestionsSelect(TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -608,7 +605,7 @@ class UserQuestionsSelect(TemplateView):
 
 
 
-class SaveTest(TemplateView):
+class SaveTest(IsTeacher, LoginRequiredMixin, TemplateView):
     template_name = 'Teacher/save_test.html'
 
     def get_context_data(self, **kwargs):
@@ -640,7 +637,7 @@ class SaveTest(TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -721,7 +718,7 @@ class SaveTest(TemplateView):
                         
                         'app_name': __name__,
                         'url': self.request.get_full_path(),
-                        'school': uuid.uuid4(),
+                        'school': settings.SCHOOL_ID,
                         'error_type': error_type,
                         'user': self.request.user,
                         'level': 'Critical',
@@ -757,7 +754,7 @@ def load_subtopics(request):
     return JsonResponse(subtopic_options, safe=False)
 
 
-class CreateQuestion(TemplateView):
+class CreateQuestion(IsTeacher, LoginRequiredMixin, TemplateView):
     """
         A view to create questions
     """
@@ -772,6 +769,12 @@ class CreateQuestion(TemplateView):
             try:
                 # get teachers profile
                 subjects = TeacherProfile.objects.get(user=user)
+                context['subjects'] = subjects
+
+            except ObjectDoesNotExist:
+                subjects = TeacherProfile.objects.create(user=user)
+                context['subjects'] = subjects
+
 
 
             except Exception as e:
@@ -787,7 +790,7 @@ class CreateQuestion(TemplateView):
 
                         'app_name': __name__,
                         'url': self.request.get_full_path(),
-                        'school': uuid.uuid4(),
+                        'school': settings.SCHOOL_ID,
                         'error_type': error_type,
                         'user': self.request.user,
                         'level': 'Critical',
@@ -795,8 +798,14 @@ class CreateQuestion(TemplateView):
 
                     }
                 )
+            selected_subjects = subjects.subject.all()
+            print(selected_subjects)
+            if not selected_subjects:
+                messages.warning(self.request, 'You have not selected any Subjects and can therefore, not add any '
+                                               'questions.')
+                context['subjects'] = None
 
-            context['subjects'] = subjects
+
             context['base_html'] = 'Teacher/teachers_base.html'
         elif user.role == 'Supervisor':
             # Handle question creation request from Supervisors
@@ -831,7 +840,7 @@ class CreateQuestion(TemplateView):
             return redirect(request.get_full_path())
 
 
-class AddAnswerSelection(TemplateView):
+class AddAnswerSelection(IsTeacher, LoginRequiredMixin, TemplateView):
     """
         A view to add choices to previous added question
     """
@@ -859,7 +868,7 @@ class AddAnswerSelection(TemplateView):
 
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -903,7 +912,7 @@ class AddAnswerSelection(TemplateView):
 
                             'app_name': __name__,
                             'url': self.request.get_full_path(),
-                            'school': uuid.uuid4(),
+                            'school': settings.SCHOOL_ID,
                             'error_type': error_type,
                             'user': self.request.user,
                             'level': 'Critical',
@@ -921,7 +930,7 @@ class AddAnswerSelection(TemplateView):
                 return redirect(self.request.get_full_path())
 
 
-class SaveQuiz(TemplateView):
+class SaveQuiz(IsTeacher, LoginRequiredMixin, TemplateView):
     template_name = 'Teacher/save_question.html'
 
     def get_context_data(self, **kwargs):
@@ -952,7 +961,7 @@ class SaveQuiz(TemplateView):
 
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -971,6 +980,7 @@ class SaveQuiz(TemplateView):
                 sub_topic = self.get_context_data().get('subtopic')
                 quiz = self.get_context_data().get('quiz')
                 session_selection_data = self.get_context_data().get('selection')
+                
 
                 # Get choices from session
                 selection1 = session_selection_data['selection1']
@@ -991,7 +1001,7 @@ class SaveQuiz(TemplateView):
                     selection_3 = TopicalQuizAnswers.objects.create(quiz=quiz, choice=selection3, is_correct=False)
                     selection_4 = TopicalQuizAnswers.objects.create(quiz=quiz, choice=selection4, is_correct=False)
 
-
+                    messages.success(self.request, 'You have successfully saved a question.')
             # Handle any errors that may arise
 
             except Exception as e:
@@ -1007,7 +1017,7 @@ class SaveQuiz(TemplateView):
 
                         'app_name': __name__,
                         'url': self.request.get_full_path(),
-                        'school': uuid.uuid4(),
+                        'school': settings.SCHOOL_ID,
                         'error_type': error_type,
                         'user': self.request.user,
                         'level': 'Critical',
@@ -1019,10 +1029,10 @@ class SaveQuiz(TemplateView):
 
 
 
-        return redirect('teachers-home')
+        return redirect('create-questions')
 
 
-class DashBoard(TemplateView):
+class DashBoard(IsTeacher, LoginRequiredMixin, TemplateView):
     """
         A view for teachers to manipulate their teaching profile
     """
@@ -1033,6 +1043,7 @@ class DashBoard(TemplateView):
         try:
             # get student list, subjects and all classes
             my_class = StudentList.objects.filter(user=self.request.user)
+            
             subjects = Subject.objects.all()
             streams = SchoolClass.objects.all()
             context['subjects'] = subjects
@@ -1052,7 +1063,7 @@ class DashBoard(TemplateView):
 
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -1106,7 +1117,7 @@ class DashBoard(TemplateView):
 
                         'app_name': __name__,
                         'url': self.request.get_full_path(),
-                        'school': uuid.uuid4(),
+                        'school': settings.SCHOOL_ID,
                         'error_type': error_type,
                         'user': self.request.user,
                         'level': 'Critical',
@@ -1138,8 +1149,8 @@ def get_subjects(request):
 
 
 
-class SubjectSelect(LoginRequiredMixin, TemplateView):
-    """
+class SubjectSelect(IsTeacher, LoginRequiredMixin, TemplateView):
+    """ 
         Teacher subject manipulation
     """
     template_name = 'Teacher/subjects_select.html'
@@ -1183,7 +1194,7 @@ class SubjectSelect(LoginRequiredMixin, TemplateView):
 
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -1203,20 +1214,19 @@ class SubjectSelect(LoginRequiredMixin, TemplateView):
                     # get selected subject(s)
                     subject = self.request.POST.getlist('subjects')
                     # get subject instance of selected subjects
-                    subject_instance = Subject.objects.filter(id__in=subject)
+                    # subject_instance = Subject.objects.filter(id__in=subject)
                     # get teaching profile from cache
                     teaching_profile = self.get_context_data().get('teaching_profile')
-                    teaching_profile.subject.add(*subject_instance)  # add selected subjects to profile
+                    teaching_profile.subject.add(*subject)  # add selected subjects to profile
 
                 elif 'purge' in self.request.POST:
                     # Handles deletion of subjects from teaching profile
                     button_id = self.request.POST.get('purge')
 
                     teacher_profile = self.get_context_data().get('teaching_profile')  # get teaching profile from cache
-                    subject_to_remove = Subject.objects.get(id=button_id)  # get subject to be removed
 
                     # Remove the subject from the teacher's profile
-                    teacher_profile.subject.remove(subject_to_remove)
+                    teacher_profile.subject.remove(button_id)
 
             # Handle any exceptions
             except Subject.DoesNotExist:
@@ -1234,7 +1244,7 @@ class SubjectSelect(LoginRequiredMixin, TemplateView):
 
                         'app_name': __name__,
                         'url': self.request.get_full_path(),
-                        'school': uuid.uuid4(),
+                        'school': settings.SCHOOL_ID,
                         'error_type': error_type,
                         'user': self.request.user,
                         'level': 'Critical',
@@ -1244,3 +1254,8 @@ class SubjectSelect(LoginRequiredMixin, TemplateView):
                 )
 
             return redirect(self.request.get_full_path())
+
+
+
+class Subscriptions(TemplateView):
+    template_name = 'Teacher/subscriptions.html'

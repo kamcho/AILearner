@@ -54,7 +54,8 @@ class Subtopic(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name='topic')
     name = models.CharField(max_length=100)
-    file = models.FileField(upload_to='studyFiles', default='file.pdf')
+    file1 = models.FileField(upload_to='studyFiles', default='file.pdf')
+    file2 = models.FileField(upload_to='studyFiles', default='start.mp4')
     order = models.CharField(max_length=5)
 
     def __str__(self):
@@ -64,7 +65,7 @@ class Subtopic(models.Model):
 class Progress(models.Model):
     user = models.ForeignKey(MyUser, on_delete=models.CASCADE)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-    subtopic = models.ForeignKey(Subtopic, on_delete=models.CASCADE)
+    subtopic = models.ManyToManyField(Subtopic, related_name='progress_subtopic')
     topic = models.ManyToManyField(Topic, related_name='progress')
 
     def __str__(self):
@@ -101,22 +102,8 @@ class TopicalExamResults(Notifications):
         return str(self.user)
 
 
-
-
-class UserInquiries(models.Model):
+class AccountInquiries(models.Model):
     user = models.ForeignKey(MyUser, on_delete=models.CASCADE)
-    quiz_class = models.CharField(max_length=30)
     date = models.DateField(auto_now=True)
     uuid = models.UUIDField(unique=True, default=uuid.uuid4)
-
-    class Meta:
-        abstract = True
-
-
-class AcademicInquiries(UserInquiries):
-    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
-    message = models.TextField(max_length=500)
-
-
-class AccountInquiries(UserInquiries):
     message = models.TextField(max_length=500)

@@ -5,28 +5,12 @@
 
 
   <div class="container">
-<!--    <br>-->
-
-<!--      <form method="POST">-->
-<!--          {% csrf_token %}-->
-<!--           <br>-->
-<!--          <p>Add The subjects You Teach</p>-->
-<!--          <select class="form-select"  name="subject-select" aria-label="Default select example">-->
-<!--              {% for subject in subjects %}-->
-<!--                <option>{{ subject.name }}</option>-->
-<!--              {% endfor %}-->
-<!--          </select>-->
-<!--              <br>-->
-<!--          <button type="submit" class="btn btn-warning" name="profile">Add</button>-->
-
-<!--      </form>-->
-<!--      <br>-->
-<!--      <br>-->
-
+    <br><br><br>
 
 
 
     <table class="table">
+
     {% if not classes %}
         <h6 class="alert alert-dark">You do not have any classes attached. Add a class below.</h6>
     {% else %}
@@ -46,7 +30,7 @@
         {% for class in classes %}
             <tr class="t-body">
 
-              <td ><a href="{% url 'class-task-view-select' class.class_id %}"><h6 style="color:purple;">{{ class.class_id }}</h6></a></td>
+              <td ><a href="{% url 'class-task-view-select' class.class_id class.subject.id %}"><h6 style="color:purple;">{{ class.class_id }}</h6></a></td>
 
                 <td>{{ class.subject }}</td>
               <td><span class="badge bg-info text-light">{{ class.class_id.class_size }}</span></td>

@@ -2,18 +2,27 @@
 {% load custom_filters %}
 
 {% block content %}
+
+<div class="subject-select-content-container">
+
 {% if not subjects %}
-<div style="margin:0 auto;width:90%;">
-            <h6 class="text-center alert alert-dark">This student has no test history</h6>
+    <br>
+    <br>
+    <br>
+<div style="margin:0 auto;width:90%;" class="">
+
+            <h6 class="text-center alert alert-light">This student has no test history</h6>
 
     </div>
 
     {% else %}
+<br>
+<br>
       <br>
-      <div class="event-view">
+      <div class="subjects-select-view">
         {% for subject in subjects %}
             <a href="{% url 'kid-exam-topic-id' child subject %}">
-                <div class="kid-exam-card">
+                <div class="subject-select-card">
                     <div class="">
                         <h6><i class="bi bi-bookmark-plus"></i> {{ subject }}.</h6>
                     </div>
@@ -38,5 +47,7 @@
       </div>
 
 {% endif %}
+
+</div>
 {% endblock %}
 

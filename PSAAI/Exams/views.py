@@ -1,10 +1,15 @@
 import datetime
 import logging
+
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.db import DatabaseError, IntegrityError
 from django.shortcuts import redirect
+from Guardian.views import IsGuardian
+
+from SubjectList.views import IsStudent
 from .models import *
 from django.views.generic import TemplateView
 from SubjectList.models import TopicalExamResults, TopicExamNotifications
@@ -12,7 +17,8 @@ from SubjectList.models import TopicalExamResults, TopicExamNotifications
 logger = logging.getLogger('django')
 
 
-class Exams(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+
+class Exams(LoginRequiredMixin, IsStudent, TemplateView):
     """
     Group topical test by subject.
     """
@@ -105,7 +111,7 @@ class Exams(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -116,13 +122,10 @@ class Exams(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
         return context
 
-    def test_func(self):
-        user = self.request.user
-
-        return user.role == "Student"
+    
 
 
-class ExamTopicView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+class ExamTopicView(LoginRequiredMixin, IsStudent, TemplateView):
     """
     Group topical test by topic.
     """
@@ -156,7 +159,11 @@ class ExamTopicView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             # Retrieve class test data for the subject, excluding a specific UUID
             class_tests = ClassTestStudentTest.objects.filter(user=user, test__subject__id=subject_id)
 
+            # Retrieve General Tests
+            general_tests = GeneralTest.objects.filter(user=user, subject__id=subject_id)
+
             context['subject'] = subject_tests
+            context['general'] = general_tests
             context['tests'] = knec_tests
             context['class_tests'] = class_tests
             context['subject_name'] = self.kwargs['subject']
@@ -176,7 +183,7 @@ class ExamTopicView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -187,13 +194,10 @@ class ExamTopicView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
         return context
 
-    def test_func(self):
-        user = self.request.user
-
-        return user.role == "Student"
+ 
 
 
-class ExamSubjectDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+class ExamSubjectDetail(LoginRequiredMixin, IsStudent, TemplateView):
     """
     View tests in the selected topic.
     """
@@ -241,7 +245,7 @@ class ExamSubjectDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -252,13 +256,10 @@ class ExamSubjectDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
         return context
 
-    def test_func(self):
-        user = self.request.user
-
-        return user.role == "Student"
 
 
-class TestDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+
+class TestDetail(LoginRequiredMixin, IsStudent, TemplateView):
     template_name = 'Exams/test_detail.html'
 
     def get_context_data(self, **kwargs):
@@ -279,12 +280,26 @@ class TestDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         instance = self.kwargs['instance']
         try:
             test_uuid = uuid.UUID(test_uuid)  # Convert the string to a UUID object
-            if instance in ['Topical', 'KNECGradeExams', 'ClassTests', 'general']:
+            if instance in ['Topical', 'KNECGradeExams', 'ClassTests', 'GeneralTest']:
                 if instance == 'Topical':
+
 
                     model = 'StudentTest'
                     answers = StudentsAnswers.objects.filter(user=user, test_object_id=test_uuid)
+                    ids = answers.values('quiz')
+                  
+                    undone_lst = []
+                    for item in ids:
+                        item = item['quiz']
+                        undone_lst.append(item)
+                    
+                    uuid_strings = [str(uuid) for uuid in undone_lst]
+                    
+
+                    
                     test = StudentTest.objects.get(user=user, uuid=test_uuid)
+                    undone = test.quiz.exclude(id__in=uuid_strings)
+                    context['undone'] = undone
 
                 elif instance == 'KNECGradeExams':
 
@@ -297,9 +312,14 @@ class TestDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                     model = 'ClassTestStudentTest'
                     answers = StudentsAnswers.objects.filter(user=user, test_object_id=test_uuid)
                     test = ClassTestStudentTest.objects.get(user=user, test=test_uuid)
+                   
 
                 else:
-                    pass
+                    model = 'GeneralTest'
+                    answers = StudentsAnswers.objects.filter(user=user, test_object_id=test_uuid)
+                    test = GeneralTest.objects.get(user=user, uuid=test_uuid)
+                    print(answers, test)
+
 
                 context['quizzes'] = answers
                 context['marks'] = test
@@ -322,7 +342,7 @@ class TestDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -346,7 +366,7 @@ class TestDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -364,15 +384,9 @@ class TestDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
         return context
 
-    def test_func(self):
-        user = self.request.user
-        if user.role == "Student":
-            return True
-        else:
-            return False
 
 
-class Start(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+class StudentTestLobby(LoginRequiredMixin, IsStudent, TemplateView):
     template_name = 'Exams/start.html'
 
     def get_context_data(self, **kwargs):
@@ -387,7 +401,7 @@ class Start(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         Returns:
             dict: A dictionary containing context data for the template.
         """
-        context = super(Start, self).get_context_data(**kwargs)
+        context = super(StudentTestLobby, self).get_context_data(**kwargs)
 
         try:
             topic_name = self.kwargs['topic']
@@ -419,7 +433,7 @@ class Start(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -441,7 +455,7 @@ class Start(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -461,6 +475,8 @@ class Start(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             try:
                 # Retrieve the topic based on the 'pk' parameter from the URL
                 topic = Topic.objects.get(name=topic_name)
+                test_size = topic.test_size
+                duration = topic.time
 
                 print(topic)
 
@@ -469,38 +485,23 @@ class Start(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                     user=user,
                     subject=topic.subject,
                     uuid=test_uuid,
-                    topic=topic
+                    topic=topic,
+                    test_size=test_size,
+                    duration=duration
                 )
 
                 # Retrieve and add a set of quizzes to the test
-                quizzes = TopicalQuizes.objects.filter(topic=topic).order_by('?')[:5]
+                quizzes = TopicalQuizes.objects.filter(topic=topic).order_by('?')[:test_size]
                 test.quiz.add(*quizzes)
+                
+                self.request.session['test_mode'] = 'test_mode'
+                try:
+                    messages = TopicExamNotifications.objects.get(user=user, uuid=test_uuid).delete()
+                except:
+                    pass
 
                 # Redirect to the 'tests' view with appropriate arguments
                 return redirect('tests', 'Topical', test.uuid)
-
-            except IntegrityError as e:
-                # Handle DatabaseError if needed
-                messages.error(self.request,
-                               'An error occurred and therefore, you cannot take this test at this time!!.'
-                               ' Stand by as we fix the issue. Sorry for any inconveniences caused!!')
-                error_message = str(e)  # Get the error message as a string
-                error_type = type(e).__name__
-
-                logger.critical(
-                    error_message,
-                    exc_info=True,  # Include exception info in the log message
-                    extra={
-                        'app_name': __name__,
-                        'url': self.request.get_full_path(),
-                        'school': uuid.uuid4(),
-                        'error_type': error_type,
-                        'user': self.request.user,
-                        'level': 'Critical',
-                        'model': 'StudentTest',
-
-                    }
-                )
 
             except Exception as e:
                 # Handle DatabaseError if needed
@@ -516,7 +517,7 @@ class Start(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                     extra={
                         'app_name': __name__,
                         'url': self.request.get_full_path(),
-                        'school': uuid.uuid4(),
+                        'school': settings.SCHOOL_ID,
                         'error_type': error_type,
                         'user': self.request.user,
                         'level': 'Critical',
@@ -526,12 +527,54 @@ class Start(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 )
             return redirect(request.get_full_path())
 
-    def test_func(self):
-        user = self.request.user
-        if user.role == "Student":
-            return True
-        else:
-            return False
+
+
+
+class GeneralTestLobby(LoginRequiredMixin, IsStudent, TemplateView):
+    template_name = 'Exams/general_test_lobby.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(GeneralTestLobby, self).get_context_data(**kwargs)
+        try:
+            test_id = self.kwargs['uuid']
+            test = GeneralTest.objects.get(uuid=test_id)
+            context['test'] = test
+        except Exception as e:
+            messages.error(self.request, 'We could not find your Test at this moment. Please contact @support.')
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': settings.SCHOOL_ID,
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'DatabaseError',
+
+                }
+            )
+
+        return context
+
+    def post(self, *args, **kwargs):
+        if self.request.method == 'POST':
+            test_id = self.kwargs['uuid']
+            user = self.request.user
+            self.request.session['test_mode'] = 'test_mode'
+
+            try:
+                message = TopicExamNotifications.objects.get(user=user, uuid=test_id).delete()
+
+            except:
+                pass
+
+
+            return redirect('tests', 'GeneralTest', test_id)
 
 
 def get_test_instance(user, instance, test_id):
@@ -549,7 +592,7 @@ def get_test_instance(user, instance, test_id):
                 questions = ClassTest.objects.get(uuid=test_id)
                 instance_type = 'ClassTests'
 
-            elif instance == 'General':
+            elif instance == 'GeneralTest':
                 questions = GeneralTest.objects.get(user=user, uuid=test_id)
                 instance_type = 'GeneralTest'
 
@@ -576,172 +619,59 @@ def get_test_instance(user, instance, test_id):
         raise Exception
 
 
-class Tests(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+class Tests(LoginRequiredMixin, IsStudent, TemplateView):
     template_name = 'Exams/tests.html'
 
     def get_context_data(self, *args, **kwargs):
         context = super(Tests, self).get_context_data(**kwargs)
-        test_id = kwargs['uuid']
-        instance = self.kwargs['instance']
+        test_mode = self.request.session.get('test_mode', None)
+        if test_mode:
+            test_id = kwargs['uuid']
+            instance = self.kwargs['instance']
 
-        user = self.request.user
-        question_index = self.request.session.get('index', 0)
-        try:
-            questions, instance_type = get_test_instance(user=user, instance=instance, test_id=test_id)
-            context['test'] = questions
-
-            context['instance_type'] = instance_type
-            if questions:
-                test_size = questions.test_size
-                self.request.session['test_size'] = test_size
-                self.request.session['instance_type'] = instance_type
-
-                if question_index >= len(questions.quiz.all()):
-                    context['message'] = "Test is completed."
-
-                else:
-                    current_question = questions.quiz.all()[question_index]
-                    self.request.session['quiz'] = str(current_question)
-
-                    if instance_type == 'KNECGradeExams':
-                        choices = KnecQuizAnswers.objects.filter(quiz=current_question)
-
-                    else:
-                        choices = TopicalQuizAnswers.objects.filter(quiz=current_question).order_by('?')
-                    correct_choice = choices.filter(is_correct=True)
-                    print(choices.count())
-                    if int(choices.count()) != 4 or correct_choice is None:
-                        messages.error(self.request, 'This test is not complete try it later')
-                        context['invalidate'] = True
-                    else:
-                        context['choices'] = choices
-                        context['quiz'] = current_question
-                        context['index'] = question_index + 1
-                        numbers = [i + 1 for i in range(len(questions.quiz.all()))]
-                        context['list'] = numbers
-                        context['instance'] = instance
-
-                        context['test_id'] = test_id
-
-        except (MultipleObjectsReturned, ObjectDoesNotExist) as e:
-            messages.error(self.request, 'An error occurred while getting this test. Contact @support')
-            context['error'] = True
-            error_message = str(e)  # Get the error message as a string
-            error_type = type(e).__name__
-
-            logger.critical(
-                error_message,
-                exc_info=True,  # Include exception info in the log message
-                extra={
-                    'app_name': __name__,
-                    'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
-                    'error_type': error_type,
-                    'user': self.request.user,
-                    'level': 'Critical',
-                    'model': 'TESTS',
-
-                }
-            )
-
-        except ValueError as e:
-            messages.error(self.request, 'Invalid UUID or Test format !! Do not edit the url.')
-            context['error'] = True
-
-        except Exception as e:
-            messages.error(self.request, f'An exception occurred and we are fixing it!! {e}')
-            context['error'] = True
-            error_message = str(e)  # Get the error message as a string
-            error_type = type(e).__name__
-
-            logger.critical(
-                error_message,
-                exc_info=True,  # Include exception info in the log message
-                extra={
-                    'app_name': __name__,
-                    'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
-                    'error_type': error_type,
-                    'user': self.request.user,
-                    'level': 'Critical',
-                    'model': 'DatabaseError',
-
-                }
-            )
-
-        return context
-
-    def post(self, request, **kwargs):
-
-        if request.method == 'POST':
+            user = self.request.user
+            question_index = self.request.session.get('index', 0)
             try:
-                test_size = request.session.get('test_size')
-                user = request.user
-                instance = self.kwargs['instance']
-                test_id = kwargs['uuid']
-                selection = request.POST.get('choice')  # Get the selected choice ID from the POST data
-                question_index = request.session.get('index', 0)
-                # test = self.get_context_data().get('test')
-                # instance_type = self.get_context_data().get('instance_type')
-                test, instance_type = get_test_instance(user, instance, test_id)
+                questions, instance_type = get_test_instance(user=user, instance=instance, test_id=test_id)
+                context['test'] = questions
 
-                if instance_type == 'KNECGradeExams':
-                    quiz = KnecQuizzes.objects.filter(id=request.session['quiz']).first()
-                    selection = KnecQuizAnswers.objects.filter(uuid=selection).first()
-                    correct = KnecQuizAnswers.objects.filter(uuid=selection.uuid, is_correct=True).first()
-                else:
+                context['instance_type'] = instance_type
+                if questions:
+                    test_size = questions.quiz.all().count()
+                    print(test_size)
+                    self.request.session['test_size'] = test_size
+                    self.request.session['instance_type'] = instance_type
 
-                    quiz = TopicalQuizes.objects.filter(id=request.session['quiz']).first()
-                    selection = TopicalQuizAnswers.objects.filter(uuid=selection).first()
-                    correct = selection if selection.is_correct else None
-                    # correct = TopicalQuizAnswers.objects.filter(uuid=selection.uuid, is_correct=True).first()
-
-                if correct:
-                    if instance_type == 'ClassTests':
-                        student_test = ClassTestStudentTest.objects.get(user=user, test=test)
-                        student_test.marks = int(student_test.marks) + 1
-                        student_test.save()
-                        is_correct = True
-                    elif instance_type == 'KNECGradeExams':
-                        student_test = StudentKNECExams.objects.get(user=user, test=test)
-                        student_test.marks = int(student_test.marks) + 1
-                        student_test.save()
-                        is_correct = True
-
+                    if question_index >= len(questions.quiz.all()):
+                        context['message'] = "Test is completed."
 
                     else:
-                        test.marks = int(test.marks) + 1
-                        test.save()
-                        is_correct = True
+                        current_question = questions.quiz.all()[question_index]
+                        self.request.session['quiz'] = str(current_question)
 
-                else:
-                    is_correct = False
+                        if instance_type == 'KNECGradeExams':
+                            choices = KnecQuizAnswers.objects.filter(quiz=current_question)
 
-                if instance_type == 'KNECGradeExams':
-                    test_uuid = StudentKNECExams.objects.get(user=user, test=test_id)
-                    answer = StudentsKnecAnswers.objects.create(user=user, quiz=quiz,
-                                                                selection=selection,
-                                                                is_correct=is_correct, test=test_uuid)
-                else:
+                        else:
+                            choices = TopicalQuizAnswers.objects.filter(quiz=current_question).order_by('?')
+                        correct_choice = choices.filter(is_correct=True)
+                        print(choices.count())
+                        if int(choices.count()) != 4 or correct_choice is None:
+                            messages.error(self.request, 'This test is not complete try it later')
+                            context['invalidate'] = True
+                        else:
+                            context['choices'] = choices
+                            context['quiz'] = current_question
+                            context['index'] = question_index + 1
+                            numbers = [i + 1 for i in range(len(questions.quiz.all()))]
+                            context['list'] = numbers
+                            context['instance'] = instance
 
-                    answer = StudentsAnswers.objects.create(user=user, quiz=quiz, test_object_id=test.uuid,
-                                                            selection=selection,
-                                                            is_correct=is_correct)
-                if question_index >= int(test_size) - 1:
-                    # The exam is completed, redirect to a summary page
-                    if 'index' in request.session:
-                        del request.session['index']
+                            context['test_id'] = test_id
 
-                        return redirect('finish', instance, test_id)
-
-                else:
-
-                    request.session['index'] = question_index + 1
-                    return redirect(request.path)
-
-
-            except (MultipleObjectsReturned, ObjectDoesNotExist, IntegrityError) as e:
-                messages.error(self.request, 'An error occurred! Please contact support!')
+            except (MultipleObjectsReturned, ObjectDoesNotExist) as e:
+                messages.error(self.request, 'An error occurred while getting this test. Contact @support')
+                context['error'] = True
                 error_message = str(e)  # Get the error message as a string
                 error_type = type(e).__name__
 
@@ -751,7 +681,7 @@ class Tests(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                     extra={
                         'app_name': __name__,
                         'url': self.request.get_full_path(),
-                        'school': uuid.uuid4(),
+                        'school': settings.SCHOOL_ID,
                         'error_type': error_type,
                         'user': self.request.user,
                         'level': 'Critical',
@@ -760,11 +690,13 @@ class Tests(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                     }
                 )
 
-            except ValueError:
+            except ValueError as e:
                 messages.error(self.request, 'Invalid UUID or Test format !! Do not edit the url.')
+                context['error'] = True
 
             except Exception as e:
-                messages.error(self.request, f'An exception occurred. please try again later as we fix this issues !')
+                messages.error(self.request, f'An exception occurred and we are fixing it!! {e}')
+                context['error'] = True
                 error_message = str(e)  # Get the error message as a string
                 error_type = type(e).__name__
 
@@ -774,24 +706,141 @@ class Tests(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                     extra={
                         'app_name': __name__,
                         'url': self.request.get_full_path(),
-                        'school': uuid.uuid4(),
+                        'school': settings.SCHOOL_ID,
                         'error_type': error_type,
                         'user': self.request.user,
                         'level': 'Critical',
-                        'model': 'Exception',
+                        'model': 'DatabaseError',
 
                     }
                 )
-
-    def test_func(self):
-        user = self.request.user
-        if user.role == "Student":
-            return True
         else:
-            return False
+            context['test_mode'] = None
+
+        return context
+
+    def post(self, request, **kwargs):
+
+        if request.method == 'POST':
+            test_mode = self.request.session.get('test_mode', None)
+            if test_mode:
+                try:
+                    test_size = request.session.get('test_size')
+                    user = request.user
+                    instance = self.kwargs['instance']
+                    test_id = kwargs['uuid']
+                    selection = request.POST.get('choice')  # Get the selected choice ID from the POST data
+                    question_index = request.session.get('index', 0)
+                    # test = self.get_context_data().get('test')
+                    # instance_type = self.get_context_data().get('instance_type')
+                    test, instance_type = get_test_instance(user, instance, test_id)
+
+                    if instance_type == 'KNECGradeExams':
+                        quiz = KnecQuizzes.objects.filter(id=request.session['quiz']).first()
+                        selection = KnecQuizAnswers.objects.filter(uuid=selection).first()
+                        correct = KnecQuizAnswers.objects.filter(uuid=selection.uuid, is_correct=True).first()
+                    else:
+
+                        quiz = TopicalQuizes.objects.filter(id=request.session['quiz']).first()
+                        selection = TopicalQuizAnswers.objects.filter(uuid=selection).first()
+                        correct = selection if selection.is_correct else None
+                        # correct = TopicalQuizAnswers.objects.filter(uuid=selection.uuid, is_correct=True).first()
+
+                    if correct:
+                        if instance_type == 'ClassTests':
+                            student_test = ClassTestStudentTest.objects.get(user=user, test=test)
+                            student_test.marks = int(student_test.marks) + 1
+                            student_test.save()
+                            is_correct = True
+                        elif instance_type == 'KNECGradeExams':
+                            student_test = StudentKNECExams.objects.get(user=user, test=test)
+                            student_test.marks = int(student_test.marks) + 1
+                            student_test.save()
+                            is_correct = True
 
 
-class Finish(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+                        else:
+                            test.marks = int(test.marks) + 1
+                            test.save()
+                            is_correct = True
+
+                    else:
+                        is_correct = False
+
+                    if instance_type == 'KNECGradeExams':
+                        test_uuid = StudentKNECExams.objects.get(user=user, test=test_id)
+                        answer = StudentsKnecAnswers.objects.create(user=user, quiz=quiz,
+                                                                    selection=selection,
+                                                                    is_correct=is_correct, test=test_uuid)
+                    else:
+
+                        answer = StudentsAnswers.objects.create(user=user, quiz=quiz, test_object_id=test.uuid,
+                                                                selection=selection,
+                                                                is_correct=is_correct)
+                    if question_index >= int(test_size) - 1:
+                        # The exam is completed, redirect to a summary page
+                        if 'index' in request.session:
+                            del request.session['index']
+                            del request.session['test_mode']
+
+                        return redirect('finish', instance, test_id)
+
+                    else:
+
+                        request.session['index'] = question_index + 1
+                        return redirect(request.path)
+
+
+                except (MultipleObjectsReturned, ObjectDoesNotExist, IntegrityError) as e:
+                    messages.error(self.request, 'An error occurred! Please contact support!')
+                    error_message = str(e)  # Get the error message as a string
+                    error_type = type(e).__name__
+
+                    logger.critical(
+                        error_message,
+                        exc_info=True,  # Include exception info in the log message
+                        extra={
+                            'app_name': __name__,
+                            'url': self.request.get_full_path(),
+                            'school': settings.SCHOOL_ID,
+                            'error_type': error_type,
+                            'user': self.request.user,
+                            'level': 'Critical',
+                            'model': 'TESTS',
+
+                        }
+                    )
+
+                except ValueError:
+                    messages.error(self.request, 'Invalid UUID or Test format !! Do not edit the url.')
+
+                except Exception as e:
+                    messages.error(self.request, f'An exception occurred. please try again later as we fix this issues !')
+                    error_message = str(e)  # Get the error message as a string
+                    error_type = type(e).__name__
+
+                    logger.critical(
+                        error_message,
+                        exc_info=True,  # Include exception info in the log message
+                        extra={
+                            'app_name': __name__,
+                            'url': self.request.get_full_path(),
+                            'school': settings.SCHOOL_ID,
+                            'error_type': error_type,
+                            'user': self.request.user,
+                            'level': 'Critical',
+                            'model': 'Exception',
+
+                        }
+                    )
+
+                messages.error(self.request, 'Invalid test configurations')
+            return redirect('students-home')
+        return redirect(self.request.get_full_path())
+
+
+
+class Finish(LoginRequiredMixin, IsStudent, TemplateView):
     template_name = 'Exams/finish.html'
 
     def get_context_data(self, **kwargs):
@@ -805,12 +854,13 @@ class Finish(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         try:
             test, instance_type = get_test_instance(user, instance, test_id)
             print(test, instance_type)
-            if instance_type in ['ClassTests', 'StudentTest']:
+            message = f'Congratulations on completing your test. The results' \
+                      ' are out, click the button below to view the results. '
+            if instance_type in ['ClassTests', 'StudentTest', 'GeneralTest']:
                 # try:
 
 
-                message = f'Congratulations on completing your test. The results' \
-                          ' are out, click the button below to view the results. '
+
 
 
 
@@ -821,13 +871,23 @@ class Finish(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                     about = f'The results for {test.teacher} assignment is out.'
                     print(about)
                     notifications = TopicalExamResults.objects.create(user=user, test=test.uuid, about=about,
-                                                                      message=message, subject=test.subject)
+                                                                      message=message, subject=test.subject,
+                                                                      notification_type='class-results')
                     marks = ClassTestStudentTest.objects.get(user=user, test=test_id)
                     context['score'] = marks.marks
                     context['test'] = marks
                     context['size'] = test.test_size
                     context['instance'] = instance
 
+                elif instance == 'GeneralTest':
+                    about = f'The results  are out.'
+                    notifications = TopicalExamResults.objects.create(user=user, test=test.uuid, about=about,
+                                                                      message=message, subject=test.subject,
+                                                                      notification_type='general-results',
+                                                                      )
+                    context['score'] = test.marks
+
+                    context['test'] = test
 
 
                 else:
@@ -836,6 +896,7 @@ class Finish(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                     about = f'The results for {topic} are out.'
                     notifications = TopicalExamResults.objects.create(user=user, test=test.uuid, about=about,
                                                                       message=message, subject=test.subject,
+                                                                      notification_type='topical-results',
                                                                       topic=topic)
                     context['score'] = test.marks
 
@@ -843,6 +904,11 @@ class Finish(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
 
             elif instance_type == 'KNECGradeExams':
+                about = 'Your results for this terms KNEC exams are out. Click the button below to view results.'
+                notifications = TopicalExamResults.objects.create(user=user, test=test.uuid, about=about,
+                                                                  message=message, subject=test.subject,
+                                                                  notification_type='knec-results',
+                                                                  )
                 marks = StudentKNECExams.objects.get(user=user, test=test_id)
                 context['score'] = marks.marks
                 context['test'] = marks
@@ -862,7 +928,7 @@ class Finish(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Warning',
@@ -875,15 +941,8 @@ class Finish(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
         return context
 
-    def test_func(self):
-        user = self.request.user
-        if user.role == "Student":
-            return True
-        else:
-            return False
 
-
-class SetTest(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+class SetTest(LoginRequiredMixin, IsGuardian, TemplateView):
     """
     View for setting a test for a specific subject.
     """
@@ -920,7 +979,7 @@ class SetTest(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -956,7 +1015,7 @@ class SetTest(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                         about = f'You have a new test. View more info below.(topical){topic}'
 
                         notification = TopicExamNotifications.objects.create(user=user, about=about,
-                                                                             notification_type='custom',
+                                                                             notification_type='retake',
                                                                              subject=subject,
                                                                              date=date,
                                                                              message=message,
@@ -972,7 +1031,7 @@ class SetTest(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                                                                              subject=subject, message=message,
                                                                              )
 
-                    test = StudentTest.objects.create(user=user, subject=subject, uuid=test_id)
+                    test = GeneralTest.objects.create(user=user, subject=subject, uuid=test_id)
                     failed_quiz = StudentsAnswers.objects.filter(is_correct=False, quiz__topic__in=topics).order_by('?')[:3]
                     quizes = TopicalQuizes.objects.filter(topic__in=topics)
                     done_quiz = StudentsAnswers.objects.filter(quiz__topic__in=topics)
@@ -1009,7 +1068,7 @@ class SetTest(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                         extra={
                             'app_name': __name__,
                             'url': self.request.get_full_path(),
-                            'school': uuid.uuid4(),
+                            'school': settings.SCHOOL_ID,
                             'error_type': error_type,
                             'user': self.request.user,
                             'level': 'Critical',
@@ -1022,12 +1081,10 @@ class SetTest(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 messages.error(self.request, 'Please select a topic to continue !')
                 return redirect(self.request.get_full_path())
 
-    def test_func(self):
-        user = self.request.user
-        return user.role == "Guardian"
+    
 
 
-class KNECExamView(TemplateView):
+class KNECExamView(LoginRequiredMixin, IsStudent, TemplateView):
     """
     View for displaying KNEC exams for a specific grade.
     """
@@ -1068,7 +1125,7 @@ class KNECExamView(TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -1080,7 +1137,7 @@ class KNECExamView(TemplateView):
         return context
 
 
-class KNECExamList(TemplateView):
+class KNECExamList(LoginRequiredMixin, IsStudent, TemplateView):
     """
     View for listing KNEC exams for a specific grade and subject.
     """
@@ -1122,7 +1179,7 @@ class KNECExamList(TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -1135,7 +1192,7 @@ class KNECExamList(TemplateView):
         return context
 
 
-class StartKnec(TemplateView):
+class StartKnec(LoginRequiredMixin, IsStudent, TemplateView):
     """
     View for starting a KNEC exam.
     """
@@ -1172,7 +1229,7 @@ class StartKnec(TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -1223,7 +1280,7 @@ class StartKnec(TemplateView):
                     extra={
                         'app_name': __name__,
                         'url': self.request.get_full_path(),
-                        'school': uuid.uuid4(),
+                        'school': settings.SCHOOL_ID,
                         'error_type': error_type,
                         'user': self.request.user,
                         'level': 'Critical',
@@ -1232,5 +1289,5 @@ class StartKnec(TemplateView):
                     }
                 )
 
-        return redirect(request.get_full_path())
-        # Redirect to the appropriate page on error
+        return redirect(request.get_full_path())  # Redirect to the appropriate page on error
+        

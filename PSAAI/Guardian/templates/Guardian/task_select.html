@@ -5,14 +5,21 @@
 
 
 {% block content %}
-  <br>
-    <div style="padding-left:30px;">
+
+<div class="subject-select-content-container">
+    <div class="container">
+        <br><br><br>
             <a href="{% url 'overall-analytics' email %}"><button class="btn btn-info">Analytics</button></a>
     </div>
 
-    <div class="task-select ">
+  {% if error %}
 
-        <div class="task-select-card">
+  {% else %}
+
+
+    <div class="task-select">
+
+        <div class="subject-select-card">
           <div class="booked-class-body">
             <h6 class="card-title">View Learning Progress</h6>
             <p class="card-text">View {{ email }}`s learning progress.</p>
@@ -21,7 +28,7 @@
         </div>
 
 
-        <div class="task-select-card">
+        <div class="subject-select-card">
           <div class="booked-class-body">
             <h6 class="card-title">View Tests Progress</h6>
             <p class="card-text">View {{ email }}`s examination history.</p>
@@ -34,6 +41,6 @@
 
     </div>
 
-
-
+</div>
+{% endif %}
 {% endblock %}

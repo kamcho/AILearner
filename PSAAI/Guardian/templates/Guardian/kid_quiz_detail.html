@@ -1,40 +1,49 @@
 {% extends base_html %}
-
-
 {% block content %}
 
 
 <div class="container">
-{% if user.role != 'Student' %}
-            <h6>{{ marks }}</h6>
-        {% else %}
+    <br>
+    <br>
+    <br>
+    {% if user.role != 'Student' %}
+        <h6>{{ marks.user.personalprofile.surname|title }} {{ marks.user.personalprofile.f_name|title }} {{
+            marks.user.personalprofile.l_name|title }}
+        </h6>
+    {% else %}
 
-        {% endif %}
-<br>
+    {% endif %}
+    <br>
 
-{% if instance == 'ClassTests' %}
+    {% if instance == 'ClassTests' %}
         <h6>Scores {{ marks.marks }} / {{ marks.test.test_size }}</h6>
-        {% else %}
-                <h6>Scores {{ marks.marks }} / {{ marks.test_size }}</h6>
-        {% endif %}
+    {% else %}
+        <h6>Scores {{ marks.marks }} / {{ marks.test_size }}</h6>
+    {% endif %}
+    
     {% for quiz in quizzes %}
-<br>
+
 
     <div>
         {% if quiz.is_correct == False %}
-            <div style="color:crimson;">
-                <h6>{{ quiz.quiz.quiz }}</h6>
-
-                 <small>{{ quiz.selection.choice }}</small><i style="font-size:30px;color:crimson;" class="bi bi-x"></i>
+        <div style="color:crimson;">
+            <h6>{{ forloop.counter }}) {{ quiz.quiz.quiz }}</h6>
+            <div style="padding-left:15px;">
+                <small>{{ quiz.selection.choice }}</small><i style="font-size:30px;color:crimson;" class="bi bi-x"></i>
                 <small>{{ quiz.is_correct }}</small>
             </div>
 
-        {% else %}
-            <div >
-                <h6 style="color:purple;">{{ quiz.quiz.quiz }}</h6>
+        </div>
 
-                 <small style="color:green;">{{ quiz.selection.choice }}</small><i style="font-size:30px;color:green;" class="bi bi-check-all"></i>
+        {% else %}
+        <div>
+            <h6 style="color:purple;">{{ forloop.counter }}) {{ quiz.quiz.quiz }}</h6>
+
+            <div style="padding-left:15px;">
+                <small>{{ quiz.selection.choice }}</small><i style="font-size:30px;color:green;" class="bi bi-x"></i>
+                <small>{{ quiz.is_correct }}</small>
             </div>
+        </div>
         {% endif %}
     </div>
 

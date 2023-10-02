@@ -6,6 +6,9 @@
 
 
 <div class="container">
+    <br>
+    <br>
+    <br>
     {% if instance == 'KNECGradeExams' or instance == 'ClassTests' %}
         <p>Congratulations! You've reached the end of the test. Your responses have been saved and can be reviewed in the exam panel.
             Thank you for completing the test. You answered {{ score }} out of {{ size }} questions correctly.</p>
@@ -24,4 +27,14 @@
 </div>
 
 
+
+
+
+<script>
+    // Clear session storage when the page loads
+    sessionStorage.clear();
+
+    // Delete local storage data with the key "test_data" when the page loads
+    localStorage.removeItem("{{ test_uuid }}");
+</script>
 {% endblock %}

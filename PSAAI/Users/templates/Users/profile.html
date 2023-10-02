@@ -5,6 +5,8 @@
 
 <div class="container">
         <br>
+        <br>
+        <br>
         <div class="profile">
             {% if user.personalprofile.f_name != '' %}
               <p>{{ user.personalprofile.surname }}  {{ user.personalprofile.l_name }}.  {{ user.personalprofile.f_name }} <button class="btn btn-info">{{ user.role }}</button></p>
@@ -30,7 +32,7 @@
           <small>Edit Profile</small>
         </button>
       </h2>
-      <div id="changePhoneNumberCollapse" class="accordion-collapse collapse" aria-labelledby="changePhoneNumberHeader" data-bs-parent="#changePhoneNumberAccordion">
+      <div id="changePhoneNumberCollapse" class="accordion-collapse" aria-labelledby="changePhoneNumberHeader" data-bs-parent="#changePhoneNumberAccordion">
         <div class="accordion-body">
           <form method="post">
             {% csrf_token %}
@@ -51,11 +53,6 @@
               <input type="tel" name="phone-number" class="form-control" id="phone-number" value="{{ user.personalprofile.phone }}" required>
             </div>
 
-              <div class="form-group">
-              <label for="city">City</label>
-              <input  name="city" class="form-control" value="{{ user.personalprofile.city }}" id="city" required>
-            </div>
-
               <br>
             <button type="submit" class="btn btn-primary" name="profile">Update Profile Info</button>
           </form>
@@ -72,13 +69,7 @@
   
         {% if  user.role == "Student" %}
 
-                <div >
-                    <h6 style="font-size:15px;">Laikipia University</h6>
 
-                    <h6 style="font-size:13px;">Grade {{ user.academicprofile.current_class.grade }}</h6>
-                    <br>
-
-                </div>
         {% elif  user.role == "Guardian"%}
         <h6>Add Student</h6>
         <br>
@@ -98,6 +89,10 @@
 
             <button class="btn btn-warning" name="attachment">Add</button>
         </form>
+
+        <div style="padding-top: 30px;">
+
+        </div>
 
 
 

@@ -29,13 +29,13 @@
       {% if user|subtopic_in_progress:subtopic %}
 
       <div style="display:flex;width:80%;padding-left:30px;">
-        <small style="color:purple ;flex: 1;"><a href="{% url 'read' coverage subtopic %}">{{ subtopic }}</a></small>
+        <small style="color:purple ;flex: 1;"><a href="{% url 'media' coverage subtopic %}">{{ subtopic }}</a></small>
         <i class="bi bi-check-all" style="margin-left: 0 auto;color:purple;font-size:20px;"></i>
       </div>
 
       {% else %}
       <div style="display:flex;width:80%;padding-left:30px;">
-        <small style="color:purple;flex: 1;"><a href="{% url 'read' coverage subtopic %}">{{ subtopic }}</a></small>
+        <small style="color:purple;flex: 1;"><a href="{% url 'media' coverage subtopic %}">{{ subtopic }}</a></small>
         <input type="checkbox" style="margin-left: 0 auto;" disabled>
       </div>
       {% endif %}
@@ -51,7 +51,7 @@
     <div>
       {% for subtopic in coverage.topic.all %}
       <div style="display:flex;width:80%;padding-left:30px;">
-        <small style="color:purple;flex: 1;"><a href="{% url 'read' coverage subtopic %}">{{ subtopic }}</a></small>
+        <small style="color:purple;flex: 1;"><a href="{% url 'media' coverage subtopic %}">{{ subtopic }}</a></small>
         <input type="checkbox" style="margin-left: 0 auto;" disabled>
       </div>
       {% endfor %}

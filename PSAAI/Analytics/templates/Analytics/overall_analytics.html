@@ -3,10 +3,11 @@
 {% load custom_filters %}
 
 {% block content %}
-    <div class="contaner">
-        <div class="subject-progress-view">
+    <div class="subject-select-content-container">
+        <br><br><br><br>
+        <div class="subjects-select-view">
             {% for test in tests %}
-            <div class="subject-progress-card">
+            <div class="subject-select-card">
 
             <a href="{% url 'subject-analysis' child test.subject__id %}"><h6 class="p-tx"><i class="bi bi-bookmark-plus"></i> {{ test.subject__id|get_subject }}</h6></a>
                 <small style="padding:10px;" >Tests Done  <span class="badge bg-info" style="margin-left: 30px;">{{ test.subject_count }}</span></small>
@@ -24,12 +25,13 @@
                 <small >Overall Marks  <span class="badge bg-secondary" style="margin-left:14px;">{{ size }}</span></small>
 
                 <br>
+                <br>
 
 
 
 
                 <div class="progress" style="width: 80%;">
-                    <div class="progress-bar" role="progressbar" style="background-color: purple;" aria-valuemin="0" >{{ marks|divide:size }}%</div>
+                    <div class="progress-bar" role="progressbar" style="background-color: purple;" aria-valuemin="0" >{{ marks|divide:size }} %</div>
                 </div>
                     {% endwith %}
                 {% endwith %}

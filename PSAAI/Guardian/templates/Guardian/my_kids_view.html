@@ -4,8 +4,8 @@
 
 
 {% block content %}
-<div class="with-cards">
-<div class="kids-view  align-items-center justify-content-center">
+<div  class="subject-select-content-container">
+
     {% if not kids %}
     <div class="container">
         <p>Your account is not linked to any learner. Add a learner to your watchlist.</p>
@@ -14,10 +14,10 @@
     </div>
 
     {% else %}
-
+<div class="subjects-select-view  align-items-center justify-content-center">
     {% for kid in kids %}
     <a href="{% url 'task-view-select' kid %}">
-        <div class="kid-card">
+        <div class="subject-select-card">
 
             <div class="">
                 <h6>{{ kid.user.mysubscription.type }}<i class="bi bi-caret-down"></i></h6>

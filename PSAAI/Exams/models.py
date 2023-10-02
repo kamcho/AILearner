@@ -12,6 +12,7 @@ from Users.models import MyUser, SchoolClass
 class TopicalQuizes(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    file = models.FileField(null=True, upload_to='question_files/')
     subtopic = models.ForeignKey(Subtopic, on_delete=models.CASCADE)
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
     quiz = models.TextField(max_length=500)
@@ -38,10 +39,17 @@ class UniqueUUIDField(models.UUIDField):
 
 
 class BaseTest(models.Model):
+    type_choices = (
+        ('Topical', 'Topical'),
+        ('General', 'General'),
+        ('Retake', 'Retake'),
+        ('KNEC', 'KNEC')
+    )
     user = models.ForeignKey(MyUser, on_delete=models.CASCADE)
     uuid = UniqueUUIDField()
     date = models.DateTimeField(auto_now=True)
     marks = models.CharField(max_length=100, default='0')
+    exam_type = models.CharField(max_length=10, default='Topical', choices=type_choices)
     test_size = models.PositiveIntegerField(default=15)
     duration = models.PositiveIntegerField(default=15)
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
@@ -52,7 +60,7 @@ class BaseTest(models.Model):
 
 
 class StudentTest(BaseTest):
-    topic = models.ForeignKey(Topic, null=True, on_delete=models.CASCADE)
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
 
     def __str__(self):
         return str(self.user)
@@ -63,7 +71,7 @@ def generate_uuid():
 
 
 class GeneralTest(BaseTest):
-    exam_type = models.CharField(max_length=100, default='general')
+
 
     def __str__(self):
         return str(self.user)
@@ -130,6 +138,7 @@ class ClassTestStudentTest(models.Model):
     uuid = models.CharField(max_length=100, default=uuid.uuid4)
     date = models.DateTimeField(auto_now=True)
     marks = models.CharField(max_length=100, default='0')
+    is_done = models.BooleanField(default=False)
     finished = models.BooleanField()
 
     def __str__(self):
@@ -169,4 +178,4 @@ class StudentsKnecAnswers(models.Model):
         return str(self.user)
 
     class Meta:
-        unique_together = ('user', 'uuid')
+        managed = False

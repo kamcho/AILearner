@@ -1,5 +1,4 @@
 import logging
-
 import uuid
 from ElasticEmail.model.email_content import EmailContent
 from ElasticEmail.model.body_part import BodyPart
@@ -8,6 +7,7 @@ import ElasticEmail
 from ElasticEmail.api import emails_api
 from ElasticEmail.model.email_message_data import EmailMessageData
 from ElasticEmail.model.email_recipient import EmailRecipient
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import DatabaseError
@@ -16,13 +16,17 @@ from django.shortcuts import redirect
 from django.utils import timezone
 from Exams.models import ClassTest, ClassTestStudentTest
 from SubjectList.models import Subject, Subtopic, Progress, TopicExamNotifications, Topic, TopicalExamResults, Course, \
-    AcademicInquiries, AccountInquiries
+     AccountInquiries
 from Teacher.models import ClassTestNotifications
 from Users.models import AcademicProfile
 from django.views.generic import TemplateView
 
 logger = logging.getLogger('django')
 
+
+class IsStudent(UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.role == 'Student'
 
 def send_mail(user, subject, body):
     """
@@ -34,7 +38,7 @@ def send_mail(user, subject, body):
     """
     configuration = ElasticEmail.Configuration()
     configuration.api_key[
-        'apikey'] = '3699E6F03C0DBDF11D23F7E4582F51753069D25F9E0FCCE778A66472288716D0C15FFD467AB83F885BE10DB6CDDA6C49'
+        'apikey'] = settings.APIKEY
 
     with ElasticEmail.ApiClient(configuration) as api_client:
         api_instance = emails_api.EmailsApi(api_client)
@@ -43,7 +47,7 @@ def send_mail(user, subject, body):
                 EmailRecipient(
                     email=f'{user}',
                     fields={
-                        "name": "",
+                        "name": "User",
                     },
                 ),
             ],
@@ -69,7 +73,7 @@ def send_mail(user, subject, body):
             pass
 
 
-class Learning(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+class Learning(LoginRequiredMixin, IsStudent, TemplateView):
     """
     View to display subjects by grade for learning.
     """
@@ -102,7 +106,8 @@ class Learning(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             # Handle database operational error
 
             context['subjects'] = None  # Set subjects to None to indicate error
-            error_message = f"Grade {grade} subjects are not available"  # Get the error message as a string
+            error_message = f"Grade {grade} subjects are not available at this time.\
+            Don't be alarmed we are fixing this issue."  # Get the error message as a string
             error_type = type(e).__name__
 
             logger.critical(
@@ -111,7 +116,7 @@ class Learning(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -132,7 +137,7 @@ class Learning(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -142,25 +147,10 @@ class Learning(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
         return context
 
-    def test_func(self):
-        """
-        Ensure only selected grades can be viewed.
-
-        Returns:
-            bool: True if the user can view the content, False otherwise.
-        """
-        try:
-            grade = int(self.kwargs.get('grade', 0))  # Default to 0 if grade is not present
-            if 4 <= grade <= 7:
-                return True
-            else:
-                return False
-        except Exception:
-            # Handle invalid grade value (not an integer)
-            return False
+    
 
 
-class Read(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+class Read(LoginRequiredMixin, TemplateView):
     """
     View to read subtopics by name and topic.
     """
@@ -183,10 +173,12 @@ class Read(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         name = self.kwargs.get('subtopic')
         topic = self.kwargs.get('topic')
+        media = self.kwargs.get('media')
 
         try:
             # Get subtopic to be displayed
             context['subject'] = Subtopic.objects.get(name=name, topic__name=topic)
+            context['media'] = media
         except Subtopic.MultipleObjectsReturned as e:
             error_message = str(e)  # Get the error message as a string
             error_type = type(e).__name__
@@ -197,7 +189,7 @@ class Read(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -219,7 +211,7 @@ class Read(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -239,7 +231,7 @@ class Read(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -250,18 +242,39 @@ class Read(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
         return context
 
-    def test_func(self):
+
+class MediaSelect(TemplateView):
+    template_name = 'SubjectList/media.html'
+
+    def get_context_data(self, **kwargs):
         """
-        Limit view to Students only.
+        choose preferred media type for reading for reading.
+
+   
+        Args:
+            (str): The name of the subtopic.
+            (str): The name of the topic.
 
         Returns:
-            bool: True if the user can view the content, False otherwise.
+            dict: A dictionary containing context data for the template.
         """
+        context = super().get_context_data(**kwargs)
+        subtopic = self.kwargs.get('subtopic')
+        topic = self.kwargs.get('topic')
+        context['topic'] = topic
+        context['subtopic'] = subtopic
         role = self.request.user.role
-        return role == 'Student'
+        if role == 'Student':
+            context['base_html'] = 'Users/base.html'
+        elif role == 'Teacher':
+            context['base_html'] = 'Teacher/teachers_base.html'
+        else:
+            context['base_html'] = 'Guardian/baseg.html'
+
+        return context
 
 
-class Finish(LoginRequiredMixin, TemplateView):
+class Finish(IsStudent, LoginRequiredMixin, TemplateView):
     """
     Save user's learning progress.
     """
@@ -299,7 +312,7 @@ class Finish(LoginRequiredMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -324,9 +337,14 @@ class Finish(LoginRequiredMixin, TemplateView):
             user = request.user
             try:
                 # Get the subtopic based on the context data
-                subtopic = self.get_context_data().get('subtopic')
+                topic = self.kwargs['topic']
+                subtopic = Subtopic.objects.get(name=self.kwargs['subtopic'], topic__name=topic)
                 topic = subtopic.topic
                 subject = subtopic.subject
+                topic_uuid = str(subtopic.topic.id).split("'")[0]
+                subtopic_uuid = str(subtopic.id).split("'")[0]
+
+                print(subtopic)
 
                 # Create notification message
                 about = f'{subject}: {topic} quiz is ready.'
@@ -337,14 +355,96 @@ class Finish(LoginRequiredMixin, TemplateView):
                 my_progress = Progress.objects.filter(user=user, topic=topic)
                 is_progress = my_progress.filter(subtopic=subtopic)
 
-                if is_progress:
-                    messages.success(request, 'Your progress has been successfully saved')
+                if my_progress:
+                    if is_progress:
+                        messages.success(request, 'Your progress has been successfully saved.')
+                    else:
+                        try:
+                            # Create a new progress record
+                            messages.success(request, 'Your progress has been successfully saved')
+                            progress = Progress.objects.get(user=user, topic=topic, subject=subject)
+
+                            progress.subtopic.add(subtopic)
+                            progress.save()
+                        except Exception as e:
+                            # Handle IntegrityError (duplicate progress)
+                            messages.error(request, "Oops! That didn't work. Please try again. "
+                                                    "If the problem persists, please contact the admin!")
+                            error_message = str(e)  # Get the error message as a string
+                            error_type = type(e).__name__
+
+                            logger.critical(
+                                error_message,
+                                exc_info=True,  # Include exception info in the log message
+                                extra={
+                                    'app_name': __name__,
+                                    'url': self.request.get_full_path(),
+                                    'school': settings.SCHOOL_ID,
+                                    'error_type': error_type,
+                                    'user': self.request.user,
+                                    'level': 'Critical',
+                                    'model': 'Progress',
+                                }
+                            )
+                            return redirect(request.get_full_path())
+
+                        # Check if all subtopics are completed
+                        total_topics = topic.topics_count
+                        all_subtopics = my_progress.values('subtopic').distinct().count()
+                        if all_subtopics == int(total_topics):
+                            try:
+                                # Create a notification for completed topic. this notification will be used to create
+                                # Topical Tests.
+                                notification = TopicExamNotifications.objects.create(user=user, about=about,
+                                                                                     notification_type='topical-quiz',
+                                                                                     subject=subject, message=message,
+                                                                                     topic=topic,
+                                                                                     date=timezone.now())
+
+                                # Compose email body
+                                body = f"Dear {user.personalprofile.f_name}, We are thrilled to congratulate you on " \
+                                       f"successfully completing the {topic} in {subject}! Your dedication and hard work " \
+                                       f"are truly commendable, and we applaud your commitment to your studies. To " \
+                                       f"further enhance your understanding and mastery of the topic, " \
+                                       f"we have prepared a tailored test exclusively for you. This test is designed to " \
+                                       f"challenge your knowledge and reinforce your grasp of the concepts covered in {topic}" \
+                                       f"and identify areas for further improvement. Your results will provide valuable " \
+                                       f"insights into your progress and guide your learning journey." \
+                                       f"If you have any questions or encounter any issues," \
+                                       f"please feel free to reach out to our support team, and" \
+                                       f"we will be more than happy to assist you. Keep up the great work, and we look" \
+                                       f"forward to your continued success in your studies! \n"
+
+                                # Send email
+                                send_mail(user=user.email, subject=about, body=body)
+                            except Exception as e:
+                                # Handle IntegrityError during notification creation
+                                messages.error(request, 'Sorry, we could not complete your request. If the problem '
+                                                        'persists, please contact the @support')
+                                error_message = str(e)  # Get the error message as a string
+                                error_type = type(e).__name__
+
+                                logger.critical(
+                                    error_message,
+                                    exc_info=True,  # Include exception info in the log message
+                                    extra={
+                                        'app_name': __name__,
+                                        'url': self.request.get_full_path(),
+                                        'school': settings.SCHOOL_ID,
+                                        'error_type': error_type,
+                                        'user': self.request.user,
+                                        'level': 'Critical',
+                                        'model': 'TopicExamNotifications',
+                                    }
+                                )
+                                return redirect(request.get_full_path())
                 else:
                     try:
                         # Create a new progress record
                         messages.success(request, 'Your progress has been successfully saved')
-                        progress = Progress.objects.create(user=user, subtopic=subtopic, subject=subject)
-                        progress.topic.set([topic])
+                        progress = Progress.objects.create(user=user, subject=subject)
+                        progress.topic.add(topic)
+                        progress.subtopic.add(subtopic)
                         progress.save()
                     except Exception as e:
                         # Handle IntegrityError (duplicate progress)
@@ -359,7 +459,7 @@ class Finish(LoginRequiredMixin, TemplateView):
                             extra={
                                 'app_name': __name__,
                                 'url': self.request.get_full_path(),
-                                'school': uuid.uuid4(),
+                                'school': settings.SCHOOL_ID,
                                 'error_type': error_type,
                                 'user': self.request.user,
                                 'level': 'Critical',
@@ -376,7 +476,7 @@ class Finish(LoginRequiredMixin, TemplateView):
                             # Create a notification for completed topic. this notification will be used to create
                             # Topical Tests.
                             notification = TopicExamNotifications.objects.create(user=user, about=about,
-                                                                                 notification_type='quiz',
+                                                                                 notification_type='topical-quiz',
                                                                                  subject=subject, message=message,
                                                                                  topic=topic,
                                                                                  date=timezone.now())
@@ -396,7 +496,7 @@ class Finish(LoginRequiredMixin, TemplateView):
                                    f"forward to your continued success in your studies! \n"
 
                             # Send email
-                            send_mail(user='njokevin999@gmail.com', subject=about, body=body)
+                            send_mail(user=user.email, subject=about, body=body)
                         except Exception as e:
                             # Handle IntegrityError during notification creation
                             messages.error(request, 'Sorry, we could not complete your request. If the problem '
@@ -410,7 +510,7 @@ class Finish(LoginRequiredMixin, TemplateView):
                                 extra={
                                     'app_name': __name__,
                                     'url': self.request.get_full_path(),
-                                    'school': uuid.uuid4(),
+                                    'school': settings.SCHOOL_ID,
                                     'error_type': error_type,
                                     'user': self.request.user,
                                     'level': 'Critical',
@@ -432,7 +532,7 @@ class Finish(LoginRequiredMixin, TemplateView):
                     extra={
                         'app_name': __name__,
                         'url': self.request.get_full_path(),
-                        'school': uuid.uuid4(),
+                        'school': settings.SCHOOL_ID,
                         'error_type': error_type,
                         'user': self.request.user,
                         'level': 'Critical',
@@ -487,7 +587,7 @@ class Syllabus(LoginRequiredMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -498,7 +598,7 @@ class Syllabus(LoginRequiredMixin, TemplateView):
         return context
 
 
-class Assignment(LoginRequiredMixin, TemplateView):
+class Assignment(IsStudent, LoginRequiredMixin, TemplateView):
     """
     View for viewing assignments based on the current class of the user.
     """
@@ -523,13 +623,17 @@ class Assignment(LoginRequiredMixin, TemplateView):
             academic_profile = AcademicProfile.objects.get(user=user)
             current_class = academic_profile.current_class
 
-            # Fetch assignments for the current class
-            assignments = ClassTest.objects.filter(class_id=current_class)
-            context['assignments'] = assignments
-
             # If no current_class is found raise ValueError
             if current_class is None:
                 raise ValueError
+
+            # Fetch assignments for the current class
+            assignments = ClassTest.objects.filter(class_id=current_class)
+            context['assignments'] = assignments
+            if not assignments:
+                messages.info(self.request, 'You do not have any pending assignments.')
+
+
 
 
         except AcademicProfile.DoesNotExist as e:
@@ -546,7 +650,7 @@ class Assignment(LoginRequiredMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Warning',
@@ -568,7 +672,7 @@ class Assignment(LoginRequiredMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -588,7 +692,7 @@ class Assignment(LoginRequiredMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -599,7 +703,7 @@ class Assignment(LoginRequiredMixin, TemplateView):
         return context
 
 
-class AssignmentDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+class AssignmentDetail(LoginRequiredMixin, IsStudent, TemplateView):
     """
     View class assignments details
     """
@@ -635,7 +739,7 @@ class AssignmentDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -658,7 +762,7 @@ class AssignmentDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -669,9 +773,7 @@ class AssignmentDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
         return context
 
-    def test_func(self) -> bool:
-        role = self.request.user.role
-        return role == "Student"
+   
 
     def post(self, request, **kwargs):
         """
@@ -687,6 +789,7 @@ class AssignmentDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
 
                 # Create a ClassTestStudentTest object
                 save_test = ClassTestStudentTest.objects.create(user=user, test=class_test, finished=False)
+                self.request.session['test_mode'] = 'test_mode'
 
                 # Redirect to the 'tests' view with appropriate arguments
                 return redirect('tests', 'ClassTests', test_uuid)
@@ -703,7 +806,7 @@ class AssignmentDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                     extra={
                         'app_name': __name__,
                         'url': self.request.get_full_path(),
-                        'school': uuid.uuid4(),
+                        'school': settings.SCHOOL_ID,
                         'error_type': error_type,
                         'user': self.request.user,
                         'level': 'Critical',
@@ -714,7 +817,7 @@ class AssignmentDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 return redirect(request.get_full_path())
 
 
-class Messages(LoginRequiredMixin, TemplateView):
+class Messages(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     """
     View for displaying notifications and messages to users.
     """
@@ -737,9 +840,8 @@ class Messages(LoginRequiredMixin, TemplateView):
         user = self.request.user
 
         # Determine the base HTML template based on the user's role
-        if user.role == 'Guardian':
-            context['base_html'] = 'Guardian/baseg.html'
-        elif user.role == 'Teacher':
+        
+        if user.role == 'Teacher':
             context['base_html'] = 'Teacher/teachers_base.html'
         else:
             context['base_html'] = 'Users/base.html'
@@ -762,11 +864,7 @@ class Messages(LoginRequiredMixin, TemplateView):
                 context['notifications'] = notifications
 
 
-            else:
-                # Fetch relevant notifications for other roles (Guardian, Teacher, etc.)
 
-
-                context['notifications'] = 'notifications'
         except Exception as e:
             messages.error(self.request, 'Sorry, we could not get your messages. Contact @support')
 
@@ -779,7 +877,7 @@ class Messages(LoginRequiredMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -788,9 +886,12 @@ class Messages(LoginRequiredMixin, TemplateView):
             )
 
         return context
+    
+    def test_func(self):
+        return self.request.user.role in ['Student', 'Teacher']
 
 
-class MyProgress(LoginRequiredMixin, TemplateView):
+class MyProgress(LoginRequiredMixin, IsStudent, TemplateView):
     """
     View for displaying user's progress in different subjects.
     """
@@ -839,7 +940,7 @@ class MyProgress(LoginRequiredMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -857,32 +958,6 @@ class ContactUs(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super(ContactUs, self).get_context_data(**kwargs)
 
-        try:
-            subject = Course.objects.all()
-            context['subject'] = subject
-
-
-
-        except Exception as e:
-            context['subject'] = None
-            messages.error(self.request, f'An  error occured ! we are fixing it')
-            error_message = str(e)  # Get the error message as a string
-            error_type = type(e).__name__
-
-            logger.critical(
-                error_message,
-                exc_info=True,  # Include exception info in the log message
-                extra={
-                    'app_name': __name__,
-                    'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
-                    'error_type': error_type,
-                    'user': self.request.user,
-                    'level': 'Critical',
-                    'model': 'Course',
-
-                }
-            )
         role = self.request.user.role
         if role == 'Student':
             context['base_html'] = 'Users/base.html'
@@ -890,8 +965,7 @@ class ContactUs(LoginRequiredMixin, TemplateView):
             context['base_html'] = 'Guardian/baseg.html'
         elif role == 'Teacher':
             context['base_html'] = 'Teacher/teachers_base.html'
-        elif role == 'Supervisor':
-            context['base_html'] = 'Supervisor/base.html'
+
         return context
 
     def post(self, request, **kwargs):
@@ -909,45 +983,20 @@ class ContactUs(LoginRequiredMixin, TemplateView):
         """
         user = request.user
         message = request.POST.get('message')
-        about = request.POST.get('about')
+
 
         try:
-            if about == 'Academic' and message is not None:
-                subject_id = request.POST.get('subject')
-                subject = Subject.objects.get(id=subject_id)
 
-                # Create an AcademicInquiry record
-                AcademicInquiries.objects.create(user=user, subject=subject, message=message)
+            # Create an AccountInquiry record
+            AccountInquiries.objects.create(user=user, message=message)
+            messages.info(self.request, 'We have received your request. Please be patient as we try to resolve your issues.')
+            if self.request.user.role == 'Student':
                 return redirect('student-home')
+            elif self.request.user.role == 'Teacher':
+                return redirect('teachers-home')
+            else:
+                return redirect('guardian-home')
 
-
-            elif about == 'Account' and message is not None:
-                # Create an AccountInquiry record
-                AccountInquiries.objects.create(user=user, quiz_class=about, message=message)
-                return redirect('student-home')
-
-
-
-        except Subject.DoesNotExist as e:
-            # Handle database-related errors and invalid data errors
-            messages.error(request, 'An error occurred. Please try again or contact @support.')
-            error_message = str(e)  # Get the error message as a string
-            error_type = type(e).__name__
-
-            logger.critical(
-                error_message,
-                exc_info=True,  # Include exception info in the log message
-                extra={
-                    'app_name': __name__,
-                    'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
-                    'error_type': error_type,
-                    'user': self.request.user,
-                    'level': 'Critical',
-                    'model': 'Subject',
-
-                }
-            )
 
         except Exception as e:
             # Handle database-related errors and invalid data errors
@@ -961,7 +1010,7 @@ class ContactUs(LoginRequiredMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',

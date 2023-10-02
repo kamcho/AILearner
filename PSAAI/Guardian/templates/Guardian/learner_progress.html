@@ -4,9 +4,12 @@
 {% block content %}
 
 
+<div class="subject-select-content-container">
+<br>
+<br>
 <div class="container dropdown">
       <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-        Grade
+        Grade {{ grade }}
       </button>
       <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
         <li><a class="dropdown-item" href="{% url 'learner-learning-progress' email '4' %}">4</a></li>
@@ -18,19 +21,19 @@
 <br>
 {% if not subject %}
 <div style="margin:0 auto;width:90%;">
-            <h6 class="text-center alert alert-dark">This student has no learning history</h6>
+            <h6 class="text-center alert alert-light">This student has no learning history</h6>
 
     </div>
     {% else %}
 
 
   <div>
-<div class="event-view">
+<div class="subjects-select-view">
 
 
 
         {% for prog in subject %}
-        <div class="subject-progress-card">
+        <div class="subject-select-card">
 
             <a href="{% url 'learners-syllabus' prog.subject__name grade email %}"><h6 class="p-txt"><i class="bi bi-bookmark-plus"></i> {{ prog.subject__name }}</h6></a>
            
@@ -57,7 +60,7 @@
 
 
 
-
+</div>
 
 
 

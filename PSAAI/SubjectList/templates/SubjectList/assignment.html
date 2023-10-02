@@ -14,44 +14,69 @@
 {% elif assignments == 'error' %}
 {% else %}
 <div class="container">
+    <br><br><br>
    {% for assignment in assignments %}
-    <br><br>
+
     {% if not user|test_is_done:assignment.uuid %}
-        <a href="{% url 'assignment-lobby' assignment.uuid %}">
-            <div class="assignment-card red-border">
-                <h6>
-                    <i class="bi bi-person-circle"></i>
-                    {{ assignment.teacher }}
-                </h6>
-                <div class="btn btn-danger right-aligned">
-                     <small class="rigt-aligned">{{ assignment.date|timesince }} ago.</small>
 
+<div class="accordion" id="accordionExample">
 
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">
+            {{ assignment.subject|title }} by Mr/Mrs {{ assignment.teacher.personalprofile.f_name }}
+        </button>
+        </h2>
+        <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#accordionExample">
+                <div class="accordion-body">
+                    <strong>{{ assignment.subject }} Assignment.</strong> You have a {{ assignment.subject }} assignment to be done before {{ assignment.expiry }}.
+                    Click the button below to take the test.
+                    <br><br>
+                    <a class="btn btn-warning" href="{% url 'assignment-lobby' assignment.uuid %}">Proceed</a>
                 </div>
-                <small class="bottom-aligned">{{ assignment.expiry|timesince:assignment.date }} to go</small>
+        </div>
+    </div>
 
-                <p style="padding:10px;">You have a new {{ assignment.subject }} assignment to be completed before <small style="color:red;font-size:15px;">{{ assignment.expiry }}</small>.</p>
-            </div>
-        </a>
+</div>
+    <br>
+
 
     {% else %}
-        <a href="{% url 'test-detail' 'ClassTests' assignment.uuid %}" style="color:green;">
-            <div class="assignment-card green-border">
-                <h6>
-                    <i class="bi bi-person-circle"></i>
-                    {{ assignment.teacher }}
-                </h6>
-                <div class="btn btn-success right-aligned">
-                     <small class="riht-aligned">{{ assignment.date|timesince }} ago.</small>
 
-                </div>
 
-                <p style="padding:10px;">You have already taken this {{ assignment.subject }} test, view results.</p>
+
+            <div class="accordion" id="accordionExample">
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="false" aria-controls="collapse{{ forloop.counter }}">
+                {{ assignment.subject|title }} by Mr/Mrs {{ assignment.teacher.personalprofile.f_name }}
+            </button>
+        </h2>
+        <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="heading{{ forloop.counter }}" data-bs-parent="#accordionExample">
+            <div class="accordion-body">
+                <strong>{{ assignment.subject }} Assignment.</strong> You have already taken this test. Click the button below to view your results.
+                <br><br>
+                <a class="btn btn-warning" href="{% url 'test-detail' 'ClassTests' assignment.uuid %}">View Results</a>
             </div>
-        </a>
+        </div>
+    </div>
+</div>
+    <br>
+
     {% endif %}
 
     {% endfor %}
+
+    
+
+
+
+
+
+
+
+
+
 {% endif %}
 
 

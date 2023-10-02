@@ -4,7 +4,7 @@
     width: 100%;
     height: fit-content;
     position: absolute;
-    top: 55px;
+    top: 52px;
     min-height: 100vh;
     
     /* top: 50px; */
@@ -178,6 +178,40 @@
   right: 10px;
   bottom: 10px; /* Adjust as needed */
 }
+
+
+/* FOR MESSAGING */
+.phone-view{
+    display: none;
+}
+.pc-view{
+    display: inline;
+}
+.message-card{
+    width:90%;
+    height:80px;
+    box-shadow: 2px 4px 20px 5px rgba(0, 0, 0, 0.09);
+    padding:10px;
+    margin-top:10px;
+
+
+}
+.message-img{
+    width:60px;
+    height:60px;
+    border-radius:50%;
+    float:left;
+    border:2px solid purple;
+}
+.message-txt{
+    left:5px;
+}
+.message-img img{
+    width:60px;
+    height:60px;
+    border-radius:50%;
+    float:left;
+}
 @media (min-width:1230px){
     .upcoming-classes-view{
   padding: 20px;
@@ -196,6 +230,17 @@
     }
 
 }
+
+
+/* EXAMS */
+.file-container{
+    width: 80%;
+}
+.quiz-file{
+    width: 400px;
+    height: 400px;
+}
+
 @media (max-width: 1200px) {
     .upcoming-classes-view{
         grid-template-columns:repeat(2,1fr);
@@ -256,6 +301,7 @@
         margin-bottom:40px;
 
 
+
     }
     .subject-progress-view{
         display:inline;
@@ -279,7 +325,16 @@
 
 
 }
+@media (max-width: 790px) {
+    .pc-view{
+        display: none !important;
+    }
+    .phone-view{
+        display: inline !important;
+    }
 
+
+}
 /* FOR EXAMS */
 
 
@@ -418,30 +473,4 @@
 
 #accordionExample{
     background-color:white;
-}
-/* FOR MESSAGING */
-.message-card{
-    width:90%;
-    height:80px;
-    box-shadow: 2px 4px 20px 5px rgba(0, 0, 0, 0.09);
-    padding:10px;
-    margin-top:10px;
-
-
-}
-.message-img{
-    width:60px;
-    height:60px;
-    border-radius:50%;
-    float:left;
-    border:2px solid purple;
-}
-.message-txt{
-    left:5px;
-}
-.message-img img{
-    width:60px;
-    height:60px;
-    border-radius:50%;
-    float:left;
 }

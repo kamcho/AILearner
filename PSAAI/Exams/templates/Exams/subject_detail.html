@@ -12,6 +12,9 @@
 {% if not subject %}
 
 {% else %}
+    <br>
+    <br>
+    <br>
      <table class="container table">
         <thead>
           <tr>
@@ -24,8 +27,8 @@
         {% for topic in subject %}
           <tr>
               <td><a href="{% url 'test-detail' 'Topical' topic.uuid %}">{{ topic.topic }}</a></td>
-            <td>{{ topic.marks }} / 15</td>
-            <td>{{ topic.marks|divide:15 }}%</td>
+            <td>{{ topic.marks }} / {{ topic.test_size }}</td>
+            <td>{{ topic.marks|divide:topic.test_size }}%</td>
           </tr>
         {% endfor %}
         </tbody>

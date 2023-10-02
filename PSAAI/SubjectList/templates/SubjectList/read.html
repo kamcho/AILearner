@@ -30,12 +30,23 @@
 
     <br>
 
-
+    {% if media == 'text' %}
     <div class="study-content">
-        <object data="https://media.geeksforgeeks.org/wp-content/cdn-uploads/20210101201653/PDF.pdf" width="95%"
-            height="800">
+        <object data="{{ subject.file1.url }}" width="95%" height="800">
+            Unsupported format
         </object>
     </div>
+
+    {% else %}
+
+        <div class="study-content">
+            <video src="{{ subject.file2.url }}" width="95%" preload="auto" controls>
+              
+            </video>
+        </div>
+
+
+    {% endif %}
 
 
 

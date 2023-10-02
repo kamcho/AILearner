@@ -1,12 +1,14 @@
 import logging
 import math
+from django.db.models import Count, F
 
 from django import template
 from django.db.models import Sum
 from django.shortcuts import redirect
 import datetime
 
-from Exams.models import StudentTest, StudentsAnswers, ClassTestStudentTest, ClassTest, StudentKNECExams, GeneralTest
+from Exams.models import StudentTest, StudentsAnswers, ClassTestStudentTest, ClassTest, StudentKNECExams, GeneralTest, \
+    TopicalQuizes, TopicalQuizAnswers
 from SubjectList.models import *
 
 from Users.models import MyUser, SchoolClass
@@ -110,9 +112,9 @@ def guardian_subtopic_view(email, subtopic):
 @register.filter
 def test_is_done(user, test_uuid):
     try:
-        class_test = ClassTestStudentTest.objects.get(user=user, test=test_uuid)
-        student_test = StudentTest.objects.get(user=user, uuid=test_uuid)
-        knec_test = StudentKNECExams.objects.get(user=user, test=test_uuid)
+        class_test = ClassTestStudentTest.objects.filter(user=user, test=test_uuid)
+        student_test = StudentTest.objects.filter(user=user, uuid=test_uuid)
+        knec_test = StudentKNECExams.objects.filter(user=user, test=test_uuid)
         if student_test or class_test or knec_test:
 
             return True
@@ -167,7 +169,7 @@ def topical_average(user, topic):
     tests = StudentTest.objects.filter(user=user, topic__name=topic)
 
     total_marks = tests.aggregate(total_marks=Sum('marks'))['total_marks']
-    average = (int(total_marks) / int(tests.count()))
+    average = round(int(total_marks) / int(tests.count()))
     return average
 
 
@@ -257,12 +259,23 @@ def get_test_count(user, subject):
 @register.filter
 def get_topic_count(user, subject):
     if user is int:
-        topical_tests = StudentTest.objects.filter(user=user, subject=subject).\
-            values('topic').order_by('topic').count()
+        topical_tests = StudentTest.objects.filter(user__email=user, subject=subject).annotate(
+    similar_topic=F('topic')
+).annotate(
+    count=Count('similar_topic')
+).values('similar_topic').distinct().order_by('similar_topic').count()
     else:
 
-        topical_tests = StudentTest.objects.filter(user__email=user, subject=subject). \
-            values('topic').order_by('topic').count()
+        topical_tests = StudentTest.objects.filter(user__email=user, subject=subject).annotate(
+    similar_topic=F('topic')
+).annotate(
+    count=Count('similar_topic')
+).values('similar_topic').distinct().order_by('similar_topic').count()
     return topical_tests
 
 
+@register.filter
+def get_correct_choice(quiz):
+    correct_choice = TopicalQuizAnswers.objects.get(quiz__quiz=quiz, is_correct=True)
+
+    return correct_choice.choice

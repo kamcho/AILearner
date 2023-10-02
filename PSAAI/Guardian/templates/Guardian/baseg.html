@@ -38,10 +38,10 @@
           <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
             {% if user.is_authenticated %}
 
-
+<!-- 
           <li>
             <a class="nav-link" href=""><i class="bi bi-option" style="color:black;"> </i>Dash Board</a>
-          </li>
+          </li> -->
 
 
        <li>
@@ -49,17 +49,7 @@
           </li>
 
 
-       <li>
-           <a class="nav-link" href="{% url 'notifications' %}">
-            <button  style="background-color:purple;color:white;" class="btn  position-relative">
-              Messages
-              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                {{ messages.count }}+
-                <span class="visually-hidden">unread messages</span>
-              </span>
-            </button>
-            </a>
-       </li>
+
 
 
 
@@ -67,8 +57,8 @@
             <a class="nav-link" href="{% url 'profile'  %}"><i class="bi bi-person-circle" style="color:black;"> </i>Profile</a>
           </li>
        <li>
-            <a class="nav-link" href="{% url 'contact'  %}"><i class="bi bi-headset" style="color:black;"> </i>Call Us</a>
-          </li>
+        <a class="nav-link" href="{% url 'contact'   %}" ><i class="bi bi-headset" > </i>Contact Us</a>
+      </li>
 
 
 
@@ -85,10 +75,11 @@
             <li class="nav-item">
               <a class="nav-link" href="{% url 'register' %}">Sign Up</a>
             </li>
-            {% endif %}
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'password-reset' %}"><i class="bi bi-x-octagon" style="color:black;"> </i>Reset</a>
-              </li>
+              <a class="nav-link" href="{% url 'password-reset' %}"><i class="bi bi-x-octagon" style="color:black;"> </i>Reset</a>
+            </li>
+            {% endif %}
+            
           </ul>
 
         </div>
@@ -97,75 +88,16 @@
   </nav>
 
 
-<nav class="vertical-bar" style="display:none;">
-    <div class="text-center">
-        <br>
-          <p>{{ user }}</p>
-
-      </div>
-    <hr class="hr">
-   <ul class="navbar-nav">
-        {% if user.is_authenticated %}
-
-        <div class="user-img" style="display: none;">
-            <img src="{{ user.personalprofile.pic.url }}">
-
-        </div>
-       <li>
-            <a class="nav-link" href=""><i class="bi bi-option" style="color:white;"> </i>Dash Board</a>
-          </li>
 
 
-       <li>
-              <a class="nav-link" href="{% url 'my-kids' %}"><i class="bi bi-house" style="color:white;"> </i>Home</a>
-          </li>
+<div class="main-body">
+        {% block content %}
+
+        {% endblock %}
+    </div>
 
 
-       <li>
-           <a class="nav-link" href="{% url 'notifications' %}">
-            <button  style="background-color:purple;color:white;" class="btn  position-relative">
-              Messages
-              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                {{ messages.count }}+
-                <span class="visually-hidden">unread messages</span>
-              </span>
-            </button>
-            </a>
-       </li>
-
-
-
-        <li>
-            <a class="nav-link" href="{% url 'profile'  %}"><i class="bi bi-person-circle" style="color:white;"> </i>Profile</a>
-          </li>
-       <li>
-            <a class="nav-link" href="{% url 'contact'  %}"><i class="bi bi-headset" style="color:white;"> </i>Call Us</a>
-          </li>
-
-
-
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'logout' %}"><i class="bi bi-box-arrow-left" style="color:white;"> </i>Sign out</a>
-          </li>
-
-
-
-        {% else %}
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'login' %}">Sign In</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'register' %}">Sign Up</a>
-        </li>
-        {% endif %}
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'password-reset' %}"><i class="bi bi-x-octagon" style="color:white;"> </i>Reset</a>
-          </li>
-      </ul>
-
-</nav>
-
-{% if messages %}
+    {% if messages %}
     <br>
     <br>
   <div class="text-center" >
@@ -179,13 +111,6 @@
     {% endfor %}
   </div>
 {% endif %}
-
-<div class="main-body">
-        {% block content %}
-
-        {% endblock %}
-    </div>
-
 <div class="">
 
 

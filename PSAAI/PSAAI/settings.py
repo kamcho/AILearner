@@ -26,12 +26,13 @@ SECRET_KEY = 'django-insecure-*1r4hwdyal=y_j%*m&+-_4!@j)33!9a(z*k_%71c($@&71fbue
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['ae80-105-163-157-192.ngrok-free.app', '127.0.0.1']
-CSRF_TRUSTED_ORIGINS = ["https://ae80-105-163-157-192.ngrok-free.app"]
+ALLOWED_HOSTS = ['127.0.0.1', '33a2-196-110-128-186.ngrok-free.app']
+CSRF_TRUSTED_ORIGINS = ["https://33a2-196-110-128-186.ngrok-free.app"]
 
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -47,7 +48,8 @@ INSTALLED_APPS = [
     'Teacher',
     'Supervisor',
     'Logs',
-
+    
+    'Support'
 
 ]
 
@@ -81,6 +83,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'PSAAI.wsgi.application'
 
+
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
@@ -90,7 +93,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 
 LOGGING = {
     'version': 1,
@@ -116,9 +118,6 @@ LOGGING = {
 }
 ADMINS = [('Kevin', 'njokevin9@gmail.com')]
 SERVER_EMAIL = 'njokevin9@gmail.com'
-
-
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -167,6 +166,18 @@ LOGIN_REDIRECT_URL = 'redirect'
 CRISPY_TEMPLATE_TAG = 'bootstrap4'
 LOGIN_URL = 'Sign-In/'
 
+
+
+
+# VARIABLES
+
+email = os.environ.get('SchoolMail')
+password = os.environ.get('SchoolMaidPassword')
+service_api = os.environ.get('MailServiceAPI')
+service_id = os.environ.get('ServiceID')
+school_id = os.environ.get('SchoolID')
+
+
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
@@ -174,4 +185,14 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = "njokevin999@gmail.com"
 EMAIL_HOST_PASSWORD = "zjlnawmazkfsehid"
 service = '53B9834AAB562891E2D041ECF0A05A64FE33'
-api = '3699E6F03C0DBDF11D23F7E4582F51753069D25F9E0FCCE778A66472288716D0C15FFD467AB83F885BE10DB6CDDA6C49'
+APIKEY = '3699E6F03C0DBDF11D23F7E4582F51753069D25F9E0FCCE778A66472288716D0C15FFD467AB83F885BE10DB6CDDA6C49'
+SCHOOL_ID = '3d627dc5-da9f-4582-9a9c-31ce81448784'
+ASGI_APPLICATION = "PSAAI.asgi.application"
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}

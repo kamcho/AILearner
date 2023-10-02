@@ -1,30 +1,28 @@
 import logging
-import re
-from abc import ABC
-from itertools import groupby
 from datetime import datetime
-
-import uuid
+from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import DatabaseError
 from django.db.models import Count
-from django.shortcuts import render, get_object_or_404, redirect
-
-# Create your views here.
-from django.views.generic import ListView, TemplateView
+from django.shortcuts import redirect
+from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-
 from Exams.models import StudentTest, StudentsAnswers, ClassTestStudentTest, StudentKNECExams, StudentsKnecAnswers, \
     GeneralTest
 from SubjectList.models import Progress, Topic, Subject
-
 from Users.models import MyUser, PersonalProfile, AcademicProfile
 
 logger = logging.getLogger('django')
 
 
-class GuardianHome(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+
+class IsGuardian(UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.role == 'Guardian'
+    
+
+class GuardianHome(LoginRequiredMixin, IsGuardian, TemplateView):
     """
         Guardians Home Page
     """
@@ -52,7 +50,7 @@ class GuardianHome(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -67,8 +65,7 @@ class GuardianHome(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         if self.request.method == 'POST':
             return redirect('profile')
 
-    def test_func(self):
-        return self.request.user.role == 'Guardian'
+
 
 
 class MyKidsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
@@ -85,7 +82,7 @@ class MyKidsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             my_kids = PersonalProfile.objects.filter(ref_id=user.uuid)
             context['kids'] = my_kids
             if not my_kids:
-                messages.error(self.request, f'We could not find any students in your watch list.'
+                messages.warning(self.request, f'We could not find any students in your watch list.'
                                              f' Add a user from your profile page.')
                 context['kids'] = None
             context['current_time'] = datetime.now()  # Get current time
@@ -100,7 +97,7 @@ class MyKidsView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -127,11 +124,54 @@ class TaskSelection(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         try:
             email = self.kwargs['email']
             context['email'] = email  # Get a students email from url
-            academic_profile = AcademicProfile.objects.get(user__email=email)
-            context['grade'] = academic_profile.current_class.grade
+            academic_profile = MyUser.objects.get(email=email)
+            context['grade'] = academic_profile.academicprofile.current_class.grade
 
-        except ObjectDoesNotExist as e:
-            messages.error(self.request, 'A user with this profile was not found. Please contact admin!')
+
+
+        except AcademicProfile.DoesNotExist as e:
+            messages.error(self.request, 'This student has not specified his/her class. Contact @support for assistance')
+
+            profile = AcademicProfile.objects.create(user=academic_profile)
+            context['error'] = True
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': settings.SCHOOL_ID,
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'MyUser',
+
+                }
+            )
+
+        except AttributeError as e:
+            messages.error(self.request, 'This student has not specified his/her class. Contact @support for assistance')
+            context['error'] = True
+            error_message = str(e)  # Get the error message as a string
+            error_type = type(e).__name__
+
+            logger.critical(
+                error_message,
+                exc_info=True,  # Include exception info in the log message
+                extra={
+                    'app_name': __name__,
+                    'url': self.request.get_full_path(),
+                    'school': settings.SCHOOL_ID,
+                    'error_type': error_type,
+                    'user': self.request.user,
+                    'level': 'Critical',
+                    'model': 'AcademicProfile',
+
+                }
+            )
 
 
 
@@ -256,7 +296,7 @@ class KidTests(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -320,7 +360,7 @@ class KidExamTopicView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -384,7 +424,7 @@ class KidExamSubjectDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -446,7 +486,7 @@ class KidTestDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -484,7 +524,7 @@ class KidTestDetail(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
         return False
 
 
-class KidTestRevision(LoginRequiredMixin, UserPassesTestMixin, TemplateView, ABC):
+class KidTestRevision(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     template_name = 'Guardian/kid_quiz_detail.html'
 
     def get_context_data(self, **kwargs):
@@ -497,13 +537,14 @@ class KidTestRevision(LoginRequiredMixin, UserPassesTestMixin, TemplateView, ABC
         try:
             if instance == 'Topical':
                 answers = StudentsAnswers.objects.filter(user=user, test_object_id=test)
-                test = StudentTest.objects.filter(user=user, uuid=test).last()
+                test = StudentTest.objects.get(user=user, uuid=test)
             elif instance == 'KNECExams':
                 test = StudentKNECExams.objects.filter(user=user, test=test).last()
                 answers = StudentsKnecAnswers.objects.filter(user=user, test=test)
             elif instance == 'ClassTests':
                 answers = StudentsAnswers.objects.filter(user=user, test_object_id=test)
                 test = ClassTestStudentTest.objects.filter(user=user, test=test).last()
+
             else:
                 pass
 
@@ -525,7 +566,7 @@ class KidTestRevision(LoginRequiredMixin, UserPassesTestMixin, TemplateView, ABC
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -597,7 +638,7 @@ class LearnerProgress(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',
@@ -690,7 +731,7 @@ class LearnerSyllabus(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                 extra={
                     'app_name': __name__,
                     'url': self.request.get_full_path(),
-                    'school': uuid.uuid4(),
+                    'school': settings.SCHOOL_ID,
                     'error_type': error_type,
                     'user': self.request.user,
                     'level': 'Critical',

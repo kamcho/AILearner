@@ -2,14 +2,18 @@
 
 /* FOR GUARDIAN HOME */
 .guardian-home-view{
-    display:grid;
-    grid-template-columns:repeat(2,.9fr);
+    display: grid;
+    grid-template-columns: repeat(2, .5fr);
+    margin:100px auto;
 
-    grid-gap:25px;
+    row-gap: 20px;
+    column-gap:20px;
     width:90%;
-    position:relative;
-    margin:0 auto;
-    padding-top:50px;
+    max-width: 1400px;
+    background-color:rgba(29, 25, 46, .8);
+    
+    padding-top:30px;
+    padding-bottom:40px;
 }
 .guardian-home-card{
     width:80%;
@@ -19,6 +23,7 @@
     background-color: white;
     padding: 20px;
     border-radius: 10px;
+    margin: 0 auto;
 }
 .guardian-card-body{
     font-weight:light;
@@ -66,8 +71,12 @@
 }
 .task-select{
     display:grid;
-    grid-template-columns:repeat(2,.3fr);
-    margin:0 auto;
+    grid-template-columns:repeat(2,.5fr);
+    width: 95%;
+    max-width: 1300px;
+    margin:40px auto;
+    background-color:rgba(29, 25, 46, .8);
+
 }
 .task-select-card{
     width:300px;
@@ -172,6 +181,12 @@
 
 
 
+/* FOR EXAM */
+.test-container{
+   
+    right:5px;
+}
+
 @media (min-width:1030px){
 
     .teacher-task-view{
@@ -220,13 +235,13 @@
     .guardian-home-view{
         display:inline;
 
-        padding-top:130px !important;
+        margin: 40px auto;
     }
     
     .guardian-home-card{
     width:85%;
 
-        margin:auto auto 30px auto;
+    margin-top: 50px !important;
 
 
     }

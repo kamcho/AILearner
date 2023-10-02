@@ -23,11 +23,12 @@ urlpatterns = [
 
     path('admin/', admin.site.urls),
     path('', include('Users.urls')),
-    path('academic/', include('SubjectList.urls')),
+    path('Learning/', include('SubjectList.urls')),
     path('Exams/', include('Exams.urls')),
+
+    path('Support/', include('Support.urls')),
     path('Logs/', include('Logs.urls')),
     path('Guardian/', include('Guardian.urls')),
-    path('Supervisor/', include('Supervisor.urls')),
     path('Analytics/', include('Analytics.urls')),
     path('Teacher/', include('Teacher.urls')),
     path('password-reset/', auth_views.PasswordResetView.as_view(template_name='Users/password_reset.html'),

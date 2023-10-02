@@ -15,7 +15,7 @@ from django.contrib.auth.models import (
 
 
 class MyUserManager(BaseUserManager):
-    def create_user(self,email,role,uuid=uuid ,password=None):
+    def create_user(self, email, role, uuid=uuid, password=None):
         """
         Creates and saves a User with the given email, date of
         birth and password.
@@ -36,7 +36,7 @@ class MyUserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, role, uuid, email, password=None):
+    def create_superuser(self, email, password=None):
         """
         Creates and saves a superuser with the given email, date of
         birth and password.
@@ -44,8 +44,8 @@ class MyUserManager(BaseUserManager):
         user = self.create_user(
 
             email=email,
-            role=role,
-            uuid=uuid,
+            role='Admin',
+            uuid=uuid.uuid4(),
             password=password,
 
         )
@@ -60,11 +60,11 @@ class MyUser(AbstractBaseUser):
         Teacher = "Teacher"
         ADMIN = "ADMINISTRATOR"
         Guardian = 'Guardian'
-        Supervisor = "Supervisor"
+
 
     base_role = Role.Student
     email = models.EmailField(unique=True)
-    uuid = models.CharField(max_length=100, default=uuid.uuid4, editable=True)
+    uuid = models.CharField(max_length=100, default=uuid.uuid4, unique=True)
     role = models.CharField(max_length=15, choices=Role.choices, default=base_role)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=True)
@@ -134,18 +134,7 @@ class Guardian(MyUser):
         proxy = True
 
 
-class SupervisorManager(BaseUserManager):
-    def get_queryset(self, *args, **kwargs):
-        result = super().get_queryset(*args, **kwargs)
-        return result.filter(role=MyUser.Role.Supervisor)
 
-
-class Supervisor(MyUser):
-    base_role = MyUser.Role.Supervisor
-    student = SupervisorManager()
-
-    class Meta:
-        proxy = True
 
 
 class SchoolClass(models.Model):
@@ -164,9 +153,8 @@ class PersonalProfile(models.Model):
     l_name = models.CharField(max_length=30)
     surname = models.CharField(max_length=30, blank=True)
     gender = models.CharField(max_length=10, blank=True)
-    phone = models.CharField(max_length=15)
-    country = models.CharField(max_length=10, default="Kenya", blank=True)
-    city = models.CharField(max_length=10, blank=True)
+    phone = models.CharField(max_length=15, null=True, unique=True)
+
 
 
 
@@ -176,8 +164,7 @@ class PersonalProfile(models.Model):
 
 class AcademicProfile(models.Model):
     user = models.OneToOneField(MyUser, on_delete=models.CASCADE)
-    school = models.CharField(max_length=100)
-    county = models.CharField(max_length=20)
+
     current_class = models.ForeignKey(SchoolClass, null=True, on_delete=models.CASCADE)
 
     def __str__(self):
