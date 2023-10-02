@@ -26,7 +26,7 @@ urlpatterns = [
     path('Learning/', include('SubjectList.urls')),
     path('Exams/', include('Exams.urls')),
 
-    path('Support/', include('Support.urls')),
+    # path('Support/', include('Support.urls')),
     path('Logs/', include('Logs.urls')),
     path('Guardian/', include('Guardian.urls')),
     path('Analytics/', include('Analytics.urls')),
