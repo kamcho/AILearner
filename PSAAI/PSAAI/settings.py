@@ -90,7 +90,7 @@ WSGI_APPLICATION = 'PSAAI.wsgi.application'
 DATABASES = {
    'default': {
        'ENGINE': 'django.db.backends.postgresql',
-       'NAME': ‘psaai’,
+       'NAME': 'psaai',
        'USER': 'root',
        'PASSWORD': '141778215aA',
        'HOST': 'psaai.covjv7kf4u4o.eu-north-1.rds.amazonaws.com',
