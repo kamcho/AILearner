@@ -88,10 +88,14 @@ WSGI_APPLICATION = 'PSAAI.wsgi.application'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME':'psaai.covjv7kf4u4o.eu-north-1.rds.amazonaws.com',
-    }
+   'default': {
+       'ENGINE': 'django.db.backends.postgresql',
+       'NAME': ‘psaai’,
+       'USER': 'root',
+       'PASSWORD': '141778215aA',
+       'HOST': 'psaai.covjv7kf4u4o.eu-north-1.rds.amazonaws.com',
+       'PORT': '5432',
+   }
 }
 
 LOGGING = {
