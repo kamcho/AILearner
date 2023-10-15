@@ -23,15 +23,17 @@ class RegisterView(TemplateView):
             email = request.POST.get('email')
             pwd1 = request.POST.get('pwd1')
             pwd2 = request.POST.get('pwd2')
+            role = request.POST.get('role')
 
             if email and pwd2 and pwd1:
                 if pwd2 == pwd1:
                     try:
-                        user = MyUser.objects.create_user(email=email, role='Guardian', password=pwd1)
+                        user = MyUser.objects.create_user(email=email, role=role, password=pwd1)
+                        user.save()
                         messages.success(request, f'Account for {email} has been created successfully.')
                         return redirect('login')
-                    except IntegrityError:
-                        messages.error(request, 'A user with this email already exists.')
+                    except IntegrityError as e:
+                        messages.error(request, str(e))
                 else:
                     messages.error(request, 'The passwords did not match!')
             else:
@@ -304,6 +306,10 @@ class FinishSetup(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
                     return redirect('guardian-home')
                 elif request.user.role == 'Teacher':
                     return redirect('teachers-home')
+                else:
+                    messages.error(request, 'Role not found')
+                    return redirect(request.get_full_path())
+            
         else:
             return redirect(request.get_full_path())
 
@@ -392,6 +398,8 @@ class Home(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
             
 
         except Exception as e:
+            context['grade'] = 4
+
             messages.error(self.request, 'An error occurred. Please contact @support')
             error_message = str(e)  # Get the error message as a string
             error_type = type(e).__name__

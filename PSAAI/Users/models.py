@@ -15,7 +15,7 @@ from django.contrib.auth.models import (
 
 
 class MyUserManager(BaseUserManager):
-    def create_user(self, email, role, uuid=uuid, password=None):
+    def create_user(self, email, role, password=None):
         """
         Creates and saves a User with the given email, date of
         birth and password.
@@ -26,7 +26,6 @@ class MyUserManager(BaseUserManager):
 
             email=email,
             role=role,
-            uuid=uuid
 
 
 
@@ -45,7 +44,7 @@ class MyUserManager(BaseUserManager):
 
             email=email,
             role='Admin',
-            uuid=uuid.uuid4(),
+            # uuid=uuid.uuid4(),
             password=password,
 
         )
@@ -67,7 +66,7 @@ class MyUser(AbstractBaseUser):
     uuid = models.CharField(max_length=100, default=uuid.uuid4, unique=True)
     role = models.CharField(max_length=15, choices=Role.choices, default=base_role)
     is_active = models.BooleanField(default=True)
-    is_admin = models.BooleanField(default=True)
+    is_admin = models.BooleanField(default=False)
     objects = MyUserManager()
     USERNAME_FIELD = 'email'
 
