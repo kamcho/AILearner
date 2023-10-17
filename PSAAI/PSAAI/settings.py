@@ -26,8 +26,8 @@ SECRET_KEY = 'django-insecure-*1r4hwdyal=y_j%*m&+-_4!@j)33!9a(z*k_%71c($@&71fbue
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1','*', '33a2-196-110-128-186.ngrok-free.app']
-CSRF_TRUSTED_ORIGINS = ["https://33a2-196-110-128-186.ngrok-free.app"]
+ALLOWED_HOSTS = ['127.0.0.1','*', '0a9d-102-167-129-208.ngrok-free.app']
+CSRF_TRUSTED_ORIGINS = ["https://0a9d-102-167-129-208.ngrok-free.app"]
 
 # Application definition
 
@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     'Supervisor',
     'Logs',
     
-    # 'Support'
+    'Support'
 
 ]
 
@@ -192,11 +192,4 @@ service = '53B9834AAB562891E2D041ECF0A05A64FE33'
 APIKEY = '3699E6F03C0DBDF11D23F7E4582F51753069D25F9E0FCCE778A66472288716D0C15FFD467AB83F885BE10DB6CDDA6C49'
 SCHOOL_ID = '3d627dc5-da9f-4582-9a9c-31ce81448784'
 ASGI_APPLICATION = "PSAAI.asgi.application"
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
-        },
-    },
-}
+

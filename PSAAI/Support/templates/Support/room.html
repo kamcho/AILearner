@@ -4,15 +4,16 @@
 {% block content %}
 
 <br><br><br><br><br>
-<div class="container">
+<div id="chat-container" style="height:400px;"></div>
 
-    <div id="chat-container" style="height:600px;"></div>
-</div>
-
-
+<div>{{ user.uuid }}</div>
 <script>
-    const chat = new Chat({ uid: "demochat" })
+    const uuid = "{{ user.uuid }}";
+    const chat = new Chat({ uid: uuid });
     document.getElementById("chat-container").append(chat);
 </script>
+
+
+
 
 {% endblock %}

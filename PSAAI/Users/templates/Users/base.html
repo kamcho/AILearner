@@ -7,10 +7,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- Using package from CDN -->
-<script src="https://cdn.jsdelivr.net/npm/@weavy/dropin-js@17.2.1/dist/weavy.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@weavy/dropin-js@18.0.1/dist/weavy.js" crossorigin="anonymous"></script>
 <script>
-  Weavy.url = "https://0032137fa80b4c72acb1a522255566df.weavy.io",
-  Weavy.tokenFactory = async () => "wyu_huZ4eac4fMim3BSxm19WXS5mkoNyUk4F2YTB"
+  const access_token = "{{ request.session.access_token }}";
+  // url to your Weavy environment
+  Weavy.url = "https://ced0667cb8b14d76ba02bf7764860ddc.weavy.io";
+  // token factory that returns the access_token for your demo user
+  Weavy.tokenFactory = async () => access_token;
 </script>
 
   <link href="https://fonts.googleapis.com/css?family=Raleway:400,300,600,800,900" rel="stylesheet" type="text/css">
@@ -88,7 +91,7 @@
             <a class="nav-link" href="{% url 'profile'  %}" ><i class="bi bi-person-circle" > </i>Profile</a>
           </li>
         <li>
-            <a class="nav-link" href="{% url 'contact'   %}" ><i class="bi bi-headset" > </i>Contact Us</a>
+            <a class="nav-link" href="{% url 'support'   %}" ><i class="bi bi-headset" > </i>Contact Us</a>
           </li>
 
 
