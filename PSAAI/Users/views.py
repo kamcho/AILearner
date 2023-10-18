@@ -9,7 +9,7 @@ from django.shortcuts import redirect, get_object_or_404
 from django.views.generic import TemplateView
 from SubjectList.models import Progress, Topic
 
-from Users.models import PersonalProfile, MyUser, AcademicProfile
+from Users.models import PersonalProfile, MyUser, AcademicProfile, SchoolClass
 import logging
 
 logger = logging.getLogger('django')
@@ -24,14 +24,32 @@ class RegisterView(TemplateView):
             pwd1 = request.POST.get('pwd1')
             pwd2 = request.POST.get('pwd2')
             role = request.POST.get('role')
+            grade = request.POST.get('grade')
 
             if email and pwd2 and pwd1:
                 if pwd2 == pwd1:
                     try:
                         user = MyUser.objects.create_user(email=email, role=role, password=pwd1)
                         user.save()
+
                         messages.success(request, f'Account for {email} has been created successfully.')
-                        return redirect('login')
+                        if role == 'Student':
+                            academic_profile, created = AcademicProfile.objects.get_or_create(user=user)
+                            grade = SchoolClass.objects.get(grade=grade)
+                            academic_profile.current_class = grade
+                            academic_profile.save()
+                        user = authenticate(self.request, username=email, password=pwd1)
+
+                        if user is not None:
+                            # Log the user in
+                            login(self.request, user)
+                            # Redirect to a success page
+                            return redirect('redirect')
+                        else:
+                            return redirect('login')
+
+                            
+
                     except IntegrityError as e:
                         messages.error(request, str(e))
                 else:

@@ -89,7 +89,7 @@ WSGI_APPLICATION = 'PSAAI.wsgi.application'
 
 DATABASES = {
    'default': {
-       'ENGINE': 'django.db.backends.postgresql',
+       'ENGINE': 'django.db.backends.postgresql_psycopg2',
        'NAME': 'psaai',
        'USER': 'root',
        'PASSWORD': '141778215aA',
