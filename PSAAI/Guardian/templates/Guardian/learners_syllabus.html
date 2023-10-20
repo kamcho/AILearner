@@ -54,7 +54,7 @@
         <div>
            {% for subtopic in coverage.topic.all %}
                         <div style="display:flex;width:60%;padding-left:30px;">
-                        <small style="color:purple;flex: 1;"><a href="{% url 'read' coverage subtopic %}">{{ subtopic }}</a></small>
+                        <small style="color:purple;flex: 1;"><a href="{% url 'media' coverage subtopic %}">{{ subtopic }}</a></small>
                           <input type="checkbox" style="margin-left: 0 auto;" disabled>
                       </div>
             {% endfor %}
