@@ -48,7 +48,7 @@ class BaseTest(models.Model):
     user = models.ForeignKey(MyUser, on_delete=models.CASCADE)
     uuid = UniqueUUIDField()
     date = models.DateTimeField(auto_now=True)
-    marks = models.IntegerField(default='0')
+    marks = models.IntegerField(default=0)
     exam_type = models.CharField(max_length=10, default='Topical', choices=type_choices)
     test_size = models.PositiveIntegerField(default=15)
     duration = models.PositiveIntegerField(default=15)
