@@ -137,7 +137,7 @@ class ClassTestStudentTest(models.Model):
     test = models.ForeignKey(ClassTest, on_delete=models.CASCADE)
     uuid = models.CharField(max_length=100, default=uuid.uuid4)
     date = models.DateTimeField(auto_now=True)
-    marks = models.CharField(max_length=100, default='0')
+    marks = models.IntegerField(default=0)
     is_done = models.BooleanField(default=False)
     finished = models.BooleanField()
 
