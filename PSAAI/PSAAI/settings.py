@@ -48,8 +48,8 @@ INSTALLED_APPS = [
     'Teacher',
     'Supervisor',
     'Logs',
-    
-    'Support'
+    'Subscription',
+    'Support',
 
 ]
 
