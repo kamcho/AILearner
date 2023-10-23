@@ -100,7 +100,14 @@ class TopicalExamResults(Notifications):
 
     def __str__(self):
         return str(self.user)
+    
+class PaymentNotifications(Notifications):
+    amount = models.PositiveIntegerField()
+    subscription_type = models.CharField(max_length=10)
+    beneficiaries = models.CharField(max_length=1000)
 
+    def __str__(self):
+        return str(self.user)
 
 class AccountInquiries(models.Model):
     user = models.ForeignKey(MyUser, on_delete=models.CASCADE)

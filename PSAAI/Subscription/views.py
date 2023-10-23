@@ -8,17 +8,15 @@ from django.shortcuts import render, redirect
 import base64
 import hashlib
 import datetime
-import stripe
 from django.db import DatabaseError, IntegrityError
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from requests.auth import HTTPBasicAuth
-from stripe.error import StripeError
 
 from SubjectList.models import PaymentNotifications
 from Users.models import MyUser, PersonalProfile
-from .models import MySubscription, Subscriptions, StripeCardPayments
+from .models import MySubscription, Subscriptions
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 
@@ -105,5 +103,6 @@ def initiate_payment(request):
 def payment_callback(request):
     data = request.body.decode('utf-8')
     data = json.loads(data)
+    print(data)
 
     return JsonResponse({'response': data})
