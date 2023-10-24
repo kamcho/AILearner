@@ -400,6 +400,7 @@ class Finish(IsStudent, LoginRequiredMixin, TemplateView):
                                                                                      subject=subject, message=message,
                                                                                      topic=topic,
                                                                                      date=timezone.now())
+                                messages.success(self.request, f'You have completed {topic}, Take the topical assesment test from the Exam panel.')
 
                                 # Compose email body
                                 body = f"Dear {user.personalprofile.f_name}, We are thrilled to congratulate you on " \

@@ -21,12 +21,17 @@ class IsStudent(UserPassesTestMixin):
     def test_func(self):
         user_email = self.kwargs['mail']  # Get the user's email from the URL
         try:
-            student = MyUser.objects.get(email=user_email)
-            user = self.request.user.uuid
-            # Get a user with the passed email
-            student = PersonalProfile.objects.get(user__email=user_email)
+            if self.request.user.role == 'Teacher':
+                return True
+            elif self.request.user.role == 'Guardian':
+                student = MyUser.objects.get(email=user_email)
+                user = self.request.user.uuid
+                # Get a user with the passed email
+                student = PersonalProfile.objects.get(user__email=user_email)
 
-            return student.ref_id == user  # limits viewership to students in watch list only
+                return student.ref_id == user  # limits viewership to students in watch list only
+            else:
+                return False
         except PersonalProfile.ObjectDoesNotExist:
 
             profile = PersonalProfile.objects.create(user__email=user_email)
